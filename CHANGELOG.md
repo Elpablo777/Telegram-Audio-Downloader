@@ -1,9 +1,54 @@
+[1.1.0]: https://github.com/Elpablo777/Telegram-Audio-Downloader/releases/tag/v1.1.0
 # 📝 Changelog
 
 Alle bemerkenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/),
 und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+## [Unreleased]
+
+### Hinzugefügt
+
+### Geändert
+
+### Veraltet
+
+### Entfernt
+
+### Behoben
+
+### Sicherheit
+
+
+## [1.1.0] - 2025-08-23
+
+### Hinzugefügt
+- Neue Skripte für Repository-Pflege und Versionsverwaltung
+- Detaillierte Anleitung für Repository-Wartung
+
+### Geändert
+- Setup.py und pyproject.toml für verbesserte Versionskonsistenz aktualisiert
+
+### Behoben
+- Kleiner Fehler in der Dateiverarbeitung behoben
+
+
+### Hinzugefügt
+
+- Neue Skripte für Repository-Pflege und Versionsverwaltung
+- Detaillierte Anleitung für Repository-Wartung
+
+### Geändert
+
+- Setup.py und pyproject.toml für verbesserte Versionskonsistenz aktualisiert
+
+### Behoben
+
+- Kleiner Fehler in der Dateiverarbeitung behoben
+
+### Sicherheit
 
 ## [1.0.0] - 2024-08-23
 
@@ -111,4 +156,8 @@ und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/spec/v
 ### Behoben
 - Behebung von Problemen mit der Dateinamensgenerierung
 - Korrektur der Abhängigkeitsverwaltung
-- Kleiner Fehler in der Dateiverarbeitung behoben
+
+[Unreleased]: https://github.com/Elpablo777/Telegram-Audio-Downloader/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/Elpablo777/Telegram-Audio-Downloader/releases/tag/v1.1.0
+[1.0.0]: https://github.com/Elpablo777/Telegram-Audio-Downloader/releases/tag/v1.0.0
+[0.1.0]: https://github.com/Elpablo777/Telegram-Audio-Downloader/releases/tag/v0.1.0
