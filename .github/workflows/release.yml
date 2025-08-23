@@ -50,8 +50,7 @@ jobs:
           echo "📝 Creating basic validation tests..."
           mkdir -p tests
           
-          # Create test file with proper escaping
-          cat > tests/test_basic_validation.py << 'TESTEOF'
+          cat > tests/test_basic_validation.py << 'EOF'
 #!/usr/bin/env python3
 """Basic validation tests for release."""
 import sys
@@ -86,7 +85,7 @@ if __name__ == "__main__":
     test_package_import()
     test_requirements_file()
     print("All basic validation tests passed")
-TESTEOF
+EOF
           
           python tests/test_basic_validation.py || echo "⚠️ Basic validation completed with warnings"
         fi
@@ -227,7 +226,7 @@ TESTEOF
         
         # If no specific notes found, use default
         if [ ! -s RELEASE_NOTES.md ]; then
-          cat > RELEASE_NOTES.md << 'NOTESEOF'
+          cat > RELEASE_NOTES.md << 'EOF'
 ## 🎉 What's New
 
 🎵 **Telegram Audio Downloader** - Enhanced version with improvements!
@@ -267,7 +266,7 @@ telegram-audio-downloader download --channel @musicchannel
 
 ---
 For detailed changes, see [CHANGELOG.md](CHANGELOG.md)
-NOTESEOF
+EOF
         fi
 
     - name: 🚀 Create GitHub Release
@@ -358,7 +357,7 @@ NOTESEOF
         
         # Update installation docs if they exist
         if [ -d "docs" ]; then
-          find docs/ -name "*.md" -exec sed -i "s|/releases/tag/v[0-9]\\+\\.[0-9]\\+\\.[0-9]\\+|/releases/tag/$VERSION|g" {} \; || echo "⚠️ Docs update completed"
+          find docs/ -name "*.md" -exec sed -i "s|/releases/tag/v[0-9]\\+\\.[0-9]\\+\\.[0-9]\\+|/releases/tag/$VERSION|g" {} \\; || echo "⚠️ Docs update completed"
         fi
       continue-on-error: true
 
@@ -393,7 +392,7 @@ NOTESEOF
         # Create basic performance test if it doesn't exist
         if [ ! -f "benchmarks/performance_test.py" ]; then
           mkdir -p benchmarks
-          cat > benchmarks/performance_test.py << 'PERFEOF'
+          cat > benchmarks/performance_test.py << 'EOF'
 #!/usr/bin/env python3
 """Basic performance benchmark for release validation."""
 import time
@@ -460,7 +459,7 @@ def main():
 
 if __name__ == "__main__":
     main()
-PERFEOF
+EOF
         fi
         
         # Run benchmark
