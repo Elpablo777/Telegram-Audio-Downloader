@@ -60,64 +60,68 @@ jobs:
     - name: 🧪 Create Basic Tests
       run: |
         mkdir -p tests
-        echo """
-import pytest
-import sys
-import os
-
-def test_python_version():
-    '''Test Python version compatibility.'''
-    assert sys.version_info >= (3, 11), 'Python 3.11+ required'
-
-def test_basic_imports():
-    '''Test basic Python imports work.'''
-    try:
-        import json
+        cat > tests/test_basic.py << 'EOF'
+        """
+        Basic test suite for CI/CD validation.
+        """
+        import pytest
         import sys
         import os
-        print('✅ Basic imports work')
-    except ImportError as e:
-        pytest.fail(f'Basic import failed: {e}')
 
-def test_package_structure():
-    '''Test package structure exists.'''
-    if os.path.exists('src/telegram_audio_downloader'):
-        print('✅ Package structure found in src/')
-    elif os.path.exists('telegram_audio_downloader.py'):
-        print('✅ Main module found in root')
-    else:
-        print('⚠️ Package structure unclear, but tests can continue')
+        def test_python_version():
+            """Test Python version compatibility."""
+            assert sys.version_info >= (3, 11), 'Python 3.11+ required'
 
-def test_dependencies_availability():
-    '''Test that core dependencies can be imported.'''
-    failed_imports = []
-    success_imports = []
-    
-    dependencies = [
-        'telethon', 'aiofiles', 'mutagen', 'click', 
-        'tqdm', 'rich', 'peewee', 'aiohttp'
-    ]
-    
-    for dep in dependencies:
-        try:
-            __import__(dep)
-            success_imports.append(dep)
-        except ImportError:
-            failed_imports.append(dep)
-    
-    print(f'✅ Successfully imported: {success_imports}')
-    if failed_imports:
-        print(f'⚠️ Failed imports: {failed_imports}')
-    
-    # Test passes if at least basic dependencies work
-    assert len(success_imports) > 0, 'No dependencies could be imported'
-        """ > tests/test_basic.py
+        def test_basic_imports():
+            """Test basic Python imports work."""
+            try:
+                import json
+                import sys
+                import os
+                print('✅ Basic imports work')
+            except ImportError as e:
+                pytest.fail(f'Basic import failed: {e}')
+
+        def test_package_structure():
+            """Test package structure exists."""
+            if os.path.exists('src/telegram_audio_downloader'):
+                print('✅ Package structure found in src/')
+            elif os.path.exists('telegram_audio_downloader.py'):
+                print('✅ Main module found in root')
+            else:
+                print('⚠️ Package structure unclear, but tests can continue')
+
+        def test_dependencies_availability():
+            """Test that core dependencies can be imported."""
+            failed_imports = []
+            success_imports = []
+            
+            dependencies = [
+                'telethon', 'aiofiles', 'mutagen', 'click', 
+                'tqdm', 'rich', 'peewee', 'aiohttp'
+            ]
+            
+            for dep in dependencies:
+                try:
+                    __import__(dep)
+                    success_imports.append(dep)
+                except ImportError:
+                    failed_imports.append(dep)
+            
+            print(f'✅ Successfully imported: {success_imports}')
+            if failed_imports:
+                print(f'⚠️ Failed imports: {failed_imports}')
+            
+            # Test passes if at least basic dependencies work
+            assert len(success_imports) > 0, 'No dependencies could be imported'
+        EOF
 
     - name: 🧪 Run Tests
       run: |
         python -m pytest tests/ -v --tb=short || echo "Tests completed with warnings"
 
     - name: 🔍 Basic Code Check
+      shell: bash
       run: |
         # Check if main files exist and are valid Python
         if [ -f "src/telegram_audio_downloader/__init__.py" ]; then
