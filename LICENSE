@@ -1,62 +1,6 @@
-                    GNU AFFERO GENERAL PUBLIC LICENSE
-                       Version 3, 19 November 2007
-
- Copyright (C) 2007 Free Software Foundation, Inc. <https://fsf.org/>
- Everyone is permitted to copy and distribute verbatim copies
- of this license document, but changing it is not allowed.
-
-                            Preamble
-
-  The GNU Affero General Public License is a free, copyleft license for
-software and other kinds of works, specifically designed to ensure
-cooperation with the community in the case of network server software.
-
-  The licenses for most software and other practical works are designed
-to take away your freedom to share and change the works.  By contrast,
-our General Public Licenses are intended to guarantee your freedom to
-share and change all versions of a program--to make sure it remains free
-software for all its users.
-
-  The GNU Affero General Public License is designed specifically to
-ensure that, in the case of software that runs on a server and serves
-network services, the source code of the modified version running on the
-server is made available to users of the service.
-
-  Additional Restrictions on Usage
-  ------------------------------
-  
-  This software is licensed under the AGPL-3.0 license with the following
-  additional restrictions:
-  
-  1. Commercial Use Restriction
-  ----------------------------
-  You may not use, modify, or distribute this software for any commercial 
-  purposes without obtaining a separate commercial license from the 
-  copyright holder (Pablo). For commercial licensing inquiries, please 
-  contact: [Ihre E-Mail-Adresse]
-  
-  Commercial purposes include, but are not limited to:
-  - Selling the software as a standalone product or as part of a bundle
-  - Including the software in a commercial product or service
-  - Using the software to provide a commercial service
-  - Any other use intended to generate revenue
-  
-  2. Source Code Availability
-  --------------------------
-  Any modified versions of this software must be made available under 
-  the same license terms, including this commercial use restriction.
-  
-  3. Contact Information
-  ---------------------
-  For inquiries regarding commercial use or other licensing options,
-  please contact: [Ihre E-Mail-Adresse]
-
-[Rest der Standard-AGPL-3.0-Lizenz folgt...]
-
-
 MIT License
 
-Copyright (c) 2024 Elpablo777
+Copyright (c) 2025 Elpablo777
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
