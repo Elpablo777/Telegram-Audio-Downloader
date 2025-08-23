@@ -1,0 +1,244 @@
+# 🐍 Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 📦 Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# 🧪 PyInstaller
+*.manifest
+*.spec
+
+# 🔧 Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# 🧪 Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# 🌍 Translations
+*.mo
+*.pot
+
+# 📊 Django stuff
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# 🧊 Flask stuff
+instance/
+.webassets-cache
+
+# 📈 Scrapy stuff
+.scrapy
+
+# 📚 Sphinx documentation
+docs/_build/
+
+# 🔬 PyBuilder
+target/
+
+# 📓 Jupyter Notebook
+.ipynb_checkpoints
+
+# ⚡ IPython
+profile_default/
+ipython_config.py
+
+# 🐍 pyenv
+.python-version
+
+# 🔧 pipenv
+Pipfile.lock
+
+# 🧊 PEP 582
+__pypackages__/
+
+# ☁️ Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# 🗂️ SageMath parsed files
+*.sage.py
+
+# 🌍 Environments
+.env
+.env.*
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# 🕷️ Spyder project settings
+.spyderproject
+.spyproject
+
+# 🛠️ Rope project settings
+.ropeproject
+
+# 📋 mkdocs documentation
+/site
+
+# ⚡ mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# 📊 Pyre type checker
+.pyre/
+
+# 🔍 pytype static type analyzer
+.pytype/
+
+# 📊 Cython debug symbols
+cython_debug/
+
+# 🎯 PyCharm
+.idea/
+
+# 📱 Telegram-specific
+*.session
+*.session-journal
+session_*
+telegram_session*
+
+# 🎵 Audio downloads
+downloads/
+*.mp3
+*.flac
+*.ogg
+*.m4a
+*.wav
+*.opus
+*.aac
+
+# 📊 Database files
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+data/
+database/
+
+# 📋 Log files
+logs/
+*.log.*
+error.log
+performance.log
+app.log
+
+# 🔧 Config files with sensitive data
+config.ini
+config.yaml
+config.json
+local_config.*
+
+# 📦 Backup files
+*.backup
+*.bak
+*.tmp
+*.temp
+
+# 🖼️ Thumbnails and cache
+.thumbnails/
+.cache/
+cache/
+
+# 📊 Coverage reports
+htmlcov/
+coverage/
+.coverage.*
+
+# 🐳 Docker
+.dockerignore
+docker-compose.override.yml
+
+# 🔒 Security files
+*.key
+*.pem
+*.crt
+*.p12
+secrets/
+.secrets/
+
+# 📈 Performance and profiling
+*.prof
+*.pstats
+
+# 🛠️ IDE files
+.vscode/
+*.swp
+*.swo
+*~
+
+# 🖥️ OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# 🎯 Project specific
+README_GITHUB.md
+temp/
+tmp/
+partial/
+*.partial
+
+# 📊 Testing artifacts
+.testmondata
+test_results/
+test_reports/
+
+# 🔧 Build artifacts
+build/
+dist/
+*.egg-info/
+
+# 🚀 Deployment
+deployment/
+.deploy/
+
+# 📋 Documentation builds
+docs/build/
+docs/_build/
+
+# 🎯 Local development
+local/
+dev/
+sandbox/

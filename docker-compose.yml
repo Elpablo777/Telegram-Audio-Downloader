@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  telegram-audio-downloader:
+    build: .
+    container_name: telegram-audio-downloader
+    volumes:
+      - ./.env:/app/.env
+      - ./data:/app/data
+      - ./downloads:/app/downloads
+      - ./config:/app/config
+    tty: true
+    stdin_open: true
+    command: /bin/bash
+    environment:
+      - PYTHONPATH=/app
+    networks:
+      - telegram-audio-net
+
+networks:
+  telegram-audio-net:
+    driver: bridge
