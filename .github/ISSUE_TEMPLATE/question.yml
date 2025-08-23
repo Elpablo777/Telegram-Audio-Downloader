@@ -1,0 +1,50 @@
+---
+name: ❓ Question / Support
+about: Stellen Sie eine Frage oder bitten Sie um Hilfe
+title: '[QUESTION] '
+labels: ['question', 'support']
+assignees: []
+---
+
+## ❓ **Ihre Frage**
+Stellen Sie Ihre Frage so detailliert wie möglich.
+
+## 🔍 **Was haben Sie bereits versucht?**
+Beschreiben Sie, was Sie bereits unternommen haben, um das Problem zu lösen.
+
+## 📖 **Dokumentation gecheckt?**
+- [ ] [README](https://github.com/Elpablo777/Telegram-Audio-Downloader/blob/main/README.md)
+- [ ] [Wiki](https://github.com/Elpablo777/Telegram-Audio-Downloader/wiki)
+- [ ] [FAQ](https://github.com/Elpablo777/Telegram-Audio-Downloader/wiki/FAQ)
+- [ ] [Discussions](https://github.com/Elpablo777/Telegram-Audio-Downloader/discussions)
+
+## 💻 **Umgebung** (falls relevant)
+- **OS**: [z.B. Windows 10, Ubuntu 20.04, macOS 12.0]
+- **Python Version**: [z.B. 3.11.2]
+- **Projektversion**: [z.B. 1.0.0]
+
+## 📋 **Konfiguration** (falls relevant)
+```bash
+# Zeigen Sie Ihre Konfiguration (ohne sensitive Daten!)
+```
+
+## 📸 **Screenshots/Logs** (falls relevant)
+```bash
+# Fügen Sie hier relevante Logs ein
+```
+
+## 🏷️ **Kategorie**
+- [ ] 📥 Installation/Setup
+- [ ] ⚙️ Konfiguration  
+- [ ] 🔧 Nutzung/Bedienung
+- [ ] 🐛 Möglicher Bug
+- [ ] 📊 Performance
+- [ ] 🔌 Integration
+- [ ] 📚 Dokumentation
+- [ ] 💡 Best Practices
+
+## ✅ **Checklist**
+- [ ] Ich habe in den Issues nach ähnlichen Fragen gesucht
+- [ ] Ich habe die Dokumentation gelesen
+- [ ] Meine Frage ist spezifisch und nachvollziehbar
+- [ ] Ich habe alle relevanten Informationen bereitgestellt

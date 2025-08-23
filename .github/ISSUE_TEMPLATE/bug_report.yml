@@ -1,0 +1,54 @@
+---
+name: 🐛 Bug Report
+about: Melden Sie einen Fehler um das Projekt zu verbessern
+title: '[BUG] '
+labels: ['bug', 'triage']
+assignees: ['Elpablo777']
+---
+
+## 🐛 **Fehlerbeschreibung**
+Eine klare und präzise Beschreibung des Fehlers.
+
+## 🔄 **Reproduktion**
+Schritte zur Reproduktion des Fehlers:
+
+1. Gehe zu '...'
+2. Klicke auf '...'
+3. Scrolle nach unten zu '...'
+4. Sieh den Fehler
+
+## ✅ **Erwartetes Verhalten**
+Eine klare und präzise Beschreibung dessen, was passieren sollte.
+
+## 📸 **Screenshots/Logs**
+Falls zutreffend, fügen Sie Screenshots oder Logs hinzu, um Ihr Problem zu erklären.
+
+```bash
+# Fügen Sie hier relevante Logs ein
+```
+
+## 💻 **Umgebung**
+- **OS**: [z.B. Windows 10, Ubuntu 20.04, macOS 12.0]
+- **Python Version**: [z.B. 3.11.2]
+- **Projektversion**: [z.B. 1.0.0]
+- **Telegram Client**: [z.B. Desktop, Mobile]
+
+## 📋 **Konfiguration**
+- **Parallele Downloads**: [z.B. 3]
+- **Audio Format**: [z.B. MP3, FLAC]
+- **Download-Verzeichnis**: [Pfad zum Download-Ordner]
+
+## 🔍 **Zusätzlicher Kontext**
+Fügen Sie hier weitere Informationen zum Problem hinzu.
+
+## ✅ **Checklist**
+- [ ] Ich habe die [Dokumentation](https://github.com/Elpablo777/Telegram-Audio-Downloader/wiki) gelesen
+- [ ] Ich habe nach ähnlichen Issues gesucht
+- [ ] Ich habe die neueste Version getestet
+- [ ] Ich habe die Logs überprüft
+
+## 🏷️ **Priority**
+- [ ] 🔥 Critical - Blockiert wichtige Funktionen
+- [ ] 🚨 High - Beeinträchtigt normale Nutzung
+- [ ] ⚠️ Medium - Kleinere Funktionsstörungen
+- [ ] 📝 Low - Kosmetische Probleme oder kleine Verbesserungen
