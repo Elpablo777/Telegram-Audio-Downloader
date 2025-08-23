@@ -10,7 +10,6 @@ Die häufigsten Fragen und Antworten zum Telegram Audio Downloader.
 - [Audio-Formate & Qualität](#audio-formate--qualität)
 - [Fehlerbehandlung](#fehlerbehandlung)
 - [Sicherheit & Datenschutz](#sicherheit--datenschutz)
-- [Automatisierung & Scripting](#automatisierung--scripting)
 
 ---
 
@@ -49,17 +48,6 @@ pip install -r requirements.txt
 pip install -e .
 ```
 
-### **Q: Kann ich mehrere Instanzen gleichzeitig laufen lassen?**
-**A:** Ja, aber mit verschiedenen Session-Namen:
-
-```bash
-# Instance 1
-SESSION_NAME=session1 telegram-audio-downloader download @gruppe1
-
-# Instance 2  
-SESSION_NAME=session2 telegram-audio-downloader download @gruppe2
-```
-
 ---
 
 ## 🔑 **Telegram API & Authentifizierung**
@@ -85,26 +73,6 @@ SESSION_NAME=session2 telegram-audio-downloader download @gruppe2
 2. Sie erhalten einen Bestätigungscode in Telegram
 3. Geben Sie diesen Code ein
 4. Falls 2FA aktiviert ist, geben Sie Ihr Cloud-Passwort ein
-
-### **Q: Kann ich mehrere Telegram-Accounts verwenden?**
-**A:** Ja, mit verschiedenen Session-Dateien:
-
-```bash
-# Account 1
-SESSION_NAME=account1 telegram-audio-downloader auth
-SESSION_NAME=account1 telegram-audio-downloader download @gruppe
-
-# Account 2
-SESSION_NAME=account2 telegram-audio-downloader auth
-SESSION_NAME=account2 telegram-audio-downloader download @gruppe
-```
-
-### **Q: Was passiert bei "FloodWaitError"?**
-**A:** Das ist Telegram's Rate-Limiting:
-- Das Tool wartet automatisch die erforderliche Zeit
-- Kein manueller Eingriff nötig
-- Downloads werden nach der Wartezeit fortgesetzt
-- Bei häufigen FloodWaits: `--parallel` reduzieren
 
 ---
 
@@ -136,18 +104,6 @@ telegram-audio-downloader download @gruppe --parallel=5 --limit=50
 - Verwenden Sie `--resume` für bessere Handling
 - Checksum-Verifikation mit `--verify-checksum`
 
-### **Q: Wie viel Speicherplatz wird benötigt?**
-**A:** Das variiert stark:
-- **Audio-Dateien**: 3-50MB pro Song (abhängig von Format/Qualität)
-- **Datenbank**: ~1MB pro 10.000 Songs
-- **Logs**: ~10MB bei normalem Gebrauch
-- **Temp-Dateien**: Werden automatisch bereinigt
-
-```bash
-# Speicherplatz überwachen
-telegram-audio-downloader performance --disk
-```
-
 ---
 
 ## 🎵 **Audio-Formate & Qualität**
@@ -171,17 +127,6 @@ telegram-audio-downloader performance --disk
 - **Erweiterte Tags**: Cover-Art, Dauer, Bitrate
 - **Automatische Extraktion** bei aktivierter `--metadata` Option
 - **Reparatur** möglich mit `telegram-audio-downloader metadata --repair`
-
-### **Q: Kann ich Cover-Art herunterladen?**
-**A:** Ja, automatisch:
-- Cover-Art wird aus eingebetteten Tags extrahiert
-- Speicherung als separate Datei möglich
-- Aktivierung mit `--extract-covers`
-
-```bash
-# Metadaten und Cover extrahieren
-telegram-audio-downloader download @gruppe --metadata --extract-covers
-```
 
 ---
 
@@ -223,31 +168,6 @@ telegram-audio-downloader db --check
 telegram-audio-downloader db --repair
 ```
 
-### **Q: Speicher-Probleme bei großen Downloads?**
-**A:** Memory-Management optimieren:
-```bash
-# Memory-Limit setzen
-export MAX_MEMORY_MB=512
-telegram-audio-downloader download @gruppe
-
-# Oder in .env-Datei
-echo "MAX_MEMORY_MB=512" >> .env
-
-# Memory-Monitoring aktivieren
-telegram-audio-downloader performance --memory --watch
-```
-
-### **Q: Windows: "Access is denied" Fehler?**
-**A:** Berechtigungsprobleme lösen:
-```powershell
-# Als Administrator ausführen
-# Oder Verzeichnis-Berechtigungen ändern
-icacls "C:\path\to\downloads" /grant %USERNAME%:F
-
-# Antivirus-Software temporär deaktivieren
-# Windows Defender Ausnahme hinzufügen
-```
-
 ---
 
 ## 🔒 **Sicherheit & Datenschutz**
@@ -277,12 +197,6 @@ PROXY_PORT=9050
 PROXY_USERNAME=user
 PROXY_PASSWORD=pass
 ```
-
-### **Q: Werden Downloads verschlüsselt übertragen?**
-**A:** Ja:
-- Telethon nutzt MTProto-Verschlüsselung
-- End-to-End zwischen Client und Telegram
-- Keine Man-in-the-Middle-Angriffe möglich
 
 ---
 
@@ -319,32 +233,6 @@ async def my_download():
 asyncio.run(my_download())
 ```
 
-### **Q: Kann ich Webhooks für Download-Benachrichtigungen einrichten?**
-**A:** Nicht direkt, aber mit Scripting:
-
-```bash
-# Download mit Benachrichtigung
-telegram-audio-downloader download @gruppe --limit=10 && \
-curl -X POST https://hooks.slack.com/... -d '{"text":"Download completed"}'
-
-# Oder per Email (Linux/macOS)
-telegram-audio-downloader download @gruppe --limit=10 && \
-echo "Download completed" | mail -s "TelegramAudio" user@example.com
-```
-
-### **Q: Kann ich mehrere Gruppen automatisch abonnieren?**
-**A:** Ja, mit Batch-Files:
-
-```bash
-# groups.txt erstellen
-echo "@musikgruppe1" > groups.txt
-echo "@musikgruppe2" >> groups.txt  
-echo "Klassische Musik" >> groups.txt
-
-# Batch-Download
-telegram-audio-downloader download --batch-file=groups.txt --limit=10
-```
-
 ---
 
 ## 📊 **Monitoring & Statistiken**
@@ -361,17 +249,6 @@ telegram-audio-downloader stats --csv > downloads.csv
 
 # Detailed Report
 telegram-audio-downloader stats --detailed --period=all
-```
-
-### **Q: Kann ich das Tool mit Monitoring-Tools integrieren?**
-**A:** Ja, über JSON-APIs:
-
-```bash
-# Prometheus-kompatible Metriken
-telegram-audio-downloader performance --json | jq '.memory_usage'
-
-# Grafana-Dashboard Setup
-# JSON-Output regelmäßig in InfluxDB einlesen
 ```
 
 ### **Q: Gibt es ein Web-Interface?**
@@ -402,23 +279,6 @@ pip install --upgrade telegram-audio-downloader
 cp .env .env.backup
 telegram-audio-downloader db --backup=database_backup.db
 tar -czf telegram_audio_backup.tar.gz .env data/ downloads/
-
-# Regelmäßiges Backup via Cron
-0 3 * * 0 cd /path/to/project && telegram-audio-downloader db --backup=weekly_backup_$(date +\%Y\%m\%d).db
-```
-
-### **Q: Kann ich alte Downloads bereinigen?**
-**A:** Ja, selektiv:
-
-```bash
-# Datenbank bereinigen (verwaiste Einträge)
-telegram-audio-downloader db --cleanup
-
-# Alte Logs löschen
-find data/ -name "*.log" -mtime +30 -delete
-
-# Duplikate finden
-telegram-audio-downloader search --duplicates
 ```
 
 ---
@@ -447,55 +307,6 @@ telegram-audio-downloader search --duplicates
 - **Übersetzungen**: Multi-Language Support
 - **Bug Reports**: Qualitäts-Feedback
 
-### **Q: Gibt es eine Community/Discord/Telegram-Gruppe?**
-**A:** Aktuell:
-- **GitHub Discussions** für Community-Austausch
-- **Issues** für technische Probleme
-- **Email**: hannover84@msn.com für direkte Fragen
-
----
-
-## 🎯 **Erweiterte Use Cases**
-
-### **Q: Kann ich das Tool für Podcast-Downloads verwenden?**
-**A:** Ja, perfekt geeignet:
-- Podcasts sind oft als Audio-Dateien in Kanälen
-- Automatische Metadaten-Extraktion für Episode-Info
-- Batch-Downloads für ganze Serien
-- Cron-Jobs für neue Episoden
-
-### **Q: Funktioniert es für Hörbuch-Downloads?**
-**A:** Ja, mit Einschränkungen:
-- Einzelne Audio-Dateien: ✅ Perfekt
-- Multi-Part Hörbücher: ✅ Mit manueller Sortierung
-- Automatische Kapitel-Erkennung: ❌ Noch nicht implementiert
-
-### **Q: Kann ich Musik für DJ-Sets herunterladen?**
-**A:** Ja, ideal dafür:
-- High-Quality Format-Filter (`--format=flac`)
-- Metadaten für DJ-Software (BPM, Key) 
-- Batch-Downloads aus Mix-Kanälen
-- Performance-Monitoring für große Sets
-
----
-
-## 🛠️ **Troubleshooting Quick-Links**
-
-**Installation Issues:**
-- [Python Version Problems](Troubleshooting#python-version)
-- [Dependency Conflicts](Troubleshooting#dependencies)
-- [Permission Errors](Troubleshooting#permissions)
-
-**Authentication Issues:**
-- [API Credentials](Troubleshooting#api-credentials)
-- [Session Problems](Troubleshooting#sessions)
-- [2FA Issues](Troubleshooting#two-factor)
-
-**Download Issues:**
-- [Network Errors](Troubleshooting#network)
-- [Storage Problems](Troubleshooting#storage)
-- [Performance Issues](Troubleshooting#performance)
-
 ---
 
 ## 📞 **Weitere Hilfe**
@@ -507,15 +318,6 @@ telegram-audio-downloader search --duplicates
 3. **[Discussions](https://github.com/Elpablo777/Telegram-Audio-Downloader/discussions)** - Community-Fragen
 4. **Email**: hannover84@msn.com - Direkte Unterstützung
 
-**Bei der Kontaktaufnahme bitte angeben:**
-- Betriebssystem und Version
-- Python-Version
-- Fehlermeldung (vollständig)  
-- Reproduktions-Schritte
-- Log-Dateien (bei Fehlern)
-
 ---
 
 **Happy Downloading!** 🎵✨
-
-*Diese FAQ wird regelmäßig aktualisiert basierend auf Community-Feedback und häufigen Support-Anfragen.*
