@@ -100,24 +100,6 @@ cp .env.example .env
 nano .env  # Ihre API-Daten eintragen
 ```
 
-### **Alternative Linux-Distributionen**
-
-**CentOS/RHEL/Fedora:**
-```bash
-# Pakete installieren
-sudo dnf install -y python3.11 python3-pip git ffmpeg
-
-# Rest wie oben...
-```
-
-**Arch Linux:**
-```bash
-# Pakete installieren
-sudo pacman -S python python-pip git ffmpeg
-
-# Rest wie oben...
-```
-
 ---
 
 ## 🍎 **macOS Installation**
@@ -149,12 +131,6 @@ cp .env.example .env
 nano .env  # Ihre API-Daten eintragen
 ```
 
-### **macOS-spezifische Hinweise**
-- Stellen Sie sicher, dass Xcode Command Line Tools installiert sind:
-  ```bash
-  xcode-select --install
-  ```
-
 ---
 
 ## 🐳 **Docker Installation**
@@ -175,19 +151,6 @@ docker-compose up -d
 
 # 4. Tool verwenden
 docker-compose exec telegram-audio-downloader telegram-audio-downloader --help
-```
-
-### **Docker ohne Compose**
-
-```bash
-# 1. Image erstellen
-docker build -t telegram-audio-downloader .
-
-# 2. Container ausführen
-docker run -it --rm \
-  -v $(pwd)/downloads:/app/downloads \
-  -v $(pwd)/.env:/app/.env \
-  telegram-audio-downloader telegram-audio-downloader --help
 ```
 
 ---
@@ -270,39 +233,6 @@ telegram-audio-downloader config --show
 
 ---
 
-## 🔧 **Entwickler-Installation**
-
-Für Entwickler, die am Projekt mitwirken möchten:
-
-```bash
-# 1. Fork des Repositories erstellen (GitHub Web UI)
-
-# 2. Entwickler-Repository klonen
-git clone https://github.com/IHR-USERNAME/Telegram-Audio-Downloader.git
-cd Telegram-Audio-Downloader
-
-# 3. Entwicklungs-Environment einrichten
-python -m venv venv
-source venv/bin/activate  # Linux/macOS
-venv\Scripts\activate     # Windows
-
-# 4. Entwicklungs-Abhängigkeiten installieren
-pip install -e ".[dev]"
-
-# 5. Pre-commit Hooks installieren
-pre-commit install
-
-# 6. Tests ausführen
-pytest
-
-# 7. Code-Quality prüfen
-flake8 src/
-black src/
-mypy src/
-```
-
----
-
 ## 🆘 **Problemlösung**
 
 ### **Häufige Installationsprobleme**
@@ -338,27 +268,6 @@ python -m venv venv
 - Stellen Sie sicher, dass keine Leerzeichen oder Anführungszeichen in den Werten sind
 - API_ID muss eine Zahl sein, API_HASH ein String
 
-**Berechtigungsfehler (Linux/macOS):**
-```bash
-# Download-Verzeichnis erstellen
-mkdir -p downloads
-chmod 755 downloads
-
-# Log-Verzeichnis erstellen
-mkdir -p data
-chmod 755 data
-```
-
-### **Logs überprüfen**
-
-```bash
-# Aktuelle Logs anzeigen
-tail -f data/telegram_audio_downloader.log
-
-# Debug-Modus aktivieren
-telegram-audio-downloader --debug download @gruppe
-```
-
 ---
 
 ## 🚀 **Nächste Schritte**
@@ -371,11 +280,5 @@ Nach erfolgreicher Installation:
 4. **[FAQ](FAQ)** - Häufig gestellte Fragen
 
 ---
-
-## 💬 **Hilfe & Support**
-
-- **GitHub Issues**: [Bug Reports & Feature Requests](https://github.com/Elpablo777/Telegram-Audio-Downloader/issues)
-- **Discussions**: [Community-Forum](https://github.com/Elpablo777/Telegram-Audio-Downloader/discussions)
-- **Email**: hannover84@msn.com
 
 **Happy Installing!** 🎉
