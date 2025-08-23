@@ -1,4 +1,4 @@
-""
+"""
 Hauptmodul für den Telegram Audio Downloader.
 """
 from .cli import main

@@ -6,7 +6,7 @@ import re
 import hashlib
 import logging
 from pathlib import Path
-from typing import Dict, Optional, Union, List
+from typing import Dict, Optional, Union, List, Any
 from datetime import datetime
 
 import mutagen
