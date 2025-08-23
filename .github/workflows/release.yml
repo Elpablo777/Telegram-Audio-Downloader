@@ -30,6 +30,7 @@ jobs:
       
       - name: 🔢 Extract Version
         id: version
+        shell: bash
         run: |
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             VERSION="${{ github.event.inputs.version }}"
@@ -59,14 +60,17 @@ jobs:
           python-version: '3.11'
       
       - name: 📦 Install Build Dependencies
+        shell: bash
         run: |
           python -m pip install --upgrade pip
           pip install build twine wheel setuptools
+        continue-on-error: false
 
       - name: 🔍 Verify Package Structure
+        shell: bash
         run: |
           echo "📋 Checking package structure..."
-          python -c "
+          python -c <<'EOF'
           import sys, os
           sys.path.insert(0, 'src')
           try:
@@ -75,9 +79,11 @@ jobs:
           except Exception as e:
             print(f'⚠️ Package import issue: {e}')
             print('✅ Continuing with build...')
-          "
+          EOF
+        continue-on-error: true
           
       - name: 🏗️ Build Package
+        shell: bash
         run: |
           echo "🏗️ Building package with setup.py..."
           python -m build
@@ -86,6 +92,7 @@ jobs:
           # Verify built packages
           python -m twine check dist/* || echo "⚠️ Twine check had warnings, continuing..."
           echo "✅ Package built successfully"
+        continue-on-error: false
       
       - name: 📤 Upload Build Artifacts
         uses: actions/upload-artifact@v4
@@ -115,6 +122,7 @@ jobs:
       
       - name: 📝 Generate Changelog
         id: changelog
+        shell: bash
         run: |
           VERSION="${{ needs.validate-release.outputs.version }}"
           
@@ -184,11 +192,11 @@ jobs:
           Developed with ❤️ by [Elpablo777](https://github.com/Elpablo777)"
           fi
           
-          {
-            echo "CHANGELOG_CONTENT<<EOF"
-            echo "$CHANGELOG_CONTENT"
-            echo "EOF"
-          } >> $GITHUB_OUTPUT
+          cat <<EOF >> $GITHUB_OUTPUT
+          CHANGELOG_CONTENT<<CHANGELOG_EOF
+          $CHANGELOG_CONTENT
+          CHANGELOG_EOF
+          EOF
       
       - name: 🎉 Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -252,3 +260,4 @@ jobs:
           files: |
             dist/*
           generate_release_notes: true
+        continue-on-error: false
