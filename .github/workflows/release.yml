@@ -49,7 +49,9 @@ jobs:
         else
           echo "📝 Creating basic validation tests..."
           mkdir -p tests
-          cat > tests/test_basic_validation.py <<'EOF'
+          
+          # Create test file with proper escaping
+          cat > tests/test_basic_validation.py << 'TESTEOF'
 #!/usr/bin/env python3
 """Basic validation tests for release."""
 import sys
@@ -64,12 +66,12 @@ def test_package_import():
     try:
         sys.path.insert(0, 'src')
         import telegram_audio_downloader
-        print("✅ Package imports successfully")
+        print("Package imports successfully")
         if hasattr(telegram_audio_downloader, '__version__'):
-            print(f"✅ Version: {telegram_audio_downloader.__version__}")
+            print(f"Version: {telegram_audio_downloader.__version__}")
         return True
     except Exception as e:
-        print(f"⚠️ Package import issue: {e}")
+        print(f"Package import issue: {e}")
         return True  # Don't fail release for import issues
 
 def test_requirements_file():
@@ -83,8 +85,9 @@ if __name__ == "__main__":
     test_python_version()
     test_package_import()
     test_requirements_file()
-    print("✅ All basic validation tests passed")
-EOF
+    print("All basic validation tests passed")
+TESTEOF
+          
           python tests/test_basic_validation.py || echo "⚠️ Basic validation completed with warnings"
         fi
       continue-on-error: true
@@ -224,7 +227,7 @@ EOF
         
         # If no specific notes found, use default
         if [ ! -s RELEASE_NOTES.md ]; then
-          cat > RELEASE_NOTES.md <<'EOF'
+          cat > RELEASE_NOTES.md << 'NOTESEOF'
 ## 🎉 What's New
 
 🎵 **Telegram Audio Downloader** - Enhanced version with improvements!
@@ -264,7 +267,7 @@ telegram-audio-downloader download --channel @musicchannel
 
 ---
 For detailed changes, see [CHANGELOG.md](CHANGELOG.md)
-EOF
+NOTESEOF
         fi
 
     - name: 🚀 Create GitHub Release
@@ -390,7 +393,7 @@ EOF
         # Create basic performance test if it doesn't exist
         if [ ! -f "benchmarks/performance_test.py" ]; then
           mkdir -p benchmarks
-          cat > benchmarks/performance_test.py <<'EOF'
+          cat > benchmarks/performance_test.py << 'PERFEOF'
 #!/usr/bin/env python3
 """Basic performance benchmark for release validation."""
 import time
@@ -409,7 +412,7 @@ def benchmark_basic_operations():
     end_time = time.time()
     duration = end_time - start_time
     
-    print(f"✅ Basic operations benchmark: {duration:.3f}s")
+    print(f"Basic operations benchmark: {duration:.3f}s")
     return duration
 
 def benchmark_file_operations():
@@ -431,18 +434,18 @@ def benchmark_file_operations():
     end_time = time.time()
     duration = end_time - start_time
     
-    print(f"✅ File operations benchmark: {duration:.3f}s")
+    print(f"File operations benchmark: {duration:.3f}s")
     return duration
 
 def main():
     """Run all benchmarks."""
-    print("🚀 Starting performance benchmarks...")
+    print("Starting performance benchmarks...")
     
     basic_time = benchmark_basic_operations()
     file_time = benchmark_file_operations()
     
     total_time = basic_time + file_time
-    print(f"🎯 Total benchmark time: {total_time:.3f}s")
+    print(f"Total benchmark time: {total_time:.3f}s")
     
     # Save results
     results_dir = "benchmarks/results"
@@ -453,11 +456,11 @@ def main():
         f.write(f"File Operations: {file_time:.3f}s\n")
         f.write(f"Total Time: {total_time:.3f}s\n")
     
-    print("✅ Performance benchmarks completed successfully!")
+    print("Performance benchmarks completed successfully!")
 
 if __name__ == "__main__":
     main()
-EOF
+PERFEOF
         fi
         
         # Run benchmark
