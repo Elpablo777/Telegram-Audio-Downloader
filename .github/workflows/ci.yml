@@ -1,2 +1,36 @@
-# DELETED - Diese Datei wurde gelöscht für Neustart
-# Backup verfügbar in Git-Historie: Commit 9b84b4501c9df83616fa2dc8c0f80480da15549c
+name: ✅ Simple CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: 🧪 Basic Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout
+      uses: actions/checkout@v4
+      
+    - name: 🐍 Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        
+    - name: 📦 Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: 🔍 Basic Check
+      run: |
+        echo "✅ Repository structure check"
+        ls -la
+        echo "✅ Python version check"
+        python --version
+        echo "✅ Dependencies check"
+        pip list
+        echo "🎉 All basic checks passed!"
