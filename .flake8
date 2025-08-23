@@ -1,0 +1,117 @@
+[flake8]
+# Base configuration
+max-line-length = 88
+max-complexity = 10
+select = E,W,F,C,N,B,BLK,I
+extend-ignore = 
+    # Black compatibility
+    E203,  # whitespace before ':'
+    E501,  # line too long (handled by black)
+    W503,  # line break before binary operator
+    # Docstring requirements (handled separately)
+    D100,  # Missing docstring in public module
+    D101,  # Missing docstring in public class
+    D102,  # Missing docstring in public method
+    D103,  # Missing docstring in public function
+    D104,  # Missing docstring in public package
+    D105,  # Missing docstring in magic method
+    # Other ignores
+    B008,  # Do not perform function calls in argument defaults
+    N806,  # Variable in function should be lowercase
+    N803,  # Argument name should be lowercase
+
+# File patterns
+exclude = 
+    .git,
+    __pycache__,
+    .venv,
+    venv,
+    env,
+    .env,
+    .tox,
+    .eggs,
+    *.egg,
+    build,
+    dist,
+    .pytest_cache,
+    .coverage,
+    htmlcov,
+    .mypy_cache,
+    .ruff_cache,
+    node_modules,
+    migrations
+
+# Path configuration
+application-import-names = telegram_audio_downloader
+import-order-style = google
+
+# Per-file ignores
+per-file-ignores =
+    # Tests can use assert statements and magic numbers
+    tests/*: S101,B101,PLR2004
+    # __init__.py files can have unused imports
+    __init__.py: F401,F403
+    # CLI modules can have complex functions
+    cli.py: C901,PLR0913
+    # Legacy modules (if any) can have naming issues
+    legacy/*: N802,N803,N806
+
+# Docstring configuration
+docstring-convention = google
+strictness = short
+require-return-section-when-returning-nothing = false
+
+# Import configuration
+banned-modules = 
+    # Deprecated modules
+    imp = Use importlib instead
+    # Unsafe modules in production
+    pickle = Use safer alternatives like json
+
+# Complexity thresholds
+max-arguments = 8
+max-locals = 20
+max-returns = 6
+max-branches = 15
+max-statements = 60
+
+# Naming conventions
+classmethod-decorators = classmethod,validator,root_validator
+staticmethod-decorators = staticmethod,lru_cache,singledispatch
+
+# Security settings
+# Bandit configuration for flake8-bandit
+bandit-config = .bandit
+
+# Plugin configurations
+inline-quotes = double
+multiline-quotes = double
+avoid-escape = true
+
+# McCabe complexity plugin
+max-cyclomatic-complexity = 10
+
+# Cognitive complexity (if using flake8-cognitive-complexity)
+max-cognitive-complexity = 12
+
+# Error format
+format = %(path)s:%(row)d:%(col)d: %(code)s %(text)s
+show-source = true
+statistics = true
+count = true
+
+# Aggressive mode for certain checks
+aggressive = 1
+
+# Enable specific flake8 plugins
+enable-extensions = 
+    B,    # flake8-bugbear
+    C4,   # flake8-comprehensions  
+    SIM,  # flake8-simplify
+    BLK,  # flake8-black
+    I,    # flake8-isort
+    Q,    # flake8-quotes
+    T,    # flake8-print
+    PIE,  # flake8-pie
+    COM,  # flake8-commas
+    A,    # flake8-builtins

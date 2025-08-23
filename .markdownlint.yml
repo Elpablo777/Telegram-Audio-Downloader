@@ -1,0 +1,105 @@
+# Markdown Lint Configuration
+# See: https://github.com/DavidAnson/markdownlint
+
+# Default rules
+default: true
+
+# Line length
+MD013:
+  line_length: 120
+  headings: false
+  tables: false
+  code_blocks: false
+
+# Trailing spaces
+MD009:
+  br_spaces: 2
+
+# Hard tabs
+MD010: false
+
+# Multiple consecutive blank lines
+MD012:
+  maximum: 2
+
+# Line length in code blocks
+MD040: false
+
+# Fenced code blocks
+MD046:
+  style: fenced
+
+# Inline HTML
+MD033:
+  allowed_elements:
+    - br
+    - details
+    - summary
+    - img
+    - a
+    - kbd
+    - sup
+    - sub
+    - mark
+    - del
+    - ins
+
+# Emphasis style
+MD049:
+  style: asterisk
+
+# Strong style  
+MD050:
+  style: asterisk
+
+# Link fragments
+MD051: false
+
+# Reference links
+MD052: false
+
+# Ignore specific rules for certain patterns
+# GitHub-style task lists
+MD004: false  # Unordered list style
+MD007:        # Unordered list indentation
+  indent: 2
+
+# First line in file
+MD041: false
+
+# Headings
+MD001: false  # Heading levels should only increment by one level at a time
+MD003:        # Heading style
+  style: atx
+
+MD022:        # Headings should be surrounded by blank lines
+  lines_above: 1
+  lines_below: 1
+
+MD024:        # Multiple headings with the same content
+  allow_different_nesting: true
+  siblings_only: true
+
+MD025:        # Multiple top level headings in the same document
+  front_matter_title: "^\\s*title\\s*[:=]"
+
+# Lists
+MD030:        # Spaces after list markers
+  ul_single: 1
+  ol_single: 1
+  ul_multi: 1
+  ol_multi: 1
+
+# URLs
+MD034: false  # Bare URL used
+
+# Horizontal rules
+MD035:
+  style: "---"
+
+# Code blocks
+MD046:
+  style: fenced
+
+# Table formatting
+MD056: false  # Table column count

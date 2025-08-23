@@ -1,0 +1,163 @@
+{
+  "name": "Telegram Audio Downloader Development",
+  "image": "mcr.microsoft.com/devcontainers/python:3.11",
+  
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "18"
+    }
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.black-formatter", 
+        "ms-python.isort",
+        "ms-python.flake8",
+        "ms-python.mypy-type-checker",
+        "ms-python.pylint",
+        "charliermarsh.ruff",
+        "ms-vscode.test-adapter-converter",
+        "littlefoxteam.vscode-python-test-adapter",
+        "ms-vscode.makefile-tools",
+        "redhat.vscode-yaml",
+        "yzhang.markdown-all-in-one",
+        "davidanson.vscode-markdownlint",
+        "ms-vscode.vscode-json",
+        "tamasfe.even-better-toml",
+        "github.vscode-pull-request-github",
+        "github.copilot",
+        "github.copilot-chat",
+        "ms-vscode.live-server",
+        "formulahendry.auto-rename-tag",
+        "bradlc.vscode-tailwindcss",
+        "esbenp.prettier-vscode"
+      ],
+      
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.terminal.activateEnvironment": true,
+        "python.formatting.provider": "black",
+        "python.formatting.blackArgs": ["--config", "pyproject.toml"],
+        "python.sortImports.args": ["--profile", "black"],
+        "python.linting.enabled": true,
+        "python.linting.pylintEnabled": true,
+        "python.linting.flake8Enabled": true,
+        "python.linting.mypyEnabled": true,
+        "python.testing.pytestEnabled": true,
+        "python.testing.unittestEnabled": false,
+        "python.testing.pytestArgs": [
+          "tests",
+          "--verbose",
+          "--tb=short"
+        ],
+        
+        "files.associations": {
+          "*.env": "properties",
+          "*.ini": "ini",
+          "Dockerfile*": "dockerfile",
+          "*.dockerfile": "dockerfile"
+        },
+        
+        "files.exclude": {
+          "**/__pycache__": true,
+          "**/*.pyc": true,
+          "**/.pytest_cache": true,
+          "**/.mypy_cache": true,
+          "**/.coverage": true,
+          "**/htmlcov": true,
+          "**/.tox": true,
+          "**/dist": true,
+          "**/*.egg-info": true,
+          "**/node_modules": true
+        },
+        
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+          "source.organizeImports": true,
+          "source.fixAll": true
+        },
+        "editor.rulers": [88],
+        "editor.tabSize": 4,
+        "editor.insertSpaces": true,
+        
+        "terminal.integrated.shell.linux": "/bin/bash",
+        "terminal.integrated.profiles.linux": {
+          "bash": {
+            "path": "/bin/bash",
+            "args": ["-l"]
+          }
+        },
+        
+        "git.autofetch": true,
+        "git.enableSmartCommit": true,
+        "git.confirmSync": false,
+        
+        "markdownlint.config": {
+          "default": true,
+          "MD013": false,
+          "MD033": false
+        }
+      }
+    }
+  },
+
+  "containerEnv": {
+    "PYTHONPATH": "/workspaces/Telegram-Audio-Downloader/src",
+    "DEVELOPMENT": "true",
+    "LOG_LEVEL": "DEBUG"
+  },
+
+  "remoteEnv": {
+    "PATH": "${containerEnv:PATH}:/workspaces/Telegram-Audio-Downloader/.devcontainer/bin"
+  },
+
+  "mounts": [
+    "source=${localWorkspaceFolder}/.env,target=/workspaces/Telegram-Audio-Downloader/.env,type=bind,consistency=cached",
+    "source=telegram-audio-downloads,target=/workspaces/Telegram-Audio-Downloader/downloads,type=volume",
+    "source=telegram-audio-data,target=/workspaces/Telegram-Audio-Downloader/data,type=volume"
+  ],
+
+  "postCreateCommand": "bash .devcontainer/setup.sh",
+  "postStartCommand": "bash .devcontainer/start.sh",
+
+  "forwardPorts": [
+    8080,
+    9090,
+    5432,
+    6379
+  ],
+
+  "portsAttributes": {
+    "8080": {
+      "label": "Development Server",
+      "onAutoForward": "notify"
+    },
+    "9090": {
+      "label": "Metrics/Monitoring",
+      "onAutoForward": "silent"
+    },
+    "5432": {
+      "label": "PostgreSQL Database",
+      "onAutoForward": "silent"
+    },
+    "6379": {
+      "label": "Redis Cache",
+      "onAutoForward": "silent"
+    }
+  },
+
+  "otherPortsAttributes": {
+    "onAutoForward": "silent"
+  },
+
+  "workspaceFolder": "/workspaces/Telegram-Audio-Downloader",
+  "remoteUser": "vscode",
+
+  "updateContentCommand": "bash .devcontainer/update.sh",
+  "waitFor": "postCreateCommand"
+}

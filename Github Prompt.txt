@@ -1,0 +1,164 @@
+Sprich, Denke, Rede und Schreib Immer und ausschließlich auf deutsch, oder übersetzt es in Deutsch damit ich es verstehen kann!! Denke immer ultra stark und tief nach!!!  gib dir besonders viel mühe!!
+
+"Du bist ein GitHub-Experte. Nutze Issues, um Aufgaben zu erstellen, Pull Requests, um Codeänderungen vorzuschlagen, und erstelle gegebenenfalls auch Forks, um Änderungen zu isolieren. Automatisiere Abläufe mit GitHub Actions. Dokumentiere jeden Schritt ausführlich in Markdown, inklusive Patchlogs. Wähle eine Lizenz, die die Nutzung erlaubt, aber kommerzielle Nutzung ausschließt. Nutze Tags, Branches, Code of Conduct, Security Policies, Releases, Sponsoren, Diskussionen, Wikis und sicherheitsrelevante sowie rechtliche Aspekte. Ziel ist es, das volle Potenzial von GitHub zu demonstrieren und dabei möglichst viele der Funktionen zu nutzen."
+
+GitHub für Experten: Ein umfassender Leitfaden zur Maximierung Ihres Projektpotenzials
+Dieses Handbuch dient als detaillierte Anleitung zur professionellen Nutzung von GitHub. Es demonstriert, wie Sie durch den strategischen Einsatz von GitHub-Funktionen Projekte effizient verwalten, die Zusammenarbeit fördern und eine sichere, gut dokumentierte und offene Umgebung schaffen können.
+Phase 1: Projektinitialisierung und -planung
+Jedes erfolgreiche Projekt beginnt mit einer soliden Grundlage. Diese Phase konzentriert sich auf die anfängliche Einrichtung und die strategische Planung.
+1. Recherche und Anforderungsanalyse (Gedächtnisfunktion)
+Bevor eine einzige Zeile Code geschrieben wird, ist es entscheidend, das Projekt vollständig zu verstehen.
+ * Eingabeaufforderung (Prompt) für die KI: Nutzen Sie eine KI-gestützte Umgebung (wie Cursor oder einen ähnlichen Editor), um das Projekt einzulesen. Der erste Prompt sollte darauf abzielen, eine Zusammenfassung der Projektziele, des Zielpublikums und der Kernfunktionalitäten zu erstellen.
+   * Beispiel-Prompt:
+     > "Analysiere das beigefügte Projektdokument [PROJEKTNAME]_Anforderungen.md. Erstelle eine Zusammenfassung, die die folgenden Punkte abdeckt:
+     >  * Projektvision: Was ist das übergeordnete Ziel des Projekts?
+     >  * Kern-Features: Liste die 5 wichtigsten Funktionalitäten auf.
+     >  * Zielgruppe: Wer sind die primären Nutzer?
+     >  * Technologie-Stack (vermutet): Welche Technologien könnten für dieses Projekt geeignet sein?"
+     > 
+ * Iterative Verfeinerung: Basierend auf der ersten Zusammenfassung, stellen Sie gezielte Folgefragen, um Unklarheiten zu beseitigen und Details zu schärfen.
+2. Repository-Erstellung und grundlegende Konfiguration
+Das Repository ist das Herzstück Ihres Projekts auf GitHub.
+ * Neues Repository: Erstellen Sie ein neues Repository. Geben Sie ihm einen klaren, prägnanten Namen.
+ * Beschreibung: Fügen Sie eine aussagekräftige Beschreibung hinzu, die das Projekt in einem Satz zusammenfasst.
+ * README.md: Initialisieren Sie das Repository mit einer README.md-Datei. Dies ist die Visitenkarte Ihres Projekts. Eine gute README.md enthält:
+   * Einen Projektnamen und ein Logo.
+   * Badges (z. B. für Build-Status, Lizenz).
+   * Eine detaillierte Projektbeschreibung.
+   * Installations- und Nutzungsanweisungen.
+   * Einen Link zur CONTRIBUTING.md.
+ * .gitignore: Fügen Sie eine .gitignore-Datei hinzu, die auf Ihr gewähltes Framework und Ihre Entwicklungsumgebung zugeschnitten ist, um unnötige Dateien (z. B. node_modules, pycache, Build-Artefakte) vom Tracking auszuschließen.
+3. Wahl der richtigen Lizenz
+Die Lizenz definiert die rechtlichen Rahmenbedingungen für die Nutzung Ihres Codes. Für die Anforderung "Nutzung erlaubt, aber kommerzielle Nutzung ausgeschlossen" eignet sich eine Creative Commons Attribution-NonCommercial (CC BY-NC) Lizenz.
+ * LICENSE-Datei: Erstellen Sie eine LICENSE-Datei im Stammverzeichnis und fügen Sie den vollständigen Text der gewählten Lizenz (z. B. CC BY-NC 4.0) ein. Dies schafft von Anfang an Klarheit.
+4. Aufgabenmanagement mit GitHub Issues
+Issues sind mehr als nur Bug-Reports; sie sind das zentrale Werkzeug für die Aufgabenplanung.
+ * Aufgabenlisten erstellen: Wandeln Sie die in der Recherchephase identifizierten Kern-Features in Issues um. Nutzen Sie dabei die Aufgabenlisten-Funktion in Markdown.
+   * Beispiel für einen Issue-Body:
+     > Feature: Benutzerauthentifizierung
+     > Dieses Epic umfasst alle Aufgaben zur Implementierung der Benutzerregistrierung und des Logins.
+     >  * [ ] Design der UI/UX für Login- und Registrierungsformulare
+     >  * [ ] Erstellung des Datenbank-Schemas für Benutzer
+     >  * [ ] Implementierung der Registrierungs-API-Endpunkte
+     >  * [ ] Implementierung der Login-API-Endpunkte
+     >  * [ ] Einbindung von Passwort-Hashing (bcrypt)
+     >  * [ ] Erstellung von Frontend-Komponenten
+     >  * [ ] Unit-Tests für die Authentifizierungslogik
+     > 
+ * Labels und Meilensteine:
+   * Labels: Verwenden Sie Labels, um Issues zu kategorisieren (bug, enhancement, documentation, question) und zu priorisieren (priority: high, priority: medium).
+   * Meilensteine (Milestones): Gruppieren Sie Issues in Meilensteinen, um Releases oder Sprints zu planen (z. B. Version 1.0, Sprint 1 - Core Features).
+Phase 2: Entwicklung und Zusammenarbeit
+In dieser Phase findet die eigentliche Code-Erstellung und -änderung statt, wobei der Fokus auf nachvollziehbaren und isolierten Änderungen liegt.
+1. Branching-Strategie
+Arbeiten Sie niemals direkt auf dem main-Branch. Eine etablierte Branching-Strategie ist entscheidend für die Code-Stabilität.
+ * Git Flow (vereinfacht):
+   * main: Enthält nur produktiven, stabilen Code. Jeder Commit auf main ist ein Release.
+   * develop: Der Hauptentwicklungs-Branch. Hier werden alle Features zusammengeführt.
+   * feature/<feature-name>: Jeder neue Task oder jedes neue Feature wird in einem eigenen Branch entwickelt, der von develop abzweigt (z. B. feature/user-authentication).
+2. Forks zur Isolierung von Beiträgen
+Wenn externe Entwickler oder Teams mitarbeiten, die keine direkten Schreibrechte haben, kommen Forks ins Spiel.
+ * Prozess:
+   * Ein externer Beitragender "forkt" das Haupt-Repository. Dies erstellt eine persönliche Kopie unter seinem eigenen GitHub-Account.
+   * Der Beitragende klont seinen Fork lokal, erstellt einen Feature-Branch und implementiert die Änderungen.
+   * Die Änderungen werden in den Fork auf GitHub gepusht.
+   * Von dort aus erstellt der Beitragende einen Pull Request gegen den develop-Branch des ursprünglichen (Upstream-)Repositorys.
+3. Pull Requests (PRs) für Code-Änderungen
+Pull Requests sind der Mechanismus für Code-Reviews und die Diskussion über vorgeschlagene Änderungen.
+ * Erstellung eines PRs:
+   * Geben Sie dem PR einen klaren Titel und eine detaillierte Beschreibung.
+   * Verlinken Sie den PR mit dem zugehörigen Issue (z. B. durch "Closes #123" im PR-Text), damit das Issue automatisch geschlossen wird, wenn der PR gemerged wird.
+   * Fordern Sie Reviews von relevanten Teammitgliedern an (Reviewers).
+ * Code-Review:
+   * Reviewer prüfen den Code auf Qualität, Funktionalität und die Einhaltung von Coding-Standards.
+   * Kommentare und Änderungsvorschläge werden direkt im Code hinterlassen.
+   * Eine Diskussion entsteht, die zu Verbesserungen führt.
+ * Merge: Sobald der PR genehmigt ist und alle automatisierten Checks (siehe GitHub Actions) erfolgreich waren, wird er in den Ziel-Branch (develop) gemerged.
+Phase 3: Automatisierung, Dokumentation und Community
+Diese Phase fokussiert sich auf die Optimierung von Arbeitsabläufen und die Schaffung einer nachhaltigen Projekt-Community.
+1. Automatisierung mit GitHub Actions
+Automatisieren Sie repetitive Aufgaben, um die Qualität zu sichern und Zeit zu sparen. Erstellen Sie Workflow-Dateien im .github/workflows/-Verzeichnis.
+ * Continuous Integration (CI): Erstellen Sie einen Workflow (ci.yml), der bei jedem Push auf einen Feature-Branch oder bei jedem PR gegen develop ausgeführt wird.
+   * Jobs: Definieren Sie Jobs für Linting, Testing und Building.
+   * Beispiel-Workflow-Ausschnitt (ci.yml):
+     name: Continuous Integration
+
+on:
+  push:
+    branches: [ develop, feature/** ]
+  pull_request:
+    branches: [ develop ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+    - name: Install dependencies
+      run: npm install
+    - name: Run tests
+      run: npm test
+
+2. Ausführliche Dokumentation in Markdown
+ * Wiki: Nutzen Sie das GitHub Wiki für eine detaillierte, strukturierte Dokumentation, die über die README.md hinausgeht.
+   * Struktur: Erstellen Sie Seiten für Architektur-Entscheidungen, API-Referenzen, Design-Guidelines und Tutorials.
+   * Sidebar und Footer: Passen Sie die Wiki-Navigation an, um den Benutzern die Orientierung zu erleichtern.
+ * Patchlogs / Changelogs: Führen Sie eine CHANGELOG.md-Datei im Stammverzeichnis. Dokumentieren Sie bei jedem Release die Änderungen.
+   * Format: Halten Sie sich an den "Keep a Changelog"-Standard.
+   * Kategorien: Added, Changed, Deprecated, Removed, Fixed, Security.
+3. Releases, Tags und Versionierung
+ * Tags: Wenn der develop-Branch bereit für ein Release ist, wird er in den main-Branch gemerged. Dieser Commit auf main wird mit einem Git-Tag versehen (z. B. v1.0.0), der die Version markiert. Nutzen Sie Semantische Versionierung (MAJOR.MINOR.PATCH).
+ * Releases: Erstellen Sie auf GitHub einen "Release" basierend auf diesem Tag.
+   * Release Notes: Kopieren Sie die relevanten Abschnitte aus Ihrem CHANGELOG.md in die Release-Beschreibung.
+   * Assets: Hängen Sie kompilierte Binärdateien oder andere Build-Artefakte an den Release an.
+4. Community-Aufbau und Interaktion
+ * Code of Conduct: Erstellen Sie eine CODE_OF_CONDUCT.md-Datei. Nutzen Sie die von GitHub bereitgestellte Vorlage (Contributor Covenant) als Basis. Dies signalisiert eine einladende und respektvolle Community.
+ * GitHub Discussions: Aktivieren Sie Discussions für Ihr Repository, um einen Ort für Fragen, Ideen und allgemeine Gespräche zu schaffen, die keine konkreten Aufgaben (Issues) sind.
+   * Unterschied zu Issues: Issues sind für Aktionen (Bugs, Aufgaben), Discussions für Konversationen.
+ * Sponsoren (GitHub Sponsors): Wenn Ihr Projekt wächst, können Sie ein Sponsoren-Profil einrichten.
+   * Tiers (Stufen): Definieren Sie verschiedene Sponsoring-Stufen mit unterschiedlichen Belohnungen (z. B. Logo in der README, früherer Zugang zu Features, persönlicher Support).
+5. Sicherheits- und rechtliche Aspekte
+ * Security Policy: Erstellen Sie eine SECURITY.md-Datei (/.github/SECURITY.md). Diese sollte klar definieren, wie Sicherheitslücken verantwortungsvoll gemeldet werden sollen (z. B. über eine private E-Mail-Adresse und nicht über öffentliche Issues).
+ * Dependabot: Aktivieren Sie Dependabot in den Repository-Einstellungen, um automatisch über Sicherheitslücken in Ihren Abhängigkeiten informiert zu werden und Pull Requests für Updates zu erhalten.
+Finaler Prompt zur umfassenden Projektdurchführung (Agenten-Modus)
+Dieser sehr ausführliche Prompt kann als Leitfaden für einen KI-Agenten dienen, um das gesamte Projektmanagement zu steuern.
+> Rolle: Du bist ein GitHub-Experte und Senior Projektmanager.
+> Projektkontext: Wir starten das Open-Source-Projekt "CodeMentor-AI", ein Tool, das Entwicklern hilft, ihren Code durch KI-gestützte Vorschläge zu verbessern. Das Projekt wird in TypeScript mit React für das Frontend und Node.js für das Backend entwickelt.
+> Deine Aufgabe: Leite den gesamten Lebenszyklus des Projekts auf GitHub. Du arbeitest im Agenten-Modus, was bedeutet, dass du proaktiv handelst, recherchierst, planst und ausführst. Lösche niemals Historie; alle Änderungen müssen nachvollziehbar sein. Nutze die "Gedächtnis"-Funktion, um den Kontext über Interaktionen hinweg zu behalten.
+> Phase 1: Initialisierung und Planung
+>  * Repository-Struktur: Erstelle eine detaillierte Verzeichnisstruktur für das "CodeMentor-AI"-Projekt.
+>  * Lizenzwahl: Bestätige die Wahl der Creative Commons Attribution-NonCommercial 4.0 International-Lizenz und erstelle die LICENSE-Datei.
+>  * Community-Grundlagen:
+>    * Erstelle eine README.md-Datei, die Badges für eine zukünftige CI-Pipeline (Platzhalter), eine Projektbeschreibung, Installationsanweisungen (mit npm install) und Nutzungsbeispiele enthält.
+>    * Erstelle eine CONTRIBUTING.md, die unsere Branching-Strategie (Git Flow-Variante) und den Pull-Request-Prozess erklärt.
+>    * Erstelle eine CODE_OF_CONDUCT.md basierend auf dem Contributor Covenant.
+>  * Aufgabenplanung (Issues):
+>    * Analysiere diese Haupt-Features: 1. Benutzerauthentifizierung, 2. Code-Upload-Funktion, 3. KI-Analyse-Engine (Mock), 4. Ergebnis-Visualisierung.
+>    * Erstelle für jedes Haupt-Feature ein Epic-Issue.
+>    * Zerlege jedes Epic in mindestens 3-5 konkrete Task-Issues mit Aufgabenlisten (Markdown-Checklisten).
+>    * Weise den Issues die Labels feature, backend, frontend, documentation und Prioritäts-Labels (high, medium) zu.
+>    * Erstelle einen Meilenstein "v0.1.0 - MVP" und weise ihm alle erstellten Issues zu.
+> Phase 2: Entwicklungsworkflow (Simulation)
+>  * Branching: Gib die exakten Git-Befehle an, die ein Entwickler nutzen würde, um mit der Arbeit am Issue "Erstellung des Datenbank-Schemas für Benutzer" zu beginnen (Branch von develop erstellen).
+>  * Pull Request: Simuliere einen Pull Request für den abgeschlossenen Task. Erstelle einen Muster-PR-Titel und eine Beschreibung, die auf das entsprechende Issue verweist.
+> Phase 3: Automatisierung und Dokumentation
+>  * GitHub Actions:
+>    * Schreibe einen vollständigen ci.yml-Workflow für ein Node.js/TypeScript-Projekt. Der Workflow soll bei jedem PR gegen develop triggern und die Schritte Checkout, Setup Node.js, npm install, npm run lint, und npm run test beinhalten.
+>  * Sicherheit:
+>    * Erstelle den Inhalt für die SECURITY.md, die private Meldungen von Sicherheitslücken an security@codementor.ai vorschreibt.
+>    * Erkläre, wie Dependabot für das Repository aktiviert wird.
+>  * Dokumentation:
+>    * Entwirf eine Struktur für das GitHub-Wiki mit Hauptseiten wie "Home", "Architektur", "API-Referenz" und "Erste Schritte für Entwickler".
+>    * Erstelle eine Vorlage für die CHANGELOG.md.
+> Phase 4: Community und Release
+>  * Discussions: Erkläre, wie du GitHub Discussions aktivieren und welche Kategorien du erstellen würdest (z. B. "General", "Ideas", "Q&A").
+>  * Sponsors: Entwirf drei Sponsoring-Stufen für "CodeMentor-AI" mit Preisen und Belohnungen.
+>  * Release-Prozess: Beschreibe den schrittweisen Prozess, um v1.0.0 zu veröffentlichen, von der Erstellung des Release-Branches über das Taggen auf main bis hin zur Erstellung des Releases auf GitHub inklusive Release Notes.
+> Abschließende Anweisung: Führe diese Aufgaben sequenziell aus. Gib nach jedem Hauptschritt eine Zusammenfassung und frage nach einer Bestätigung, bevor du mit dem nächsten fortfährst. Dokumentiere jeden deiner Schritte und Entscheidungen lückenlos.
+>
+
+NUtze immer wen möglich die MCP (model kontext Protockoll) Server, , und beschrifte den code damit andere wissen was diese codezeeile bewirkt und ggf den abhängigkeiten und orte zu schreiben.

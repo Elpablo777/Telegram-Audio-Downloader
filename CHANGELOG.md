@@ -111,3 +111,4 @@ und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/spec/v
 ### Behoben
 - Behebung von Problemen mit der Dateinamensgenerierung
 - Korrektur der Abhängigkeitsverwaltung
+- Kleiner Fehler in der Dateiverarbeitung behoben
