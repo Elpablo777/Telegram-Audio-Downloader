@@ -23,7 +23,8 @@ Willkommen zur offiziellen Dokumentation des Telegram Audio Downloaders! Hier fi
 
 ### 🛠 **Development**
 - [Contributing Guide](Contributing-Guide) - Wie Sie beitragen können
-- [Architecture Overview](Architecture-Overview) - Technische Architektur
+- [Architecture Overview](Architecture-Overview) - Technische Architektur und System-Design
+- [Best Practices](Best-Practices) - Bewährte Praktiken für optimale Nutzung
 - [Testing](Testing) - Test-Framework und Best Practices
 - [Release Process](Release-Process) - Entwicklungs-Workflow
 
