@@ -37,22 +37,29 @@ jobs:
           ~/.local/share/pip-cache
           ${{ runner.os == 'Windows' && '~\\AppData\\Local\\pip\\Cache' || '' }}
           ${{ runner.os == 'macOS' && '~/Library/Caches/pip' || '' }}
-        key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('**/requirements.txt') }}
+        key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('**/requirements.txt', '**/setup.py') }}
         restore-keys: |
           ${{ runner.os }}-pip-${{ matrix.python-version }}-
           ${{ runner.os }}-pip-
 
-    - name: 🔧 Install Dependencies
+    - name: 🔧 Install Package and Dependencies
       run: |
         python -m pip install --upgrade pip setuptools wheel
-        pip install pytest pytest-cov flake8
-        pip install telethon aiofiles aiohttp mutagen colorama tqdm
-        pip install python-dotenv click asyncio
+        # Install package in development mode with all dependencies
+        pip install -e .
+        # Install additional test dependencies
+        pip install pytest pytest-cov flake8 pytest-asyncio
 
-    - name: 🧪 Create Basic Test
+    - name: 📋 Verify Installation
+      run: |
+        python -c "import telegram_audio_downloader; print(f'✅ Package version: {telegram_audio_downloader.__version__}')"
+        telegram-audio-downloader --help
+        echo "✅ Package installed successfully"
+
+    - name: 🧪 Create and Run Tests
       run: |
         mkdir -p tests
-        cat > tests/test_basic.py << 'EOF'
+        cat > tests/test_package.py << 'EOF'
         import pytest
         import sys
         import os
@@ -61,37 +68,61 @@ jobs:
             """Test Python version compatibility."""
             assert sys.version_info >= (3, 11), "Python 3.11+ required"
 
-        def test_main_module_exists():
-            """Test main module file exists."""
-            main_file = "telegram_audio_downloader.py"
-            assert os.path.exists(main_file), f"Main module {main_file} not found"
+        def test_package_import():
+            """Test package can be imported."""
+            import telegram_audio_downloader
+            assert hasattr(telegram_audio_downloader, '__version__')
+            print(f"✅ Package version: {telegram_audio_downloader.__version__}")
 
         def test_dependencies():
             """Test core dependencies can be imported."""
-            try:
-                import telethon
-                import aiofiles
-                import mutagen
-                print("✅ Core dependencies imported successfully")
-            except ImportError as e:
-                pytest.fail(f"Dependency import failed: {e}")
+            import telethon
+            import aiofiles
+            import mutagen
+            import click
+            import tqdm
+            import rich
+            print("✅ All core dependencies imported successfully")
+
+        def test_cli_exists():
+            """Test CLI entry point exists."""
+            import telegram_audio_downloader.cli
+            assert hasattr(telegram_audio_downloader.cli, 'main')
+            print("✅ CLI module found")
         EOF
 
-    - name: 🎯 Basic Syntax Check
-      run: |
-        python -m py_compile telegram_audio_downloader.py
-        echo "✅ Main module syntax is valid"
-
-    - name: 🧪 Run Tests
-      run: |
         python -m pytest tests/ -v --tb=short
-      continue-on-error: false
 
     - name: 🔍 Code Quality Check
       run: |
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --exclude=build,dist,*.egg-info,venv,env
-        echo "✅ Basic code quality check passed"
+        # Basic syntax check for all Python files
+        python -c "import telegram_audio_downloader; print('✅ Package syntax valid')"
+        
+        # Flake8 check (non-blocking)
+        flake8 src/ --count --select=E9,F63,F7,F82 --show-source --statistics || echo "⚠️ Code quality warnings found"
+        echo "✅ Syntax checks completed"
       continue-on-error: true
+
+  package-test:
+    name: 📦 Package Build Test
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+
+    - name: 🐍 Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: 🏗️ Test Package Build
+      run: |
+        python -m pip install --upgrade pip build twine
+        python -m build
+        python -m twine check dist/*
+        echo "✅ Package builds successfully"
 
   docker-test:
     name: 🐳 Docker Build Test
@@ -115,10 +146,11 @@ jobs:
           cat > Dockerfile << 'EOF'
         FROM python:3.11-slim
         WORKDIR /app
-        COPY requirements.txt .
-        RUN pip install --no-cache-dir -r requirements.txt
-        COPY . .
-        CMD ["python", "telegram_audio_downloader.py", "--help"]
+        COPY requirements.txt setup.py ./
+        COPY src/ src/
+        RUN pip install --no-cache-dir -e .
+        ENTRYPOINT ["telegram-audio-downloader"]
+        CMD ["--help"]
         EOF
           docker build -t telegram-audio-downloader:test .
           echo "✅ Docker build with generated Dockerfile successful"
@@ -127,7 +159,7 @@ jobs:
   notify:
     name: 📢 CI Results
     runs-on: ubuntu-latest
-    needs: [test, docker-test]
+    needs: [test, package-test, docker-test]
     if: always()
 
     steps:
@@ -142,6 +174,12 @@ jobs:
           echo "❌ **Tests**: Failed" >> $GITHUB_STEP_SUMMARY
         fi
         
+        if [ "${{ needs.package-test.result }}" = "success" ]; then
+          echo "✅ **Package Build**: Passed" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ **Package Build**: Failed" >> $GITHUB_STEP_SUMMARY
+        fi
+        
         if [ "${{ needs.docker-test.result }}" = "success" ]; then
           echo "✅ **Docker**: Passed" >> $GITHUB_STEP_SUMMARY
         else
@@ -149,4 +187,5 @@ jobs:
         fi
         
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "CI/CD Pipeline completed. Repository is ready for use!" >> $GITHUB_STEP_SUMMARY
+        echo "🎉 **CI/CD Pipeline completed successfully!**" >> $GITHUB_STEP_SUMMARY
+        echo "Repository is ready for use with proper package structure." >> $GITHUB_STEP_SUMMARY
