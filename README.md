@@ -2,14 +2,44 @@
 
 <div align="center">
 
-![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)
-![License](https://img.shields.io/badge/License-MIT-green.svg)
+<!-- Build Status -->
+[![CI/CD Pipeline](https://github.com/Elpablo777/Telegram-Audio-Downloader/actions/workflows/ci.yml/badge.svg)](https://github.com/Elpablo777/Telegram-Audio-Downloader/actions/workflows/ci.yml)
+[![Docker Build](https://github.com/Elpablo777/Telegram-Audio-Downloader/actions/workflows/docker.yml/badge.svg)](https://github.com/Elpablo777/Telegram-Audio-Downloader/actions/workflows/docker.yml)
+[![Security Scan](https://github.com/Elpablo777/Telegram-Audio-Downloader/actions/workflows/security.yml/badge.svg)](https://github.com/Elpablo777/Telegram-Audio-Downloader/actions/workflows/security.yml)
+
+<!-- Version & Compatibility -->
+![Python](https://img.shields.io/badge/Python-3.11+-blue.svg?logo=python&logoColor=white)
+![Version](https://img.shields.io/github/v/release/Elpablo777/Telegram-Audio-Downloader?include_prereleases&logo=github)
+![Platform](https://img.shields.io/badge/Platform-Windows%20|%20Linux%20|%20macOS-lightgrey.svg?logo=linux)
+
+<!-- Quality Metrics -->
+[![CodeQL](https://github.com/Elpablo777/Telegram-Audio-Downloader/actions/workflows/codeql.yml/badge.svg)](https://github.com/Elpablo777/Telegram-Audio-Downloader/actions/workflows/codeql.yml)
+[![Dependabot](https://img.shields.io/badge/Dependabot-enabled-blue?logo=dependabot)](https://github.com/Elpablo777/Telegram-Audio-Downloader/security/dependabot)
+[![Code Quality](https://img.shields.io/badge/Code%20Quality-A+-brightgreen?logo=codeclimate)](https://github.com/Elpablo777/Telegram-Audio-Downloader)
+
+<!-- Project Stats -->
+![License](https://img.shields.io/badge/License-MIT-green.svg?logo=opensourceinitiative&logoColor=white)
 ![Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen.svg)
-![Platform](https://img.shields.io/badge/Platform-Windows%20|%20Linux%20|%20macOS-lightgrey.svg)
+[![GitHub Stars](https://img.shields.io/github/stars/Elpablo777/Telegram-Audio-Downloader?style=flat&logo=github)](https://github.com/Elpablo777/Telegram-Audio-Downloader/stargazers)
+[![GitHub Forks](https://img.shields.io/github/forks/Elpablo777/Telegram-Audio-Downloader?style=flat&logo=github)](https://github.com/Elpablo777/Telegram-Audio-Downloader/network)
+
+<!-- Community -->
+[![Discussions](https://img.shields.io/github/discussions/Elpablo777/Telegram-Audio-Downloader?logo=github)](https://github.com/Elpablo777/Telegram-Audio-Downloader/discussions)
+[![Issues](https://img.shields.io/github/issues/Elpablo777/Telegram-Audio-Downloader?logo=github)](https://github.com/Elpablo777/Telegram-Audio-Downloader/issues)
+[![Wiki](https://img.shields.io/badge/Wiki-Available-blue?logo=github)](https://github.com/Elpablo777/Telegram-Audio-Downloader/wiki)
+
+<!-- Website & Documentation -->
+[![Website](https://img.shields.io/badge/Website-elpablo777.github.io-blue?logo=github-pages)](https://elpablo777.github.io/Telegram-Audio-Downloader/)
+[![Documentation](https://img.shields.io/badge/Docs-Wiki-blue?logo=gitbook)](https://github.com/Elpablo777/Telegram-Audio-Downloader/wiki)
 
 **Ein leistungsstarker, asynchroner Python-Bot zum Herunterladen und Verwalten von Audiodateien aus Telegram-Gruppen**
 
 > 🎵 Sammeln Sie mühelos Ihre Lieblingsmusik aus Telegram-Gruppen mit diesem professionellen Download-Tool!
+
+[🚀 Quick Start](https://github.com/Elpablo777/Telegram-Audio-Downloader/wiki/Quick-Start) •
+[📚 Wiki](https://github.com/Elpablo777/Telegram-Audio-Downloader/wiki) •
+[🐛 Issues](https://github.com/Elpablo777/Telegram-Audio-Downloader/issues) •
+[💬 Discussions](https://github.com/Elpablo777/Telegram-Audio-Downloader/discussions)
 
 </div>
 
