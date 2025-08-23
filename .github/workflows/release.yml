@@ -31,8 +31,14 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt || echo "⚠️ Requirements install had issues, continuing..."
         pip install -e . || echo "⚠️ Package install had issues, continuing..."
-        pip install pytest pytest-cov flake8 mypy || echo "⚠️ Dev dependencies install had issues, continuing..."
       continue-on-error: true
+
+    - name: 📦 Install Test Dependencies
+      shell: bash
+      run: |
+        pip install pytest pytest-cov flake8 mypy
+        echo "✅ Test dependencies installed successfully"
+      continue-on-error: false
 
     - name: 🧪 Run Tests
       shell: bash
