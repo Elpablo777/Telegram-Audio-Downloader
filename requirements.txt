@@ -1,29 +1,109 @@
-# Core
+# 📦 Production Dependencies
+# Core libraries required for the application to run
+
+# ===== Telegram Client =====
 telethon>=1.29.2
+# MTProto API client for Telegram
+
+# ===== Environment & Configuration =====
 python-dotenv>=1.0.0
+# Environment variable management from .env files
+
+# ===== Progress & User Interface =====
 tqdm>=4.66.1
-aiofiles>=23.2.0
-psutil>=5.9.0
-
-# Audio Processing
-mutagen>=1.47.0
-pydub>=0.25.1
-
-# Database
-peewee>=3.16.2
-
-# CLI
-click>=8.1.3
+# Progress bars for command line
 rich>=13.4.2
+# Rich text and beautiful formatting in terminal
 
-# Development
-pytest>=7.3.1
-pytest-asyncio>=0.21.0
-black>=23.3.0
-isort>=5.12.0
-flake8>=6.0.0
-mypy>=1.3.0
+# ===== Async File Operations =====
+aiofiles>=23.2.0
+# Asynchronous file operations
 
-# Docker
-docker>=6.1.3
-python-multipart>=0.0.6
+# ===== System Monitoring =====
+psutil>=5.9.0
+# System and process utilities
+
+# ===== Audio Processing =====
+mutagen>=1.47.0
+# Audio metadata extraction and manipulation
+pydub>=0.25.1
+# Audio file manipulation and conversion
+
+# ===== Database =====
+peewee>=3.16.2
+# Lightweight ORM for SQLite
+
+# ===== Command Line Interface =====
+click>=8.1.3
+# CLI framework for command creation
+
+# ===== HTTP Client =====
+aiohttp>=3.8.0
+# Async HTTP client for API calls
+
+# ===== Cryptography =====
+cryptography>=41.0.0
+# Encryption and security utilities
+
+# ===== Data Validation =====
+pydantic>=2.0.0
+# Data validation using type hints
+
+# ===== Date and Time =====
+python-dateutil>=2.8.2
+# Powerful extensions to datetime
+
+# ===== String Similarity =====
+fuzzywuzzy>=0.18.0
+python-Levenshtein>=0.21.0
+# Fuzzy string matching
+
+# ===== Configuration Files =====
+pyyaml>=6.0
+# YAML file parsing for configuration
+
+# ===== Logging =====
+structlog>=23.1.0
+# Structured logging
+
+# ===== Performance =====
+uvloop>=0.17.0; sys_platform != "win32"
+# High-performance event loop (Unix only)
+
+# ===== File Type Detection =====
+python-magic>=0.4.27; sys_platform != "win32"
+python-magic-bin>=0.4.14; sys_platform == "win32"
+# File type detection by content
+
+# ===== Retry Logic =====
+tenacity>=8.2.0
+# Retry library with exponential backoff
+
+# ===== Development Dependencies (Optional) =====
+# Uncomment the section below for development
+
+# ===== Testing =====
+# pytest>=7.3.1
+# pytest-asyncio>=0.21.0
+# pytest-cov>=4.1.0
+# pytest-mock>=3.11.1
+# pytest-xdist>=3.3.1
+# pytest-benchmark>=4.0.0
+
+# ===== Code Quality =====
+# black>=23.3.0
+# isort>=5.12.0
+# flake8>=6.0.0
+# mypy>=1.3.0
+# bandit>=1.7.5
+# safety>=2.3.5
+
+# ===== Development Tools =====
+# pre-commit>=3.3.0
+# twine>=4.0.0
+# build>=0.10.0
+# wheel>=0.40.0
+
+# ===== Docker Support (Optional) =====
+# docker>=6.1.3
+# python-multipart>=0.0.6
