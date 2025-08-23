@@ -12,7 +12,7 @@ import aiofiles
 import time
 
 from telethon import TelegramClient, events
-from telethon.errors import FloodWaitError, RPCError, NetworkError, ServerError
+from telethon.errors import FloodWaitError, RPCError
 from telethon.tl.types import Message, Document, DocumentAttributeAudio, MessageMediaDocument
 from tqdm import tqdm
 
@@ -384,7 +384,7 @@ class AudioDownloader:
             else:
                 logger.error(f"Zu viele FloodWait-Fehler für {file_id}, überspringe")
                 
-        except (NetworkError, ServerError, ConnectionError) as e:
+        except (RPCError, ConnectionError) as e:
             error_tracker.track_error(e, f"network_{file_id}", "ERROR")
             
             if error_tracker.should_retry(e, f"network_{file_id}"):

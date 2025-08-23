@@ -209,12 +209,12 @@ class ErrorTracker:
         current_count = self.error_counts.get(error_key, 0)
         
         # Telegram-spezifische Retry-Logik
-        from telethon.errors import FloodWaitError, NetworkError, ServerError
+        from telethon.errors import FloodWaitError
         
         if isinstance(error, FloodWaitError):
             return True  # Immer retry bei FloodWait
         
-        if isinstance(error, (NetworkError, ServerError)):
+        if isinstance(error, (ConnectionError, TimeoutError)):
             return current_count < max_retries
         
         if isinstance(error, (ConnectionError, TimeoutError)):
@@ -239,7 +239,7 @@ def get_logger(name: str = "telegram_audio_downloader") -> logging.Logger:
             config = configparser.ConfigParser()
             config.read(config_path)
             
-            log_config = config.get("logging", fallback={})
+            log_config = config["logging"] if "logging" in config else {}
             _global_logger.configure(
                 level=log_config.get("level", "INFO"),
                 log_file=log_config.get("file", "data/telegram_audio_downloader.log"),
