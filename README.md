@@ -14,6 +14,7 @@
 
 <!-- Quality Metrics -->
 [![CodeQL](https://github.com/Elpablo777/Telegram-Audio-Downloader/actions/workflows/codeql.yml/badge.svg)](https://github.com/Elpablo777/Telegram-Audio-Downloader/actions/workflows/codeql.yml)
+[![codecov](https://codecov.io/gh/Elpablo777/Telegram-Audio-Downloader/branch/main/graph/badge.svg)](https://codecov.io/gh/Elpablo777/Telegram-Audio-Downloader)
 [![Dependabot](https://img.shields.io/badge/Dependabot-enabled-blue?logo=dependabot)](https://github.com/Elpablo777/Telegram-Audio-Downloader/security/dependabot)
 [![Code Quality](https://img.shields.io/badge/Code%20Quality-A+-brightgreen?logo=codeclimate)](https://github.com/Elpablo777/Telegram-Audio-Downloader)
 

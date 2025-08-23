@@ -6,8 +6,8 @@ Vielen Dank für Ihr Interesse am Telegram Audio Downloader! Hier finden Sie Inf
 
 1. Das Repository forken und klonen:
    ```bash
-   git clone https://github.com/dein-benutzer/telegram-audio-downloader.git
-   cd telegram-radio-bot
+   git clone https://github.com/IHR-BENUTZERNAME/Telegram-Audio-Downloader.git
+   cd Telegram-Audio-Downloader
    ```
 
 2. Virtuelle Umgebung erstellen und aktivieren:
