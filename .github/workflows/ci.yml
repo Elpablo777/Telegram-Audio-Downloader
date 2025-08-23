@@ -1,4 +1,4 @@
-name: 🚀 CI/CD Pipeline
+name: ✅ Simple CI
 
 on:
   push:
@@ -42,10 +42,10 @@ jobs:
             python-version: '3.12'
 
     steps:
-    - name: 📥 Checkout Code
+    - name: 📥 Checkout
       uses: actions/checkout@v4
 
-    - name: 🐍 Set up Python ${{ matrix.python-version }}
+    - name: 🐍 Setup Python
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
@@ -127,18 +127,18 @@ jobs:
         echo "🚀 **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
         echo "📝 **Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        
+
         if [ "${{ needs.test.result }}" = "success" ]; then
           echo "✅ **Tests**: Passed" >> $GITHUB_STEP_SUMMARY
         else
           echo "❌ **Tests**: Failed" >> $GITHUB_STEP_SUMMARY
         fi
-        
+
         if [ "${{ needs.docker-test.result }}" = "success" ] || [ "${{ needs.docker-test.result }}" = "skipped" ]; then
           echo "✅ **Docker**: Passed" >> $GITHUB_STEP_SUMMARY
         else
           echo "❌ **Docker**: Failed" >> $GITHUB_STEP_SUMMARY
         fi
-        
+
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "📈 **Workflow run**: [${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY

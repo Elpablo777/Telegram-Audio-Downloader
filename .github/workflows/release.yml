@@ -1,4 +1,4 @@
-name: 🚀 Release Workflow
+name: 🚀 Simple Release
 
 on:
   push:
@@ -7,199 +7,52 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Release version (e.g., 1.0.0)'
+        description: 'Release version (e.g., v1.0.0)'
         required: true
-        type: string
-      prerelease:
-        description: 'Is this a pre-release?'
-        required: false
-        type: boolean
-        default: false
+        default: 'v1.0.0'
 
 jobs:
-  validate-release:
-    name: 🔍 Validate Release
+  release:
+    name: 📦 Create Release
     runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.version.outputs.version }}
-      tag: ${{ steps.version.outputs.tag }}
-    
-    steps:
-      - name: 📥 Checkout Code
-        uses: actions/checkout@v4
-      
-      - name: 🔢 Extract Version
-        id: version
-        run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            VERSION="${{ github.event.inputs.version }}"
-            TAG="v${VERSION}"
-          else
-            TAG="${{ github.ref_name }}"
-            VERSION="${TAG#v}"
-          fi
-          
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
-          echo "tag=${TAG}" >> $GITHUB_OUTPUT
-          echo "Release version: ${VERSION}"
-          echo "Release tag: ${TAG}"
-
-  build-artifacts:
-    name: 🏗️ Build Release Artifacts
-    runs-on: ubuntu-latest
-    needs: validate-release
-    
-    steps:
-      - name: 📥 Checkout Code
-        uses: actions/checkout@v4
-      
-      - name: 🐍 Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      
-      - name: 📦 Install Build Dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install build twine wheel setuptools
-      
-      - name: 🏗️ Build Package (if setup.py exists)
-        run: |
-          if [ -f "setup.py" ]; then
-            echo "Building package with setup.py..."
-            python -m build
-            ls -la dist/
-            python -m twine check dist/* || echo "⚠️ Twine check warnings (non-critical)"
-          else
-            echo "📦 Creating source distribution manually..."
-            mkdir -p dist
-            VERSION="${{ needs.validate-release.outputs.version }}"
-            tar -czf "dist/telegram-audio-downloader-${VERSION}.tar.gz" \
-              --exclude-vcs \
-              --exclude='dist' \
-              --exclude='build' \
-              --exclude='__pycache__' \
-              --exclude='*.pyc' \
-              .
-            echo "✅ Source distribution created"
-          fi
-      
-      - name: 📤 Upload Build Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-artifacts
-          path: dist/
-          retention-days: 7
-
-  create-release:
-    name: 🎉 Create GitHub Release
-    runs-on: ubuntu-latest
-    needs: [validate-release, build-artifacts]
     permissions:
       contents: write
     
     steps:
-      - name: 📥 Checkout Code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+    - name: 📥 Checkout
+      uses: actions/checkout@v4
       
-      - name: 📥 Download Build Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: release-artifacts
-          path: dist/
+    - name: 🏷️ Get Version
+      id: version
+      run: |
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+        else
+          echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        fi
       
-      - name: 📝 Generate Changelog
-        id: changelog
-        run: |
-          VERSION="${{ needs.validate-release.outputs.version }}"
+    - name: 🚀 Create Release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: ${{ steps.version.outputs.version }}
+        name: "🎵 Telegram Audio Downloader ${{ steps.version.outputs.version }}"
+        body: |
+          ## 🎉 New Release
           
-          # Extract changelog for this version
-          if [[ -f "CHANGELOG.md" ]]; then
-            CHANGELOG_CONTENT=$(awk "/^## \\[${VERSION}\\]/{flag=1; next} /^## \\[/{flag=0} flag" CHANGELOG.md)
-            
-            if [[ -z "$CHANGELOG_CONTENT" ]]; then
-              CHANGELOG_CONTENT="🎉 Release v${VERSION}
-
-          ### ✨ New Features
-          - Improved stability and performance
-          - Bug fixes and enhancements
-
-          ### 📚 Documentation  
-          - Updated documentation and examples
-          - Enhanced code quality
-
-          For detailed changes, see the commit history."
-            fi
-          else
-            CHANGELOG_CONTENT="🎉 Release v${VERSION}
-
-          ### 🚀 What's New
-          - Telegram Audio Downloader v${VERSION}
-          - Asynchronous audio downloading from Telegram channels
-          - Rich CLI interface with progress tracking
-          - Docker support for easy deployment
-
+          ### 🎵 Telegram Audio Downloader
+          Powerful CLI tool for downloading audio files from Telegram.
+          
           ### 📦 Installation
-          \`\`\`bash
-          # Download from releases
-          wget https://github.com/Elpablo777/Telegram-Audio-Downloader/releases/download/v${VERSION}/telegram-audio-downloader-${VERSION}.tar.gz
-          tar -xzf telegram-audio-downloader-${VERSION}.tar.gz
-          cd telegram-audio-downloader-${VERSION}
+          ```bash
+          git clone https://github.com/Elpablo777/Telegram-Audio-Downloader.git
+          cd Telegram-Audio-Downloader
           pip install -r requirements.txt
-          \`\`\`
-
-          ### 🆘 Support
-          - Documentation: [Wiki](https://github.com/Elpablo777/Telegram-Audio-Downloader/wiki)
-          - Issues: [Report bugs](https://github.com/Elpablo777/Telegram-Audio-Downloader/issues)
-          - Discussions: [Community](https://github.com/Elpablo777/Telegram-Audio-Downloader/discussions)"
-          fi
+          ```
           
-          {
-            echo "CHANGELOG_CONTENT<<EOF"
-            echo "$CHANGELOG_CONTENT"
-            echo "EOF"
-          } >> $GITHUB_OUTPUT
-      
-      - name: 🎉 Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ needs.validate-release.outputs.tag }}
-          name: "🎵 Telegram Audio Downloader v${{ needs.validate-release.outputs.version }}"
-          body: |
-            # 🎵 Telegram Audio Downloader v${{ needs.validate-release.outputs.version }}
-            
-            ${{ steps.changelog.outputs.CHANGELOG_CONTENT }}
-            
-            ## 📦 Quick Installation
-            
-            ### Download & Extract
-            ```bash
-            wget https://github.com/Elpablo777/Telegram-Audio-Downloader/releases/download/v${{ needs.validate-release.outputs.version }}/telegram-audio-downloader-${{ needs.validate-release.outputs.version }}.tar.gz
-            tar -xzf telegram-audio-downloader-${{ needs.validate-release.outputs.version }}.tar.gz
-            cd telegram-audio-downloader-${{ needs.validate-release.outputs.version }}
-            ```
-            
-            ### Install Dependencies
-            ```bash
-            pip install -r requirements.txt
-            ```
-            
-            ### Run
-            ```bash
-            python telegram_audio_downloader.py --help
-            ```
-            
-            ## 🔗 Resources
-            - 📚 [Wiki Documentation](https://github.com/Elpablo777/Telegram-Audio-Downloader/wiki)
-            - 🐛 [Report Issues](https://github.com/Elpablo777/Telegram-Audio-Downloader/issues)
-            - 💬 [Community Discussions](https://github.com/Elpablo777/Telegram-Audio-Downloader/discussions)
-            
-            ---
-            
-            **Full Changelog**: https://github.com/Elpablo777/Telegram-Audio-Downloader/compare/${{ needs.validate-release.outputs.tag }}...HEAD
-          prerelease: ${{ github.event.inputs.prerelease || false }}
-          files: |
-            dist/*
-          generate_release_notes: true
+          ### 🚀 Usage
+          ```bash
+          python -m telegram_audio_downloader.cli --help
+          ```
+        draft: false
+        prerelease: false
+        generate_release_notes: true
