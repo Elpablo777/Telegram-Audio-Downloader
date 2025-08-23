@@ -62,27 +62,26 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install build twine wheel setuptools
-      
-      - name: 🏗️ Build Package (if setup.py exists)
+
+      - name: 🔍 Verify Package Structure
         run: |
-          if [ -f "setup.py" ]; then
-            echo "Building package with setup.py..."
-            python -m build
-            ls -la dist/
-            python -m twine check dist/* || echo "⚠️ Twine check warnings (non-critical)"
-          else
-            echo "📦 Creating source distribution manually..."
-            mkdir -p dist
-            VERSION="${{ needs.validate-release.outputs.version }}"
-            tar -czf "dist/telegram-audio-downloader-${VERSION}.tar.gz" \
-              --exclude-vcs \
-              --exclude='dist' \
-              --exclude='build' \
-              --exclude='__pycache__' \
-              --exclude='*.pyc' \
-              .
-            echo "✅ Source distribution created"
-          fi
+          echo "📋 Checking package structure..."
+          python -c "
+          import sys, os
+          sys.path.insert(0, 'src')
+          import telegram_audio_downloader
+          print(f'✅ Package version: {telegram_audio_downloader.__version__}')
+          "
+          
+      - name: 🏗️ Build Package
+        run: |
+          echo "🏗️ Building package with setup.py..."
+          python -m build
+          ls -la dist/
+          
+          # Verify built packages
+          python -m twine check dist/*
+          echo "✅ Package built and verified successfully"
       
       - name: 📤 Upload Build Artifacts
         uses: actions/upload-artifact@v4
@@ -115,7 +114,7 @@ jobs:
         run: |
           VERSION="${{ needs.validate-release.outputs.version }}"
           
-          # Extract changelog for this version
+          # Check for CHANGELOG.md
           if [[ -f "CHANGELOG.md" ]]; then
             CHANGELOG_CONTENT=$(awk "/^## \\[${VERSION}\\]/{flag=1; next} /^## \\[/{flag=0} flag" CHANGELOG.md)
             
@@ -123,37 +122,62 @@ jobs:
               CHANGELOG_CONTENT="🎉 Release v${VERSION}
 
           ### ✨ New Features
-          - Improved stability and performance
-          - Bug fixes and enhancements
+          - Enhanced stability and performance
+          - Improved async audio downloading
+          - Better error handling and logging
 
           ### 📚 Documentation  
-          - Updated documentation and examples
-          - Enhanced code quality
+          - Updated README and Wiki documentation
+          - Enhanced API documentation
+          - Improved installation instructions
 
-          For detailed changes, see the commit history."
+          ### 🔧 Technical Improvements
+          - Optimized package structure
+          - Enhanced CI/CD pipeline
+          - Better dependency management
+
+          For detailed changes, see the [commit history](https://github.com/Elpablo777/Telegram-Audio-Downloader/commits)."
             fi
           else
             CHANGELOG_CONTENT="🎉 Release v${VERSION}
 
           ### 🚀 What's New
-          - Telegram Audio Downloader v${VERSION}
-          - Asynchronous audio downloading from Telegram channels
-          - Rich CLI interface with progress tracking
-          - Docker support for easy deployment
+          - **Telegram Audio Downloader v${VERSION}** is here!
+          - ⚡ **Asynchronous downloading** from Telegram channels and groups
+          - 🎵 **Rich CLI interface** with progress tracking
+          - 📊 **Performance monitoring** and metrics
+          - 🐳 **Docker support** for easy deployment
+          - 🔍 **Fuzzy search** for audio filtering
+          - 💾 **SQLite database** for download tracking
 
-          ### 📦 Installation
+          ### 📦 Quick Installation
           \`\`\`bash
-          # Download from releases
-          wget https://github.com/Elpablo777/Telegram-Audio-Downloader/releases/download/v${VERSION}/telegram-audio-downloader-${VERSION}.tar.gz
-          tar -xzf telegram-audio-downloader-${VERSION}.tar.gz
-          cd telegram-audio-downloader-${VERSION}
-          pip install -r requirements.txt
+          # Method 1: Install from PyPI (when available)
+          pip install telegram-audio-downloader
+
+          # Method 2: Install from source
+          git clone https://github.com/Elpablo777/Telegram-Audio-Downloader.git
+          cd Telegram-Audio-Downloader
+          pip install -e .
           \`\`\`
 
-          ### 🆘 Support
-          - Documentation: [Wiki](https://github.com/Elpablo777/Telegram-Audio-Downloader/wiki)
-          - Issues: [Report bugs](https://github.com/Elpablo777/Telegram-Audio-Downloader/issues)
-          - Discussions: [Community](https://github.com/Elpablo777/Telegram-Audio-Downloader/discussions)"
+          ### 🚀 Quick Start
+          \`\`\`bash
+          # Get help
+          telegram-audio-downloader --help
+
+          # Download from a channel
+          telegram-audio-downloader download --channel @musicchannel
+          \`\`\`
+
+          ### 🆘 Support & Documentation
+          - 📚 [**Wiki Documentation**](https://github.com/Elpablo777/Telegram-Audio-Downloader/wiki)
+          - 🐛 [**Report Issues**](https://github.com/Elpablo777/Telegram-Audio-Downloader/issues)
+          - 💬 [**Community Discussions**](https://github.com/Elpablo777/Telegram-Audio-Downloader/discussions)
+          - 📧 [**Contact**](mailto:hannover84@msn.com)
+
+          ### 🙏 Credits
+          Developed with ❤️ by [Elpablo777](https://github.com/Elpablo777)"
           fi
           
           {
@@ -172,29 +196,50 @@ jobs:
             
             ${{ steps.changelog.outputs.CHANGELOG_CONTENT }}
             
-            ## 📦 Quick Installation
+            ## 📦 Installation Options
             
-            ### Download & Extract
+            ### Option 1: From Release (Recommended)
             ```bash
-            wget https://github.com/Elpablo777/Telegram-Audio-Downloader/releases/download/v${{ needs.validate-release.outputs.version }}/telegram-audio-downloader-${{ needs.validate-release.outputs.version }}.tar.gz
-            tar -xzf telegram-audio-downloader-${{ needs.validate-release.outputs.version }}.tar.gz
-            cd telegram-audio-downloader-${{ needs.validate-release.outputs.version }}
+            # Download source code
+            wget https://github.com/Elpablo777/Telegram-Audio-Downloader/archive/v${{ needs.validate-release.outputs.version }}.tar.gz
+            tar -xzf v${{ needs.validate-release.outputs.version }}.tar.gz
+            cd Telegram-Audio-Downloader-${{ needs.validate-release.outputs.version }}
+            
+            # Install package
+            pip install -e .
             ```
             
-            ### Install Dependencies
+            ### Option 2: From Built Package
             ```bash
-            pip install -r requirements.txt
+            # Download wheel file from assets below
+            pip install telegram_audio_downloader-${{ needs.validate-release.outputs.version }}-py3-none-any.whl
             ```
             
-            ### Run
+            ### Option 3: Docker
             ```bash
-            python telegram_audio_downloader.py --help
+            # Build from source
+            git clone https://github.com/Elpablo777/Telegram-Audio-Downloader.git
+            cd Telegram-Audio-Downloader
+            docker build -t telegram-audio-downloader .
+            ```
+            
+            ## 🚀 Quick Start
+            ```bash
+            # Verify installation
+            telegram-audio-downloader --version
+            
+            # Get help
+            telegram-audio-downloader --help
+            
+            # Start downloading
+            telegram-audio-downloader download --help
             ```
             
             ## 🔗 Resources
-            - 📚 [Wiki Documentation](https://github.com/Elpablo777/Telegram-Audio-Downloader/wiki)
-            - 🐛 [Report Issues](https://github.com/Elpablo777/Telegram-Audio-Downloader/issues)
-            - 💬 [Community Discussions](https://github.com/Elpablo777/Telegram-Audio-Downloader/discussions)
+            - 📚 [**Complete Documentation**](https://github.com/Elpablo777/Telegram-Audio-Downloader/wiki)
+            - 🎯 [**Quick Start Guide**](https://github.com/Elpablo777/Telegram-Audio-Downloader/wiki/Quick-Start)
+            - 🔧 [**Configuration Guide**](https://github.com/Elpablo777/Telegram-Audio-Downloader/wiki/Configuration)
+            - 🐛 [**Troubleshooting**](https://github.com/Elpablo777/Telegram-Audio-Downloader/wiki/Troubleshooting)
             
             ---
             
