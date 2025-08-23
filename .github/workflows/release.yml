@@ -1,2 +1,58 @@
-# DELETED - Diese Datei wurde gelöscht für Neustart
-# Backup verfügbar in Git-Historie: Commit 58cba7fdf10393fe867993c0d066598ffb54df4e
+name: 🚀 Simple Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+
+jobs:
+  release:
+    name: 📦 Create Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+    - name: 📥 Checkout
+      uses: actions/checkout@v4
+      
+    - name: 🏷️ Get Version
+      id: version
+      run: |
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+        else
+          echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        fi
+      
+    - name: 🚀 Create Release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: ${{ steps.version.outputs.version }}
+        name: "🎵 Telegram Audio Downloader ${{ steps.version.outputs.version }}"
+        body: |
+          ## 🎉 New Release
+          
+          ### 🎵 Telegram Audio Downloader
+          Powerful CLI tool for downloading audio files from Telegram.
+          
+          ### 📦 Installation
+          ```bash
+          git clone https://github.com/Elpablo777/Telegram-Audio-Downloader.git
+          cd Telegram-Audio-Downloader
+          pip install -r requirements.txt
+          ```
+          
+          ### 🚀 Usage
+          ```bash
+          python -m telegram_audio_downloader.cli --help
+          ```
+        draft: false
+        prerelease: false
+        generate_release_notes: true
