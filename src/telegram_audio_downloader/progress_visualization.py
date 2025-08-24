@@ -177,7 +177,7 @@ class ProgressVisualizer:
                 task_id = progress.add_task(
                     download.file_name[:30],  # Kürze den Dateinamen
                     total=download.total_size,
-                    downloaded=filesize.decimal(download.downloaded)
+                    downloaded=filesize.decimal(int(download.downloaded))
                 )
                 tasks[file_id] = task_id
             
@@ -189,7 +189,7 @@ class ProgressVisualizer:
                         progress.update(
                             task_id,
                             completed=download.downloaded,
-                            downloaded=filesize.decimal(download.downloaded)
+                            downloaded=filesize.decimal(int(download.downloaded))
                         )
                 time.sleep(0.5)  # Aktualisiere alle 0.5 Sekunden
     
@@ -221,7 +221,7 @@ class ProgressVisualizer:
             
             # Geschwindigkeit
             if download.speed > 0:
-                speed_str = filesize.decimal(download.speed) + "/s"
+                speed_str = filesize.decimal(int(download.speed)) + "/s"
             else:
                 speed_str = "—"
             
@@ -254,8 +254,8 @@ class ProgressVisualizer:
             panel_content = (
                 f"Dateien: {overall['completed_files']}/{overall['total_files']} abgeschlossen\n"
                 f"Fortschritt: {overall['progress_percent']:.1f}%\n"
-                f"Downloaded: {filesize.decimal(overall['downloaded_size'])} / {filesize.decimal(overall['total_size'])}\n"
-                f"Durchschnittliche Geschwindigkeit: {filesize.decimal(overall['average_speed'])}/s"
+                f"Downloaded: {filesize.decimal(int(overall['downloaded_size']))} / {filesize.decimal(int(overall['total_size']))}\n"
+                f"Durchschnittliche Geschwindigkeit: {filesize.decimal(int(overall['average_speed']))}/s"
             )
             self.console.print(Panel(panel_content, title="Gesamtfortschritt"))
     
@@ -289,7 +289,7 @@ class ProgressVisualizer:
                     
                     # Geschwindigkeit
                     if download.speed > 0:
-                        speed_str = filesize.decimal(download.speed) + "/s"
+                        speed_str = filesize.decimal(int(download.speed)) + "/s"
                     else:
                         speed_str = "—"
                     

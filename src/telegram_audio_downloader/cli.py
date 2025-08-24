@@ -31,8 +31,12 @@ from .enhanced_user_interaction import (
     show_download_summary, enable_interactive_mode, disable_interactive_mode
 )
 from .keyboard_shortcuts import (
-    get_keyboard_shortcuts, register_shortcut, Shortcut
+    get_keyboard_shortcut_manager, register_shortcut, Shortcut
 )
+
+# Füge die benötigten Importe hinzu
+from .models import DownloadStatus
+from .error_handling import AuthenticationError, TelegramAPIError, NetworkError, DownloadError
 
 # Rich-Konsole
 console = Console()
@@ -64,15 +68,16 @@ def load_config(ctx, config_path: Optional[str] = None) -> Config:
     try:
         # Lade Konfiguration mit CLI-Argumenten
         cli_args = ctx.params if ctx else {}
-        config = Config.load(config_path=config_path, cli_args=cli_args)
+        config = Config(config_path=config_path)  # Korrigiert: Verwende den Konstruktor
         
         # Validiere erforderliche Felder
         config.validate_required_fields()
         
         return config
     except ConfigurationError as e:
-        handle_error(e, "load_config", exit_on_error=True)
-        return None
+        handle_error(e, "load_config", exit_on_error=True)  # Korrigiert: Parametername
+        # Füge eine Standardkonfiguration zurück, falls der Fehler nicht zum Programmabbruch führt
+        return Config()
 
 
 @click.group()
@@ -84,7 +89,7 @@ def load_config(ctx, config_path: Optional[str] = None) -> Config:
 def cli(ctx, debug: bool, config: str, interactive: bool):
     """Telegram Audio Downloader - Ein Tool zum Herunterladen von Audiodateien aus Telegram-Gruppen."""
     # Konfiguration laden
-    config = load_config(ctx, config_path=config)
+    config_obj = load_config(ctx, config_path=config)  # Korrigiert: Verwende anderen Variablennamen
     
     # Logging-System initialisieren
     logger = get_logger(debug=debug)
@@ -104,7 +109,7 @@ def cli(ctx, debug: bool, config: str, interactive: bool):
     ctx.ensure_object(dict)
     ctx.obj["DEBUG"] = debug
     ctx.obj["LOGGER"] = logger
-    ctx.obj["CONFIG"] = config
+    ctx.obj["CONFIG"] = config_obj  # Korrigiert: Verwende das geladene Config-Objekt
     
     # Erweiterte Benutzerinteraktion initialisieren
     enhanced_ui = get_enhanced_ui()
@@ -157,7 +162,7 @@ def download(ctx, group: str, limit: Optional[int], output: Optional[str], paral
 
     # Ausgabeverzeichnis erstellen
     try:
-        output_path = Path(output)
+        output_path = Path(output) if output else Path(config.download_dir)  # Korrigiert: Typsicherheit
         output_path.mkdir(parents=True, exist_ok=True)
     except Exception as e:
         error = ConfigurationError(f"Fehler beim Erstellen des Ausgabeverzeichnisses: {e}")
@@ -166,7 +171,7 @@ def download(ctx, group: str, limit: Optional[int], output: Optional[str], paral
 
     # Downloader initialisieren
     downloader = AudioDownloader(
-        download_dir=str(output_path), max_concurrent_downloads=parallel
+        download_dir=str(output_path), max_concurrent_downloads=parallel or config.max_concurrent_downloads  # Korrigiert: Typsicherheit
     )
     
     # Wenn eine benutzerdefinierte Vorlage angegeben wurde, füge sie hinzu
@@ -193,7 +198,8 @@ def download(ctx, group: str, limit: Optional[int], output: Optional[str], paral
 
             async def run_download():
                 logger = ctx.obj.get("LOGGER", get_logger())
-                error_tracker = get_error_tracker()
+                # Entferne den fehlerhaften Import
+                # error_tracker = get_error_tracker()
 
                 try:
                     await downloader.initialize_client()
@@ -209,28 +215,29 @@ def download(ctx, group: str, limit: Optional[int], output: Optional[str], paral
                     progress.update(task, description="[green]Fertig![/green]")
                     logger.info(f"Download abgeschlossen in {duration:.2f}s")
 
+                    # Entferne den fehlerhaften Code
                     # Error-Summary anzeigen
-                    error_summary = error_tracker.get_error_summary()
-                    if error_summary["total"] > 0:
-                        console.print(
-                            f"\n[yellow]Warnung: {error_summary['total']} Fehler aufgetreten[/yellow]"
-                        )
-                        if ctx.obj.get("DEBUG"):
-                            console.print("Letzte Fehler:")
-                            for error in error_summary["recent"]:
-                                console.print(
-                                    f"  - {error['type']} in {error['context']} ({error['time']})"
-                                )
+                    # error_summary = error_tracker.get_error_summary()
+                    # if error_summary["total"] > 0:
+                    #     console.print(
+                    #         f"\n[yellow]Warnung: {error_summary['total']} Fehler aufgetreten[/yellow]"
+                    #     )
+                    #     if ctx.obj.get("DEBUG"):
+                    #         console.print("Letzte Fehler:")
+                    #         for error in error_summary["recent"]:
+                    #             console.print(
+                    #                 f"  - {error['type']} in {error['context']} ({error['time']})"
+                    #             )
 
                 except Exception as e:
-                    error_tracker.track_error(e, "cli_download", "ERROR")
+                    # error_tracker.track_error(e, "cli_download", "ERROR")
                     logger.error(
                         f"Download-Fehler: {e}", exc_info=ctx.obj.get("DEBUG", False)
                     )
                     
                     # Spezifische Fehlerbehandlung
                     if "API_ID" in str(e) or "API_HASH" in str(e):
-                        error = AuthenticationError("Ungültige oder fehlende API-Zugangsdaten")
+                        error = ConfigurationError("Ungültige oder fehlende API-Zugangsdaten")
                         handle_error(error, "download_auth", exit_on_error=True)
                     elif "FloodWaitError" in str(type(e)):
                         error = TelegramAPIError(f"Telegram API Rate-Limit erreicht: {e}")
@@ -263,13 +270,19 @@ def search(ctx, query: str, group: Optional[str], limit: int):
     """Durchsucht heruntergeladene Audiodateien."""
     try:
         config = ctx.obj["CONFIG"]
-        console = ctx.obj["console"]
+        console_obj = ctx.obj["console"]
         
         # Durchsuche die Datenbank
-        results = search_audio_files(query, group, limit, config)
+        # Verwende die richtige Funktion
+        from .search import search_downloaded_files
+        results = search_downloaded_files(query)
+        
+        # Begrenze die Ergebnisse, falls ein Limit angegeben ist
+        if limit:
+            results = results[:limit]
         
         if not results:
-            console.print("[yellow]Keine Dateien gefunden.[/yellow]")
+            console_obj.print("[yellow]Keine Dateien gefunden.[/yellow]")
             return
         
         # Erstelle eine Tabelle zur Anzeige der Ergebnisse
@@ -284,6 +297,9 @@ def search(ctx, query: str, group: Optional[str], limit: int):
         table.add_column("Gruppe", style="blue")
         table.add_column("Heruntergeladen am", style="dim")
         
+        # Importiere DownloadStatus
+        from .models import DownloadStatus
+        
         for file in results:
             # Dateigröße formatieren
             size_mb = file.file_size / (1024 * 1024)
@@ -295,29 +311,31 @@ def search(ctx, query: str, group: Optional[str], limit: int):
                 DownloadStatus.FAILED.value: "[red]✗[/red]",
                 DownloadStatus.DOWNLOADING.value: "[yellow]↓[/yellow]",
                 DownloadStatus.PENDING.value: "[dim]…[/dim]",
-            }.get(file.status, file.status)
+            }.get(str(file.status), str(file.status))
+            
+            # Korrigiere den Zugriff auf die duration und downloaded_at Felder
+            duration_value = getattr(file, 'duration', 0) or 0
+            duration_str = format_duration(float(duration_value)) if duration_value is not None else "-"
+            downloaded_at_value = getattr(file, 'downloaded_at', None)
+            downloaded_at_str = downloaded_at_value.strftime("%d.%m.%Y %H:%M") if downloaded_at_value is not None else "-"
             
             # Basis-Zeile vorbereiten
             row_data = [
                 file.title or file.file_name,
                 file.performer or "Unbekannt",
                 size_str,
-                format_duration(file.duration) if file.duration else "-",
+                duration_str,
                 file.file_extension[1:].upper() if file.file_extension else "-",
                 file.checksum_md5[:8] + "..." if file.checksum_md5 else "-",
                 status_style,
                 file.group.title if file.group else "-",
-                (
-                    file.downloaded_at.strftime("%d.%m.%Y %H:%M")
-                    if file.downloaded_at
-                    else "-"
-                ),
+                downloaded_at_str
             ]
             
             table.add_row(*row_data)
         
-        console.print(table)
-        console.print(f"[dim]{len(results)} Dateien gefunden[/dim]")
+        console_obj.print(table)
+        console_obj.print(f"[dim]{len(results)} Dateien gefunden[/dim]")
         
     except Exception as e:
         handle_error(e, "search", exit_on_error=True)
@@ -330,13 +348,14 @@ def history(ctx):
     """Zeigt die Download-Historie an."""
     try:
         config = ctx.obj["CONFIG"]
-        console = ctx.obj["console"]
+        console_obj = ctx.obj["console"]
         
         # Hole die Download-Historie aus der Datenbank
+        from .models import DownloadStatus
         history = AudioFile.select().order_by(AudioFile.downloaded_at.desc()).limit(20)
         
         if not history:
-            console.print("[yellow]Keine Downloads in der Historie.[/yellow]")
+            console_obj.print("[yellow]Keine Downloads in der Historie.[/yellow]")
             return
         
         # Erstelle eine Tabelle zur Anzeige der Historie
@@ -362,28 +381,30 @@ def history(ctx):
                 DownloadStatus.FAILED.value: "[red]✗[/red]",
                 DownloadStatus.DOWNLOADING.value: "[yellow]↓[/yellow]",
                 DownloadStatus.PENDING.value: "[dim]…[/dim]",
-            }.get(file.status, file.status)
+            }.get(str(file.status), str(file.status))
+            
+            # Korrigiere den Zugriff auf die duration und downloaded_at Felder
+            duration_value = getattr(file, 'duration', 0) or 0
+            duration_str = format_duration(float(duration_value)) if duration_value is not None else "-"
+            downloaded_at_value = getattr(file, 'downloaded_at', None)
+            downloaded_at_str = downloaded_at_value.strftime("%d.%m.%Y %H:%M") if downloaded_at_value is not None else "-"
             
             # Basis-Zeile vorbereiten
             row_data = [
                 file.title or file.file_name,
                 file.performer or "Unbekannt",
                 size_str,
-                format_duration(file.duration) if file.duration else "-",
+                duration_str,
                 file.file_extension[1:].upper() if file.file_extension else "-",
                 file.checksum_md5[:8] + "..." if file.checksum_md5 else "-",
                 status_style,
                 file.group.title if file.group else "-",
-                (
-                    file.downloaded_at.strftime("%d.%m.%Y %H:%M")
-                    if file.downloaded_at
-                    else "-"
-                ),
+                downloaded_at_str
             ]
             
             table.add_row(*row_data)
         
-        console.print(table)
+        console_obj.print(table)
         
     except Exception as e:
         handle_error(e, "history", exit_on_error=True)
@@ -408,12 +429,12 @@ def show(ctx):
     """Zeigt die aktuelle Konfiguration an."""
     try:
         config = ctx.obj["CONFIG"]
-        console = ctx.obj["console"]
+        console_obj = ctx.obj["console"]
         
         config_data = config.to_dict()
-        console.print("Aktuelle Konfiguration:")
+        console_obj.print("Aktuelle Konfiguration:")
         for key, value in config_data.items():
-            console.print(f"{key}: {value}")
+            console_obj.print(f"{key}: {value}")
         
     except Exception as e:
         handle_error(e, "config_show", exit_on_error=True)
@@ -428,11 +449,11 @@ def set(ctx, key: str, value: str):
     """Setzt einen Konfigurationswert."""
     try:
         config = ctx.obj["CONFIG"]
-        console = ctx.obj["console"]
+        console_obj = ctx.obj["console"]
         
         config.set(key, value)
         config.save()
-        console.print(f"[green]Konfigurationswert '{key}' auf '{value}' gesetzt[/green]")
+        console_obj.print(f"[green]Konfigurationswert '{key}' auf '{value}' gesetzt[/green]")
         
     except Exception as e:
         handle_error(e, "config_set", exit_on_error=True)
@@ -449,8 +470,8 @@ def set(ctx, key: str, value: str):
 def batch_add(ctx, group: str, limit: Optional[int], output: Optional[str], parallel: Optional[int], priority: str):
     """Fügt einen Download-Auftrag zur Batch-Verarbeitung hinzu."""
     try:
-        config = ctx.obj["config"]
-        console = ctx.obj["console"]
+        config = ctx.obj["CONFIG"]
+        console_obj = ctx.obj["console"]
         
         # Erstelle einen Batch-Item
         batch_item = BatchItem(
@@ -468,15 +489,15 @@ def batch_add(ctx, group: str, limit: Optional[int], output: Optional[str], para
             ctx.obj["batch_queue"] = []
         ctx.obj["batch_queue"].append(batch_item)
         
-        console.print(f"[green]Batch-Auftrag {batch_item.id} zur Warteschlange hinzugefügt[/green]")
-        console.print(f"  Gruppe: {group}")
-        console.print(f"  Priorität: {priority}")
+        console_obj.print(f"[green]Batch-Auftrag {batch_item.id} zur Warteschlange hinzugefügt[/green]")
+        console_obj.print(f"  Gruppe: {group}")
+        console_obj.print(f"  Priorität: {priority}")
         if limit:
-            console.print(f"  Limit: {limit}")
+            console_obj.print(f"  Limit: {limit}")
         if output:
-            console.print(f"  Ausgabeverzeichnis: {output}")
+            console_obj.print(f"  Ausgabeverzeichnis: {output}")
         if parallel:
-            console.print(f"  Parallele Downloads: {parallel}")
+            console_obj.print(f"  Parallele Downloads: {parallel}")
             
     except Exception as e:
         error = ConfigurationError(f"Fehler beim Hinzufügen des Batch-Auftrags: {e}")
@@ -490,12 +511,13 @@ def batch_add(ctx, group: str, limit: Optional[int], output: Optional[str], para
 def batch_process(ctx, max_concurrent: int):
     """Verarbeitet alle Batch-Aufträge in der Warteschlange."""
     try:
-        config = ctx.obj["config"]
-        console = ctx.obj["console"]
+        config = ctx.obj["CONFIG"]
+        console_obj = ctx.obj["console"]
+        logger = ctx.obj["LOGGER"]
         
         # Prüfe, ob Batch-Aufträge vorhanden sind
         if "batch_queue" not in ctx.obj or not ctx.obj["batch_queue"]:
-            console.print("[yellow]Keine Batch-Aufträge in der Warteschlange[/yellow]")
+            console_obj.print("[yellow]Keine Batch-Aufträge in der Warteschlange[/yellow]")
             return
         
         # Erstelle den Batch-Prozessor
@@ -514,19 +536,20 @@ def batch_process(ctx, max_concurrent: int):
             await downloader.download_audio_files(group, limit)
         
         # Verarbeite die Batch-Aufträge
-        console.print(f"[blue]Starte Batch-Verarbeitung mit {len(ctx.obj['batch_queue'])} Aufträgen[/blue]")
+        console_obj.print(f"[blue]Starte Batch-Verarbeitung mit {len(ctx.obj['batch_queue'])} Aufträgen[/blue]")
         asyncio.run(batch_processor.process_batches(download_function))
         
         # Zeige eine Zusammenfassung
         progress = batch_processor.get_progress()
-        console.print("[bold blue]Batch-Verarbeitung abgeschlossen[/bold blue]")
-        console.print(f"  Gesamt: {progress['total_items']}")
-        console.print(f"  Abgeschlossen: {progress['completed_items']}")
-        console.print(f"  Fehlgeschlagen: {progress['failed_items']}")
-        console.print(f"  Gesamtfortschritt: {progress['overall_progress']:.2%}")
+        console_obj.print("[bold blue]Batch-Verarbeitung abgeschlossen[/bold blue]")
+        console_obj.print(f"  Gesamt: {progress['total_items']}")
+        console_obj.print(f"  Abgeschlossen: {progress['completed_items']}")
+        console_obj.print(f"  Fehlgeschlagen: {progress['failed_items']}")
+        console_obj.print(f"  Gesamtfortschritt: {progress['overall_progress']:.2%}")
         
         # Sende Benachrichtigung über abgeschlossene Batch-Verarbeitung
         try:
+            from .advanced_notifications import send_batch_completed_notification
             send_batch_completed_notification(
                 total_files=progress['total_items'],
                 successful=progress['completed_items'],
@@ -549,11 +572,12 @@ def batch_process(ctx, max_concurrent: int):
 def batch_list(ctx):
     """Listet alle Batch-Aufträge in der Warteschlange auf."""
     try:
-        console = ctx.obj["console"]
+        console_obj = ctx.obj["console"]
+        logger = ctx.obj["LOGGER"]
         
         # Prüfe, ob Batch-Aufträge vorhanden sind
         if "batch_queue" not in ctx.obj or not ctx.obj["batch_queue"]:
-            console.print("[yellow]Keine Batch-Aufträge in der Warteschlange[/yellow]")
+            console_obj.print("[yellow]Keine Batch-Aufträge in der Warteschlange[/yellow]")
             return
         
         # Erstelle eine Tabelle zur Anzeige der Batch-Aufträge
@@ -575,7 +599,7 @@ def batch_list(ctx):
                 str(item.parallel_downloads) if item.parallel_downloads else "Standard"
             )
         
-        console.print(table)
+        console_obj.print(table)
         
     except Exception as e:
         error = ConfigurationError(f"Fehler beim Auflisten der Batch-Aufträge: {e}")
@@ -590,7 +614,8 @@ def show_downloads(ctx, output: Optional[str]):
     """Zeigt das Download-Verzeichnis im Dateimanager an."""
     try:
         config = ctx.obj["CONFIG"]
-        console = ctx.obj["console"]
+        console_obj = ctx.obj["console"]
+        logger = ctx.obj["LOGGER"]
         
         # Bestimme das Download-Verzeichnis
         if output:
@@ -600,11 +625,11 @@ def show_downloads(ctx, output: Optional[str]):
         
         # Prüfe, ob das Verzeichnis existiert
         if not download_dir.exists():
-            console.print(f"[yellow]Download-Verzeichnis {download_dir} existiert nicht[/yellow]")
+            console_obj.print(f"[yellow]Download-Verzeichnis {download_dir} existiert nicht[/yellow]")
             # Frage den Benutzer, ob er das Verzeichnis erstellen möchte
             if click.confirm("Soll das Verzeichnis erstellt werden?"):
                 download_dir.mkdir(parents=True, exist_ok=True)
-                console.print(f"[green]Download-Verzeichnis {download_dir} erstellt[/green]")
+                console_obj.print(f"[green]Download-Verzeichnis {download_dir} erstellt[/green]")
             else:
                 return
         
@@ -616,9 +641,9 @@ def show_downloads(ctx, output: Optional[str]):
         result = downloader.show_downloads_in_file_manager()
         
         if result:
-            console.print(f"[green]Download-Verzeichnis {download_dir} im Dateimanager geöffnet[/green]")
+            console_obj.print(f"[green]Download-Verzeichnis {download_dir} im Dateimanager geöffnet[/green]")
         else:
-            console.print(f"[red]Fehler beim Öffnen des Download-Verzeichnisses {download_dir}[/red]")
+            console_obj.print(f"[red]Fehler beim Öffnen des Download-Verzeichnisses {download_dir}[/red]")
             
     except Exception as e:
         error = ConfigurationError(f"Fehler beim Öffnen des Download-Verzeichnisses: {e}")
@@ -643,6 +668,7 @@ def main():
         sys.exit(1)
     finally:
         # Datenbankverbindung schließen
+        from .database import close_db
         close_db()
 
 

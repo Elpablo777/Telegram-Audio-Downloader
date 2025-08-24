@@ -313,11 +313,11 @@ class UserGuidanceManager:
             return
         
         # Hole Hilfeinhalte zum Thema
-        help_content = self.help_system.get_help_content(topic)
+        help_content = self.help_system.get_help_entry(topic)
         
         if not help_content:
             # Versuche, ähnliche Themen zu finden
-            similar_topics = self.help_system.search_help_topics(topic)
+            similar_topics = self._search_help_topics(topic)
             if similar_topics:
                 help_content = _("similar_topics_found").format(
                     topic=topic,
@@ -329,12 +329,27 @@ class UserGuidanceManager:
         # Zeige den Hinweis an
         hint_text = Text()
         hint_text.append(_("hint") + ": ", style="bold yellow")
-        hint_text.append(help_content)
+        hint_text.append(str(help_content))  # Stelle sicher, dass help_content ein String ist
         
         if context:
             hint_text.append(f"\n{_('context')}: {context}", style="dim")
         
         console.print(Panel(hint_text, title=_("hint"), border_style="yellow"))
+    
+    def _search_help_topics(self, topic: str) -> List[str]:
+        """
+        Sucht nach ähnlichen Hilfethemen.
+        
+        Args:
+            topic: Thema, nach dem gesucht werden soll
+            
+        Returns:
+            Liste mit ähnlichen Themen
+        """
+        # Verwende die search_help Methode des Hilfe-Systems
+        help_manager = get_help_manager()
+        results = help_manager.search_help(topic)
+        return [entry.title for entry in results]
     
     def show_tooltip(self, element: str, description: str):
         """
@@ -569,7 +584,7 @@ def show_tooltip(element: str, description: str):
     manager.show_tooltip(element, description)
 
 
-def start_wizard(wizard_name: str, user_id: str = "default") -> Dict[str, Any]:
+def start_wizard(wizard_name: str, user_id: str = "default") -> Optional[Dict[str, Any]]:
     """
     Startet einen Assistenten.
     
@@ -578,7 +593,7 @@ def start_wizard(wizard_name: str, user_id: str = "default") -> Dict[str, Any]:
         user_id: ID des Benutzers
         
     Returns:
-        Dictionary mit den gesammelten Ergebnissen
+        Dictionary mit den gesammelten Ergebnissen oder None
     """
     manager = get_guidance_manager()
     return manager.start_wizard(wizard_name, user_id)

@@ -52,12 +52,19 @@ class CustomKeybindingManager:
     def __init__(self, keybindings_file: Optional[str] = None):
         """
         Initialisiert den CustomKeybindingManager.
-        
+
         Args:
             keybindings_file: Pfad zur Datei mit benutzerdefinierten Tastenkombinationen
         """
         self.config = Config()
-        self.keybindings_file = keybindings_file or str(Path(self.config.CONFIG_PATH) / "keybindings.json")
+        # Verwende einen Standardpfad, wenn keiner angegeben ist
+        if keybindings_file:
+            self.keybindings_file = keybindings_file
+        else:
+            # Verwende das Benutzerverzeichnis für die Konfiguration
+            config_dir = Path.home() / ".telegram_audio_downloader"
+            config_dir.mkdir(exist_ok=True)
+            self.keybindings_file = str(config_dir / "keybindings.json")
         self.keybindings: Dict[str, KeyBinding] = {}
         self.action_callbacks: Dict[str, Callable] = {}
         self.context = KeyContext.GLOBAL
