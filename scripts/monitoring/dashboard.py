@@ -361,4 +361,4 @@ if __name__ == '__main__':
     print("📈 API History: http://localhost:8080/api/history")
     print("🚨 API Alerts: http://localhost:8080/api/alerts")
     
-    app.run(host='0.0.0.0', port=8080, debug=True)
+    app.run(host='0.0.0.0', port=8080)
