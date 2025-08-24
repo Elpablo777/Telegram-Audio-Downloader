@@ -53,6 +53,13 @@ class Config:
             'retry_delay': '5',
             'checksum_algorithm': 'sha256'
         }
+        
+        # Performance-Einstellungen
+        self.config['performance'] = {
+            'chunk_size': '8192',
+            'timeout': '30',
+            'connection_pool_size': '10'
+        }
     
     def get_api_id(self) -> str:
         """Gibt die API-ID zurück."""
@@ -100,6 +107,21 @@ class Config:
     def checksum_algorithm(self) -> str:
         """Algorithmus für die Prüfsummenberechnung."""
         return self.config.get('download', 'checksum_algorithm', fallback='sha256')
+    
+    @property
+    def chunk_size(self) -> int:
+        """Größe der Download-Chunks in Bytes."""
+        return self.config.getint('performance', 'chunk_size', fallback=8192)
+    
+    @property
+    def timeout(self) -> int:
+        """Timeout für Netzwerkoperationen in Sekunden."""
+        return self.config.getint('performance', 'timeout', fallback=30)
+    
+    @property
+    def connection_pool_size(self) -> int:
+        """Größe des Verbindungspools."""
+        return self.config.getint('performance', 'connection_pool_size', fallback=10)
     
     def validate_required_fields(self) -> None:
         """

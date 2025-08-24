@@ -40,6 +40,12 @@ from .advanced_resume import (
     update_file_resume_info, can_resume_download, increment_file_retry_count,
     reset_file_resume_info, cleanup_file_resume_info
 )
+# Neue Importe für die intelligente Bandbreitensteuerung
+from .intelligent_bandwidth import (
+    get_bandwidth_controller, adjust_bandwidth_settings,
+    register_download_start, register_download_end,
+    can_start_new_download, update_download_speed
+)
 
 logger = get_logger(__name__)
 
@@ -606,7 +612,7 @@ class AudioDownloader:
                 
                 # Fehler in der Performance-Analyse aufzeichnen
                 duration = time.time() - start_time
-                self.performance_analyzer.record_download_completion(False, file_size_mb, duration)
+                self.performance_monitor.after_download(False, file_size_mb, duration)
                 self.performance_analyzer.record_error(type(e).__name__, f"network_{file_id}")
 
         except Exception as e:
@@ -631,7 +637,7 @@ class AudioDownloader:
             
             # Fehler in der Performance-Analyse aufzeichnen
             duration = time.time() - start_time
-            self.performance_analyzer.record_download_completion(False, file_size_mb, duration)
+            self.performance_monitor.after_download(False, file_size_mb, duration)
             self.performance_analyzer.record_error(type(e).__name__, f"download_{file_id}")
 
     async def _download_with_resume(
@@ -751,7 +757,26 @@ class AudioDownloader:
         Returns:
             True, wenn der Download erfolgreich war
         """
+        # Prüfe, ob ein neuer Download gestartet werden kann
+        if not can_start_new_download():
+            logger.warning(f"Maximale Anzahl gleichzeitiger Downloads erreicht, warte auf {file_name}")
+            # Warte, bis ein Slot frei wird
+            while not can_start_new_download():
+                await asyncio.sleep(1)
+        
+        # Registriere den Download-Start
+        register_download_start(file_id)
+        
         try:
+            # Hole den Bandwidth-Controller und passe Einstellungen an
+            bandwidth_controller = get_bandwidth_controller(self.config)
+            adjust_bandwidth_settings()
+            current_settings = bandwidth_controller.get_current_settings()
+            
+            # Verwende die angepassten Einstellungen
+            chunk_size = current_settings.chunk_size
+            timeout = current_settings.timeout_seconds
+            
             # Erstelle oder aktualisiere den AudioFile-Datensatz
             audio_file, created = AudioFile.get_or_create(
                 file_id=file_id,
@@ -775,6 +800,9 @@ class AudioDownloader:
                 audio_file.group_id = group_id
                 audio_file.status = DownloadStatus.PENDING.value
                 audio_file.save()
+            
+            # Startzeit für Geschwindigkeitsmessung
+            start_time = time.time()
             
             # Hole den Telegram-Client
             client = get_optimized_client()
@@ -835,6 +863,12 @@ class AudioDownloader:
                         progress_callback=progress_callback
                     )
                     
+                    # Berechne die Download-Geschwindigkeit
+                    end_time = time.time()
+                    time_elapsed = end_time - start_time
+                    total_bytes = full_path.stat().st_size if full_path.exists() else 0
+                    update_download_speed(file_id, total_bytes, time_elapsed)
+                    
                     # Aktualisiere die Resume-Informationen nach erfolgreichem Download
                     save_file_resume_state(file_id)
                     
@@ -880,7 +914,7 @@ class AudioDownloader:
                     
                     # Prüfe, ob eine Wiederholung möglich ist
                     retry_count = increment_file_retry_count(file_id)
-                    max_retries = 3  # Konfigurierbar machen?
+                    max_retries = current_settings.max_retries
                     
                     if retry_count < max_retries:
                         logger.info(f"Versuche erneuten Download von {file_name} (Versuch {retry_count + 1}/{max_retries})")
@@ -890,7 +924,7 @@ class AudioDownloader:
                         })
                         
                         # Warte etwas vor der Wiederholung
-                        await asyncio.sleep(5 * (retry_count + 1))
+                        await asyncio.sleep(current_settings.retry_delay * (retry_count + 1))
                         
                         # Rekursiver Aufruf für die Wiederholung
                         return await self.download_file(file_id, file_name, file_size, group_id, message_id, title, performer)
@@ -914,3 +948,6 @@ class AudioDownloader:
             })
             export_download_metric("exception", 0)
             return False
+        finally:
+            # Registriere das Ende des Downloads
+            register_download_end(file_id)
