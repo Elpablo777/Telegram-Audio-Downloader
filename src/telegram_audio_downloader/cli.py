@@ -17,7 +17,7 @@ from rich.table import Table
 from rich.prompt import Prompt
 
 from .config import Config
-from .database import init_db, AudioFile, DownloadGroup
+from .database import init_db, AudioFile
 from .downloader import AudioDownloader
 from .error_handling import handle_error, ConfigurationError
 from .logger import get_logger, log_function_call
@@ -525,6 +525,16 @@ def batch_process(ctx, max_concurrent: int):
         console.print(f"  Fehlgeschlagen: {progress['failed_items']}")
         console.print(f"  Gesamtfortschritt: {progress['overall_progress']:.2%}")
         
+        # Sende Benachrichtigung über abgeschlossene Batch-Verarbeitung
+        try:
+            send_batch_completed_notification(
+                total_files=progress['total_items'],
+                successful=progress['completed_items'],
+                failed=progress['failed_items']
+            )
+        except Exception as e:
+            logger.warning(f"Fehler beim Senden der Batch-Benachrichtigung: {e}")
+        
         # Leere die Warteschlange
         ctx.obj["batch_queue"] = []
         
@@ -570,6 +580,49 @@ def batch_list(ctx):
     except Exception as e:
         error = ConfigurationError(f"Fehler beim Auflisten der Batch-Aufträge: {e}")
         handle_error(error, "batch_list", exit_on_error=True)
+
+
+@cli.command()
+@click.option("--output", "-o", type=click.Path(), help="Ausgabeverzeichnis (standardmäßig aus Konfiguration)")
+@click.pass_context
+@log_function_call
+def show_downloads(ctx, output: Optional[str]):
+    """Zeigt das Download-Verzeichnis im Dateimanager an."""
+    try:
+        config = ctx.obj["CONFIG"]
+        console = ctx.obj["console"]
+        
+        # Bestimme das Download-Verzeichnis
+        if output:
+            download_dir = Path(output)
+        else:
+            download_dir = Path(config.download_dir)
+        
+        # Prüfe, ob das Verzeichnis existiert
+        if not download_dir.exists():
+            console.print(f"[yellow]Download-Verzeichnis {download_dir} existiert nicht[/yellow]")
+            # Frage den Benutzer, ob er das Verzeichnis erstellen möchte
+            if click.confirm("Soll das Verzeichnis erstellt werden?"):
+                download_dir.mkdir(parents=True, exist_ok=True)
+                console.print(f"[green]Download-Verzeichnis {download_dir} erstellt[/green]")
+            else:
+                return
+        
+        # Importiere den Downloader, um die Funktion zu verwenden
+        from .downloader import AudioDownloader
+        
+        # Erstelle einen temporären Downloader, um die Funktion zu verwenden
+        downloader = AudioDownloader(download_dir=str(download_dir))
+        result = downloader.show_downloads_in_file_manager()
+        
+        if result:
+            console.print(f"[green]Download-Verzeichnis {download_dir} im Dateimanager geöffnet[/green]")
+        else:
+            console.print(f"[red]Fehler beim Öffnen des Download-Verzeichnisses {download_dir}[/red]")
+            
+    except Exception as e:
+        error = ConfigurationError(f"Fehler beim Öffnen des Download-Verzeichnisses: {e}")
+        handle_error(error, "show_downloads", exit_on_error=True)
 
 
 def check_env() -> bool:

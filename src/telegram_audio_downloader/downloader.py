@@ -56,6 +56,16 @@ from .enhanced_security import (
     check_file_access, verify_file_integrity, secure_file_operation,
     log_security_event
 )
+# Neue Importe für die erweiterte Systemintegration
+from .system_integration import (
+    send_system_notification, show_in_default_file_manager,
+    add_to_default_media_library
+)
+# Neue Importe für erweiterte Benachrichtigungen
+from .advanced_notifications import (
+    get_advanced_notifier, send_download_completed_notification,
+    send_download_failed_notification, send_batch_completed_notification
+)
 
 logger = get_logger(__name__)
 
@@ -143,7 +153,7 @@ class AudioDownloader:
         # Automatic Error Recovery
         self.error_recovery = AutomaticErrorRecovery(download_dir=self.download_dir)
         
-        // Neue Sicherheitskomponenten
+        # Neue Sicherheitskomponenten
         self.file_access_control = get_file_access_control()
         self.file_integrity_checker = get_file_integrity_checker()
         self.audit_logger = get_audit_logger()
@@ -375,9 +385,23 @@ class AudioDownloader:
                 f"{self.failed_downloads} fehlgeschlagen"
             )
 
+            # Sende Systembenachrichtigung über abgeschlossene Downloads
+            if self.successful_downloads > 0 or self.failed_downloads > 0:
+                send_system_notification(
+                    title="Telegram Audio Downloader",
+                    message=f"Downloads abgeschlossen: {self.successful_downloads} erfolgreich, {self.failed_downloads} fehlgeschlagen",
+                    timeout=5000
+                )
+
         except Exception as e:
             logger.error(
                 f"Fehler beim Herunterladen der Audiodateien: {e}", exc_info=True
+            )
+            # Sende Fehlerbenachrichtigung
+            send_system_notification(
+                title="Download-Fehler",
+                message=f"Fehler beim Herunterladen: {str(e)}",
+                timeout=5000
             )
             raise
 
@@ -596,8 +620,32 @@ class AudioDownloader:
                 self.performance_analyzer.record_download_completion(True, file_size_mb, duration)
 
                 logger.info(f"Download erfolgreich: {download_path} ({duration:.2f}s)")
+                
+                # Sende Benachrichtigung über erfolgreichen Download
+                send_system_notification(
+                    title="Download abgeschlossen",
+                    message=f"{audio_info['file_name']} wurde erfolgreich heruntergeladen",
+                    timeout=3000
+                )
+                
+                # Sende erweiterte Benachrichtigung
+                try:
+                    send_download_completed_notification(
+                        file_name=audio_info['file_name'],
+                        file_size=audio_info['file_size'],
+                        duration=duration
+                    )
+                except Exception as e:
+                    logger.warning(f"Fehler beim Senden der erweiterten Benachrichtigung: {e}")
+                
+                # Füge die Datei zur Medienbibliothek hinzu
+                try:
+                    add_to_default_media_library(download_path)
+                except Exception as e:
+                    logger.warning(f"Fehler beim Hinzufügen zur Medienbibliothek: {e}")
+
             else:
-                // Audit-Logging für unvollständigen Download
+                # Audit-Logging für unvollständigen Download
                 log_security_event(
                     "download_incomplete",
                     f"Download unvollständig: {audio_info['file_name']}",
@@ -617,7 +665,11 @@ class AudioDownloader:
                 self.performance_analyzer.record_download_completion(False, file_size_mb, duration)
 
         except FloodWaitError as e:
-            // Audit-Logging für FloodWaitError
+            log_security_event(
+                "flood_wait_error",
+                f"FloodWaitError beim Download von {audio_info['file_name']}: {e.seconds} Sekunden",
+                "medium"
+            )
             log_security_event(
                 "flood_wait_error",
                 f"FloodWaitError beim Download von {audio_info['file_name']}: {e.seconds} Sekunden",
@@ -657,7 +709,7 @@ class AudioDownloader:
                 logger.error(f"Zu viele FloodWait-Fehler für {file_id}, überspringe")
 
         except (RPCError, ConnectionError) as e:
-            // Audit-Logging für Netzwerkfehler
+            # Audit-Logging für Netzwerkfehler
             log_security_event(
                 "network_error",
                 f"Netzwerkfehler beim Download von {audio_info['file_name']}: {type(e).__name__}",
@@ -696,7 +748,7 @@ class AudioDownloader:
                 self.performance_analyzer.record_error(type(e).__name__, f"network_{file_id}")
 
         except Exception as e:
-            // Audit-Logging für unerwartete Fehler
+            # Audit-Logging für unerwartete Fehler
             log_security_event(
                 "unexpected_error",
                 f"Unerwarteter Fehler beim Download von {audio_info['file_name']}: {type(e).__name__}: {e}",
@@ -722,6 +774,15 @@ class AudioDownloader:
                 audio_file.error_message = str(e)
                 audio_file.save()
             
+            # Sende Benachrichtigung über fehlgeschlagenen Download
+            try:
+                send_download_failed_notification(
+                    file_name=audio_info['file_name'] if 'audio_info' in locals() else 'unknown',
+                    error_message=str(e)
+                )
+            except Exception as notification_error:
+                logger.warning(f"Fehler beim Senden der Fehlerbenachrichtigung: {notification_error}")
+            
             # Fehler in der Performance-Analyse aufzeichnen
             duration = time.time() - start_time
             self.performance_monitor.after_download(False, file_size_mb, duration)
@@ -741,7 +802,7 @@ class AudioDownloader:
 
         while retry_count < max_retries:
             try:
-                // Sicherheitsprüfung: Zugriff auf die Datei prüfen
+                # Sicherheitsprüfung: Zugriff auf die Datei prüfen
                 if not check_file_access(file_path.parent):
                     log_security_event(
                         "unauthorized_access",
@@ -790,7 +851,7 @@ class AudioDownloader:
                     if file_path.exists():
                         actual_size = file_path.stat().st_size
                         
-                        // Sicherheitsprüfung: Dateiintegrität verifizieren
+                        # Sicherheitsprüfung: Dateiintegrität verifizieren
                         if not verify_file_integrity(file_path):
                             log_security_event(
                                 "file_integrity_violation",
@@ -804,7 +865,7 @@ class AudioDownloader:
                         return downloaded_bytes
 
             except FloodWaitError as e:
-                // Audit-Logging für FloodWaitError
+                # Audit-Logging für FloodWaitError
                 log_security_event(
                     "flood_wait_error",
                     f"FloodWaitError beim Download von {audio_file.file_name}: {e.seconds} Sekunden",
@@ -858,6 +919,24 @@ class AudioDownloader:
             await self.client.disconnect()
             logger.info("Telegram-Client-Verbindung geschlossen")
 
+    def show_downloads_in_file_manager(self) -> bool:
+        """
+        Zeigt das Download-Verzeichnis im Dateimanager an.
+        
+        Returns:
+            True, wenn der Dateimanager geöffnet wurde, False sonst
+        """
+        try:
+            return show_in_default_file_manager(self.download_dir)
+        except Exception as e:
+            logger.error(f"Fehler beim Öffnen des Download-Verzeichnisses: {e}")
+            send_system_notification(
+                title="Fehler",
+                message=f"Fehler beim Öffnen des Download-Verzeichnisses: {str(e)}",
+                timeout=3000
+            )
+            return False
+
     async def download_file(self, file_id: str, file_name: str, file_size: int, 
                            group_id: int, message_id: int, 
                            title: Optional[str] = None, 
@@ -886,7 +965,7 @@ class AudioDownloader:
             )
             raise SecurityError(f"Zugriff auf Download-Verzeichnis {self.download_dir} verweigert")
 
-        // Audit-Logging für Download-Start
+        # Audit-Logging für Download-Start
         log_security_event(
             "download_start",
             f"Starte Download von {file_name}",
@@ -943,7 +1022,7 @@ class AudioDownloader:
             # Hole den Telegram-Client
             client = get_optimized_client()
             
-            // Sicherheitsprüfung: Zugriff auf das Download-Verzeichnis prüfen
+            # Sicherheitsprüfung: Zugriff auf das Download-Verzeichnis prüfen
             if not check_file_access(self.download_dir):
                 log_security_event(
                     "unauthorized_access",
@@ -955,7 +1034,7 @@ class AudioDownloader:
             # Erstelle den vollständigen Dateipfad
             full_path = self.download_dir / file_name
             
-            // Sicherheitsprüfung: Zugriff auf die Datei prüfen
+            # Sicherheitsprüfung: Zugriff auf die Datei prüfen
             if not check_file_access(full_path.parent):
                 log_security_event(
                     "unauthorized_access",
@@ -980,7 +1059,7 @@ class AudioDownloader:
             # Öffne die Datei im richtigen Modus
             file_mode = "ab" if resume_download else "wb"
             
-            // Sichere Dateioperation durchführen
+            # Sichere Dateioperation durchführen
             def open_file():
                 return open(full_path, file_mode)
             
@@ -1119,7 +1198,7 @@ class AudioDownloader:
                         "retry_count": retry_count + 1
                     })
                     
-                    // Audit-Logging für Download-Wiederholung
+                    # Audit-Logging für Download-Wiederholung
                     log_security_event(
                         "download_retry",
                         f"Erneuter Download-Versuch von {file_name} (Versuch {retry_count + 1}/{max_retries})",
@@ -1138,7 +1217,7 @@ class AudioDownloader:
                         "max_retries": max_retries
                     })
                     
-                    // Audit-Logging für maximale Wiederholungen erreicht
+                    # Audit-Logging für maximale Wiederholungen erreicht
                     log_security_event(
                         "download_max_retries",
                         f"Maximale Wiederholungen für {file_name} erreicht",
@@ -1158,7 +1237,7 @@ class AudioDownloader:
             })
             export_download_metric("exception", 0)
             
-            // Audit-Logging für schwerwiegenden Fehler
+            # Audit-Logging für schwerwiegenden Fehler
             log_security_event(
                 "download_exception",
                 f"Schwerwiegender Fehler beim Download von {file_name}: {type(e).__name__}: {e}",

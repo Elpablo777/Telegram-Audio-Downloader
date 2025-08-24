@@ -178,6 +178,42 @@
 - [x] 🔄 TEST-LOGGING: test_logging.py erstellen - Logging-Konfiguration und Error-Tracking
 - [x] ✅ TEST-INTEGRATION: test_integration.py erstellen - End-to-End Download-Workflows
 
+## 🔄 Laufende Aufgaben
+
+### 🔒 Erweiterte Sicherheitsfunktionen (Task 186)
+- [x] Zugriffskontrolle für Dateien implementiert
+- [x] Dateiintegritätsprüfung implementiert
+- [x] Sandboxing für Dateioperationen implementiert
+- [x] Audit-Logging für Sicherheitsereignisse implementiert
+- [x] Globale Instanzen und Hilfsfunktionen erstellt
+
+### 📦 Intelligente Warteschlange (Task 187)
+- [x] Prioritätsstufen für Download-Aufträge implementiert
+- [x] Abhängigkeitstypen zwischen Aufträgen definiert
+- [x] QueueItem-Klasse für Warteschlangenelemente erstellt
+- [x] IntelligentQueue-Klasse mit Priorisierung und Abhängigkeitsverwaltung implementiert
+- [x] Methoden zum Hinzufügen/Entfernen von Aufträgen implementiert
+- [x] Dynamische Priorisierung implementiert
+- [x] Ressourcenkontrolle implementiert
+
+### 🖥️ Erweiterte Systemintegration (Task 188)
+- [x] Systembenachrichtigungen implementiert (Windows, macOS, Linux)
+- [x] Shell-Integration für PATH und Aliase implementiert
+- [x] Dateimanager-Integration implementiert
+- [x] Medienbibliothek-Integration implementiert
+- [x] Globale Instanzen und Hilfsfunktionen erstellt
+- [x] Integration in den Downloader (Benachrichtigungen, Medienbibliothek)
+- [x] CLI-Befehl zum Anzeigen des Download-Verzeichnisses hinzugefügt
+- [x] Tests für die Systemintegration erstellt
+
+### 📢 Erweiterte Benachrichtigungen (Task 189)
+- [x] Desktop-Benachrichtigungen implementiert
+- [x] E-Mail-Benachrichtigungen implementiert
+- [x] Push-Benachrichtigungen implementiert
+- [x] Webhook-Integration implementiert
+- [x] Integration in den Downloader
+- [x] Tests für erweiterte Benachrichtigungen erstellt
+
 ## 📝 Legende
 - 🔥 Hohe Priorität
 - 🚨 Kritische Aufgaben

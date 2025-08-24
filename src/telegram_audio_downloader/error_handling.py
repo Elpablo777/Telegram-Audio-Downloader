@@ -56,6 +56,10 @@ class SecurityError(TelegramAudioError):
     """Sicherheits-bezogene Fehler."""
     pass
 
+class SystemIntegrationError(TelegramAudioError):
+    """Fehler bei der Systemintegration."""
+    pass
+
 class TelegramAPIError(TelegramAudioError):
     """Fehler bei der Interaktion mit der Telegram-API."""
     def __init__(self, message: str, telegram_error: Optional[Exception] = None):
