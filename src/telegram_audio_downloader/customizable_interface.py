@@ -20,7 +20,7 @@ from rich.style import Style
 from .logging_config import get_logger
 from .i18n import _
 from .color_coding import get_color_manager, ColorTheme, ColorScheme
-from .keyboard_shortcuts import get_shortcut_manager, KeyBinding
+from .keyboard_shortcuts import get_keyboard_shortcut_manager, Shortcut
 from .custom_keybindings import get_keybinding_manager, KeyContext
 from .accessibility import get_accessibility_manager, AccessibilityFeature
 
@@ -129,7 +129,7 @@ class CustomizableInterfaceManager:
         
         # Manager für andere Systeme
         self.color_manager = get_color_manager()
-        self.shortcut_manager = get_shortcut_manager()
+        self.shortcut_manager = get_keyboard_shortcut_manager()
         self.keybinding_manager = get_keybinding_manager()
         self.accessibility_manager = get_accessibility_manager()
         
@@ -151,6 +151,7 @@ class CustomizableInterfaceManager:
         default_theme = InterfaceTheme(
             name="default",
             color_scheme=ColorScheme(
+                name="Standard",
                 primary="blue",
                 secondary="cyan",
                 accent="magenta",
@@ -191,6 +192,7 @@ class CustomizableInterfaceManager:
         dark_theme = InterfaceTheme(
             name="dark",
             color_scheme=ColorScheme(
+                name="Dunkel",
                 primary="bright_blue",
                 secondary="bright_cyan",
                 accent="bright_magenta",
@@ -231,6 +233,7 @@ class CustomizableInterfaceManager:
         light_theme = InterfaceTheme(
             name="light",
             color_scheme=ColorScheme(
+                name="Hell",
                 primary="blue",
                 secondary="cyan",
                 accent="magenta",
@@ -787,6 +790,7 @@ class CustomizableInterfaceManager:
             
             # Erstelle ein InterfaceTheme-Objekt aus den Daten
             color_scheme = ColorScheme(
+                name=theme_data["name"],
                 primary=theme_data["color_scheme"]["primary"],
                 secondary=theme_data["color_scheme"]["secondary"],
                 accent=theme_data["color_scheme"]["accent"],

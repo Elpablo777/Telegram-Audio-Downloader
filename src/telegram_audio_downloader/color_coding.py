@@ -24,6 +24,7 @@ class ColorScheme:
     name: str
     primary: str
     secondary: str
+    accent: str
     success: str
     warning: str
     error: str
@@ -58,6 +59,7 @@ class ColorManager:
                 name="Standard",
                 primary="#3498db",      # Blau
                 secondary="#9b59b6",    # Lila
+                accent="#e67e22",       # Orange
                 success="#2ecc71",      # Grün
                 warning="#f39c12",      # Orange
                 error="#e74c3c",        # Rot
@@ -69,6 +71,7 @@ class ColorManager:
                 name="Dunkel",
                 primary="#1abc9c",      # Türkis
                 secondary="#9b59b6",    # Lila
+                accent="#e67e22",       # Orange
                 success="#27ae60",      # Dunkelgrün
                 warning="#f39c12",      # Orange
                 error="#c0392b",        # Dunkelrot
@@ -80,6 +83,7 @@ class ColorManager:
                 name="Hell",
                 primary="#5dade2",      # Helles Blau
                 secondary="#bb8fce",    # Helles Lila
+                accent="#e67e22",       # Orange
                 success="#58d68d",      # Helles Grün
                 warning="#f7dc6f",      # Gelb
                 error="#f1948a",        # Helles Rot
@@ -91,6 +95,7 @@ class ColorManager:
                 name="Hoher Kontrast",
                 primary="#0000ff",      # Reines Blau
                 secondary="#ff00ff",    # Magenta
+                accent="#ffff00",       # Gelb
                 success="#00ff00",      # Reines Grün
                 warning="#ffff00",      # Gelb
                 error="#ff0000",        # Reines Rot
@@ -201,6 +206,7 @@ class ColorManager:
 # Farbkonstanten für direkte Verwendung
 PRIMARY_COLOR = "#3498db"
 SECONDARY_COLOR = "#9b59b6"
+ACCENT_COLOR = "#e67e22"
 SUCCESS_COLOR = "#2ecc71"
 WARNING_COLOR = "#f39c12"
 ERROR_COLOR = "#e74c3c"
