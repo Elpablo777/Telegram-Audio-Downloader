@@ -434,6 +434,8 @@ jobs:
 
   cleanup:
     name: 🧹 Cleanup
+    permissions:
+      actions: read
     runs-on: ubuntu-latest
     needs: [test-report]
     if: always()
