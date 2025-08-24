@@ -1,8 +1,11 @@
 blank_issues_enabled: false
 contact_links:
-  - name: 📚 Documentation
-    url: https://github.com/Elpablo777/Telegram-Audio-Downloader/wiki
-    about: Lesen Sie unsere umfassende Dokumentation
+  - name: Telegram Audio Downloader Dokumentation
+    url: https://elpablo777.github.io/Telegram-Audio-Downloader/
+    about: Hier findest du die offizielle Dokumentation
+  - name: E-Mail Support
+    url: mailto:hannover84@msn.com
+    about: Kontaktiere uns per E-Mail für Support-Anfragen
   - name: 💬 Discussions
     url: https://github.com/Elpablo777/Telegram-Audio-Downloader/discussions
     about: Community-Diskussionen und Fragen

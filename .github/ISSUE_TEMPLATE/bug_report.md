@@ -1,53 +1,32 @@
 ---
-name: 🐛 Bug Report
-about: Create a report to help us improve
-title: '[BUG] '
-labels: ['bug', 'triage']
+name: Bug report
+about: Erstelle einen Bericht, um uns bei der Verbesserung zu helfen
+title: ''
+labels: 'bug'
 assignees: ''
 
 ---
 
-## 🐛 **Bug Description**
-A clear and concise description of what the bug is.
+**Beschreibe den Fehler**
+Eine klare und präzise Beschreibung des Fehlers.
 
-## 🔄 **To Reproduce**
-Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+**So kann der Fehler reproduziert werden**
+Schritte zum Reproduzieren des Verhaltens:
+1. Gehe zu '...'
+2. Klicke auf '....'
+3. Scrollen zu '....'
+4. Siehe Fehler
 
-## ✅ **Expected Behavior**
-A clear and concise description of what you expected to happen.
+**Erwartetes Verhalten**
+Eine klare und präzise Beschreibung dessen, was du erwartet hast.
 
-## 📸 **Screenshots/Logs**
-If applicable, add screenshots or logs to help explain your problem.
+**Screenshots**
+Falls zutreffend, füge Screenshots hinzu, um dein Problem zu erklären.
 
-```
-[Paste any relevant logs here]
-```
+**Desktop (bitte ergänze die folgenden Informationen):**
+ - Betriebssystem: [z.B. Windows, macOS, Linux]
+ - Python-Version [z.B. 3.8, 3.9]
+ - Telegram Audio Downloader Version [z.B. 1.0.0]
 
-## 🖥️ **Environment Information**
-- **OS**: [e.g. Windows 11, Ubuntu 22.04, macOS 13]
-- **Python Version**: [e.g. 3.11.5]
-- **Package Version**: [e.g. 1.0.0]
-- **Docker**: [Yes/No, if using Docker]
-
-## 📋 **Additional Context**
-Add any other context about the problem here.
-
-### 🔧 **Configuration**
-```yaml
-# Your configuration (remove sensitive data like API keys)
-```
-
-### 📊 **Performance Info**
-```bash
-# Output of: telegram-audio-downloader performance
-```
-
-## ✅ **Checklist**
-- [ ] I have searched for existing issues before creating this one
-- [ ] I have included all relevant information
-- [ ] I have tested this with the latest version
-- [ ] I have removed sensitive information from logs/configs
+**Zusätzlicher Kontext**
+Füge hier jeden anderen Kontext über das Problem hinzu.
