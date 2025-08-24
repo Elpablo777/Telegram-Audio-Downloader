@@ -499,3 +499,16 @@ Zeitstempel: {time.strftime('%Y-%m-%d %H:%M:%S')}
         except Exception as e:
             logger.error(f"Fehler beim Senden der E-Mail-Benachrichtigung: {e}")
             return False
+
+
+def get_error_recovery(download_dir: Path = Path(".")):
+    """
+    Gibt eine Instanz des AutomaticErrorRecovery zurück.
+    
+    Args:
+        download_dir: Download-Verzeichnis
+        
+    Returns:
+        AutomaticErrorRecovery-Instanz
+    """
+    return AutomaticErrorRecovery(download_dir)

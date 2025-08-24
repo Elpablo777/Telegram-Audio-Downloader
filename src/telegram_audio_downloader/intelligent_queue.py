@@ -290,6 +290,19 @@ class IntelligentQueue:
             "current_concurrent_items": len(self.active_items)
         }
     
+    def update_item_priority(self, item_id: str, new_priority: Priority) -> bool:
+        """
+        Aktualisiert die Priorität eines Download-Auftrags.
+        
+        Args:
+            item_id: ID des Auftrags
+            new_priority: Neue Priorität
+            
+        Returns:
+            True, wenn die Priorität aktualisiert wurde, False sonst
+        """
+        return self.update_priority(item_id, new_priority)
+
     def update_priority(self, item_id: str, new_priority: Priority) -> bool:
         """
         Aktualisiert die Priorität eines Download-Auftrags.

@@ -245,3 +245,16 @@ class AdaptiveParallelismController:
         if not self.download_speed_history:
             return 0.0
         return sum(self.download_speed_history) / len(self.download_speed_history)
+
+
+def get_parallelism_manager(download_dir: Path = Path(".")):
+    """
+    Gibt eine Instanz des AdaptiveParallelismController zurück.
+    
+    Args:
+        download_dir: Download-Verzeichnis
+        
+    Returns:
+        AdaptiveParallelismController-Instanz
+    """
+    return AdaptiveParallelismController(download_dir)

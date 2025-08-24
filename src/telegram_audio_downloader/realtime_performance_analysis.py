@@ -325,3 +325,23 @@ class RealtimePerformanceAnalyzer:
             'error_trend': error_trend,
             'data_points': len(recent_metrics)
         }
+
+
+# Globale Instanz des Performance-Analyzers
+_performance_analyzer: Optional[RealtimePerformanceAnalyzer] = None
+
+
+def get_performance_analyzer(download_dir: Path = Path(".")) -> RealtimePerformanceAnalyzer:
+    """
+    Gibt die globale Instanz des RealtimePerformanceAnalyzer zurück.
+    
+    Args:
+        download_dir: Download-Verzeichnis
+        
+    Returns:
+        Die RealtimePerformanceAnalyzer-Instanz
+    """
+    global _performance_analyzer
+    if _performance_analyzer is None:
+        _performance_analyzer = RealtimePerformanceAnalyzer(download_dir)
+    return _performance_analyzer

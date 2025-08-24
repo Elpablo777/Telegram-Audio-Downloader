@@ -56,6 +56,10 @@ class SecurityError(TelegramAudioError):
     """Sicherheits-bezogene Fehler."""
     pass
 
+class SearchError(TelegramAudioError):
+    """Fehler bei Suchoperationen."""
+    pass
+
 class SystemIntegrationError(TelegramAudioError):
     """Fehler bei der Systemintegration."""
     pass

@@ -1,30 +1,111 @@
 """
 Erweiterte Benachrichtigungen für den Telegram Audio Downloader.
-
-Bietet verschiedene Benachrichtigungsmethoden:
-- Desktop-Benachrichtigungen
-- E-Mail-Benachrichtigungen
-- Push-Benachrichtigungen
-- Webhook-Integration
 """
 
-import smtplib
-import logging
 import json
-import requests
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from pathlib import Path
-from typing import Optional, Dict, Any, List
-from dataclasses import dataclass, asdict
+import smtplib
+import subprocess
+import sys
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
-import asyncio
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from typing import Any, Dict, List, Optional
 
+import requests
+from plyer import notification as plyer_notification
+
+from .config import Config
+from .error_handling import handle_error
 from .logging_config import get_logger
-from .error_handling import handle_error, SystemIntegrationError
 from .system_integration import SystemNotification, get_system_notifier
 
+# Eigene Systembenachrichtigungsklasse ohne externe Abhängigkeiten
+class SimpleSystemNotifier:
+    """Einfache Systembenachrichtigungen ohne externe Abhängigkeiten."""
+    
+    def __init__(self):
+        self.logger = get_logger(__name__ + ".SimpleSystemNotifier")
+    
+    def send_notification(self, notification: SystemNotification) -> bool:
+        """
+        Sendet eine Systembenachrichtigung.
+        
+        Args:
+            notification: Systembenachrichtigung
+            
+        Returns:
+            True, wenn die Benachrichtigung gesendet wurde, False sonst
+        """
+        try:
+            # Versuche verschiedene Plattformmethoden
+            if sys.platform == "win32":
+                return self._send_windows_notification(notification)
+            elif sys.platform == "darwin":
+                return self._send_macos_notification(notification)
+            else:
+                return self._send_linux_notification(notification)
+        except Exception as e:
+            self.logger.warning(f"Fehler beim Senden der Systembenachrichtigung: {e}")
+            return False
+    
+    def _send_windows_notification(self, notification: SystemNotification) -> bool:
+        """Sendet eine Windows-Benachrichtigung."""
+        try:
+            # Verwende msg-Befehl unter Windows
+            subprocess.run([
+                "msg", 
+                "*", 
+                f"{notification.title}: {notification.message}"
+            ], capture_output=True, timeout=5)
+            return True
+        except Exception:
+            # Fallback: Einfache Ausgabe in der Konsole
+            print(f"[NOTIFICATION] {notification.title}: {notification.message}")
+            return True
+    
+    def _send_macos_notification(self, notification: SystemNotification) -> bool:
+        """Sendet eine macOS-Benachrichtigung."""
+        try:
+            subprocess.run([
+                "osascript", 
+                "-e", 
+                f'display notification "{notification.message}" with title "{notification.title}"'
+            ], capture_output=True, timeout=5)
+            return True
+        except Exception:
+            # Fallback: Einfache Ausgabe in der Konsole
+            print(f"[NOTIFICATION] {notification.title}: {notification.message}")
+            return True
+    
+    def _send_linux_notification(self, notification: SystemNotification) -> bool:
+        """Sendet eine Linux-Benachrichtigung."""
+        try:
+            subprocess.run([
+                "notify-send", 
+                notification.title, 
+                notification.message
+            ], capture_output=True, timeout=5)
+            return True
+        except Exception:
+            # Fallback: Einfache Ausgabe in der Konsole
+            print(f"[NOTIFICATION] {notification.title}: {notification.message}")
+            return True
+
+# Globale Instanz für einfache Systembenachrichtigungen
+_simple_system_notifier = SimpleSystemNotifier()
+
+def get_simple_system_notifier() -> SimpleSystemNotifier:
+    """
+    Gibt die globale Instanz des einfachen Systembenachrichtigungsmanagers zurück.
+    
+    Returns:
+        Instanz von SimpleSystemNotifier
+    """
+    return _simple_system_notifier
+
 logger = get_logger(__name__)
+
 
 @dataclass
 class EmailConfig:
@@ -174,17 +255,31 @@ class PushNotifier:
             return False
 
 class WebhookNotifier:
-    """Verwaltung von Webhook-Benachrichtigungen."""
+    """Webhook-Benachrichtigungen."""
     
     def __init__(self, config: WebhookConfig):
         """
-        Initialisiert den Webhook-Benachrichtigungsmanager.
+        Initialisiert den Webhook-Notifier.
         
         Args:
             config: Webhook-Konfiguration
         """
         self.config = config
         self.logger = get_logger(__name__ + ".WebhookNotifier")
+    
+    def _json_serializer(self, obj: Any) -> Any:
+        """
+        Hilfsfunktion zur Serialisierung von Objekten für JSON.
+        
+        Args:
+            obj: Zu serialisierendes Objekt
+            
+        Returns:
+            Serialisierbare Darstellung des Objekts
+        """
+        if isinstance(obj, datetime):
+            return obj.isoformat()
+        raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
     
     def send_webhook(self, event: NotificationEvent) -> bool:
         """
@@ -205,6 +300,8 @@ class WebhookNotifier:
                 # Dies ist eine vereinfachte Implementierung
                 # In einer echten Implementierung würde man ein Template-System verwenden
                 try:
+                    # Verwende die benutzerdefinierte Serialisierung
+                    formatted_payload = json.dumps(payload, default=self._json_serializer)
                     payload = json.loads(
                         self.config.payload_template.format(**payload)
                     )
@@ -213,11 +310,15 @@ class WebhookNotifier:
             
             # Sende die Anfrage
             headers = self.config.headers or {}
+            # Stelle sicher, dass das Content-Type korrekt gesetzt ist
+            if 'Content-Type' not in headers:
+                headers['Content-Type'] = 'application/json'
+            
             response = requests.request(
                 self.config.method,
                 self.config.url,
                 headers=headers,
-                json=payload,
+                data=json.dumps(payload, default=self._json_serializer),  # Verwende benutzerdefinierte Serialisierung
                 timeout=10
             )
             
@@ -251,7 +352,7 @@ class AdvancedNotifier:
         self.email_notifier = EmailNotifier(email_config) if email_config else None
         self.push_notifier = PushNotifier(push_config) if push_config else None
         self.webhook_notifier = WebhookNotifier(webhook_config) if webhook_config else None
-        self.system_notifier = get_system_notifier()
+        self.system_notifier = get_simple_system_notifier()  # Verwende die eigene Implementierung
         self.logger = get_logger(__name__ + ".AdvancedNotifier")
     
     def send_notification(self, event: NotificationEvent) -> Dict[str, bool]:

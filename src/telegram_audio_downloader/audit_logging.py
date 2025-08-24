@@ -451,3 +451,16 @@ def log_security_event(
     """
     logger = get_audit_logger()
     logger.log_security_event(event_type, description, user_id, ip_address, details)
+
+
+def log_audit_event(event_type: str, description: str, details: Optional[Dict[str, Any]] = None) -> None:
+    """
+    Loggt ein Audit-Event.
+    
+    Args:
+        event_type: Typ des Ereignisses
+        description: Beschreibung des Ereignisses
+        details: Zusätzliche Details (optional)
+    """
+    logger = get_audit_logger()
+    logger.log_system_event(event_type, description, "INFO", details)

@@ -1,199 +1,349 @@
 """
-Tastaturkürzel-Verwaltung für den Telegram Audio Downloader.
+Tastaturkürzel für den Telegram Audio Downloader.
 """
 
-import logging
-import signal
+from typing import Dict, Callable, Optional, Any
+from dataclasses import dataclass, field
 import sys
-from typing import Dict, Callable, Optional
-from enum import Enum
 
-logger = logging.getLogger(__name__)
+from .logging_config import get_logger
 
-class Shortcut(Enum):
-    """Verfügbare Tastaturkürzel."""
-    CANCEL = "ctrl+c"
-    PAUSE = "space"
-    HELP = "f1"
-    COMPLETE = "ctrl+d"
-    RESTART = "ctrl+r"
-    QUIT = "q"
+logger = get_logger(__name__)
 
-class KeyboardShortcuts:
+
+@dataclass
+class Shortcut:
+    """Datenklasse für ein Tastaturkürzel."""
+    key: str
+    description: str
+    action: Callable
+    context: str = "global"  # global, download, search, etc.
+    enabled: bool = True
+
+
+class KeyboardShortcutManager:
     """Klasse zur Verwaltung von Tastaturkürzeln."""
     
     def __init__(self):
-        """Initialisiert die Tastaturkürzel-Verwaltung."""
-        self.shortcuts: Dict[Shortcut, Callable] = {}
-        self.is_paused = False
-        self.setup_signal_handlers()
-        
-    def setup_signal_handlers(self) -> None:
-        """Richtet die Signal-Handler für Systemkürzel ein."""
-        # SIGINT (Ctrl+C) für Abbruch
-        signal.signal(signal.SIGINT, self._handle_sigint)
-        
-        # SIGTERM für ordnungsgemäßen Shutdown
-        signal.signal(signal.SIGTERM, self._handle_sigterm)
-        
-    def _handle_sigint(self, signum, frame) -> None:
-        """Behandelt SIGINT (Ctrl+C)."""
-        logger.info("SIGINT empfangen (Ctrl+C)")
-        if Shortcut.CANCEL in self.shortcuts:
-            try:
-                self.shortcuts[Shortcut.CANCEL]()
-            except Exception as e:
-                logger.error(f"Fehler beim Ausführen der Abbruch-Aktion: {e}")
-        else:
-            # Standardverhalten: Programm beenden
-            print("\nProgramm durch Benutzer abgebrochen.")
-            sys.exit(0)
-            
-    def _handle_sigterm(self, signum, frame) -> None:
-        """Behandelt SIGTERM."""
-        logger.info("SIGTERM empfangen")
-        if Shortcut.QUIT in self.shortcuts:
-            try:
-                self.shortcuts[Shortcut.QUIT]()
-            except Exception as e:
-                logger.error(f"Fehler beim Ausführen der Quit-Aktion: {e}")
-        else:
-            # Standardverhalten: Programm beenden
-            sys.exit(0)
+        """Initialisiert den KeyboardShortcutManager."""
+        self.shortcuts: Dict[str, Shortcut] = {}
+        self.context = "global"
+        self._initialize_default_shortcuts()
     
-    def register_shortcut(self, shortcut: Shortcut, action: Callable) -> None:
+    def _initialize_default_shortcuts(self):
+        """Initialisiert die Standard-Tastaturkürzel."""
+        # Globale Tastaturkürzel
+        self.register_shortcut(
+            key="q",
+            description="Programm beenden",
+            action=self._quit_action,
+            context="global"
+        )
+        
+        self.register_shortcut(
+            key="h",
+            description="Hilfe anzeigen",
+            action=self._help_action,
+            context="global"
+        )
+        
+        self.register_shortcut(
+            key="s",
+            description="Suchen",
+            action=self._search_action,
+            context="global"
+        )
+        
+        self.register_shortcut(
+            key="d",
+            description="Download starten",
+            action=self._download_action,
+            context="global"
+        )
+        
+        self.register_shortcut(
+            key="p",
+            description="Downloads pausieren/fortsetzen",
+            action=self._pause_action,
+            context="global"
+        )
+        
+        self.register_shortcut(
+            key="c",
+            description="Einstellungen anzeigen",
+            action=self._config_action,
+            context="global"
+        )
+        
+        # Kontextspezifische Tastaturkürzel
+        self.register_shortcut(
+            key="enter",
+            description="Auswahl bestätigen",
+            action=self._confirm_action,
+            context="selection"
+        )
+        
+        self.register_shortcut(
+            key="esc",
+            description="Abbrechen/zurück",
+            action=self._cancel_action,
+            context="selection"
+        )
+        
+        self.register_shortcut(
+            key="space",
+            description="Auswahl umschalten",
+            action=self._toggle_action,
+            context="selection"
+        )
+    
+    def register_shortcut(self, key: str, description: str, action: Callable, context: str = "global", enabled: bool = True):
         """
-        Registriert eine Aktion für ein Tastaturkürzel.
+        Registriert ein neues Tastaturkürzel.
         
         Args:
-            shortcut: Das Tastaturkürzel
-            action: Die auszuführende Aktion
+            key: Tastenkürzel (z.B. "ctrl+s", "q", "f1")
+            description: Beschreibung der Aktion
+            action: Funktion, die bei Drücken der Taste ausgeführt wird
+            context: Kontext, in dem das Kürzel aktiv ist
+            enabled: Ob das Kürzel aktiviert ist
         """
-        self.shortcuts[shortcut] = action
-        logger.debug(f"Tastaturkürzel {shortcut.value} registriert")
-        
-    def unregister_shortcut(self, shortcut: Shortcut) -> None:
+        shortcut = Shortcut(
+            key=key.lower(),
+            description=description,
+            action=action,
+            context=context,
+            enabled=enabled
+        )
+        self.shortcuts[key.lower()] = shortcut
+        logger.debug(f"Tastaturkürzel registriert: {key} - {description}")
+    
+    def unregister_shortcut(self, key: str):
         """
         Entfernt ein Tastaturkürzel.
         
         Args:
-            shortcut: Das zu entfernende Tastaturkürzel
+            key: Tastenkürzel zum Entfernen
         """
-        if shortcut in self.shortcuts:
-            del self.shortcuts[shortcut]
-            logger.debug(f"Tastaturkürzel {shortcut.value} entfernt")
-            
-    def handle_keypress(self, key: str) -> None:
+        key = key.lower()
+        if key in self.shortcuts:
+            del self.shortcuts[key]
+            logger.debug(f"Tastaturkürzel entfernt: {key}")
+    
+    def enable_shortcut(self, key: str):
         """
-        Verarbeitet einen Tastendruck.
+        Aktiviert ein Tastaturkürzel.
         
         Args:
-            key: Der gedrückte Schlüssel
+            key: Tastenkürzel zum Aktivieren
         """
-        # Mapping von Tasten zu Shortcuts
-        key_mapping = {
-            ' ': Shortcut.PAUSE,
-            '\x03': Shortcut.CANCEL,  # Ctrl+C
-            '\x04': Shortcut.COMPLETE,  # Ctrl+D
-            '\x12': Shortcut.RESTART,  # Ctrl+R
-            'q': Shortcut.QUIT,
-            'Q': Shortcut.QUIT,
-        }
-        
-        # Spezielle Behandlung für F1
-        if key == '\x00' or key == '\xe0':  # Windows: \x00 oder \xe0 für Spezialtasten
-            # Wir müssen auf das nächste Zeichen warten, um die tatsächliche Taste zu erkennen
-            # In einer echten Implementierung würden wir hier eine Bibliothek wie keyboard verwenden
-            pass
-        elif key in key_mapping:
-            shortcut = key_mapping[key]
-            if shortcut in self.shortcuts:
-                try:
-                    self.shortcuts[shortcut]()
-                except Exception as e:
-                    logger.error(f"Fehler beim Ausführen der Aktion für {shortcut.value}: {e}")
-            else:
-                # Standardverhalten für einige Shortcuts
-                if shortcut == Shortcut.PAUSE:
-                    self._toggle_pause()
-                elif shortcut == Shortcut.QUIT:
-                    self._quit()
-                    
-    def _toggle_pause(self) -> None:
-        """Schaltet den Pausenstatus um."""
-        self.is_paused = not self.is_paused
-        status = "pausiert" if self.is_paused else "fortgesetzt"
-        logger.info(f"Download {status}")
-        print(f"\nDownload {status}. Drücken Sie die Leertaste erneut zum Fortsetzen.")
-        
-    def _quit(self) -> None:
-        """Beendet das Programm."""
-        logger.info("Programm wird beendet")
-        print("\nProgramm wird beendet...")
-        sys.exit(0)
-        
-    def is_download_paused(self) -> bool:
+        key = key.lower()
+        if key in self.shortcuts:
+            self.shortcuts[key].enabled = True
+            logger.debug(f"Tastaturkürzel aktiviert: {key}")
+    
+    def disable_shortcut(self, key: str):
         """
-        Prüft, ob der Download pausiert ist.
+        Deaktiviert ein Tastaturkürzel.
         
+        Args:
+            key: Tastenkürzel zum Deaktivieren
+        """
+        key = key.lower()
+        if key in self.shortcuts:
+            self.shortcuts[key].enabled = False
+            logger.debug(f"Tastaturkürzel deaktiviert: {key}")
+    
+    def set_context(self, context: str):
+        """
+        Setzt den aktuellen Kontext.
+        
+        Args:
+            context: Neuer Kontext
+        """
+        self.context = context
+        logger.debug(f"Kontext geändert: {context}")
+    
+    def get_shortcuts_for_context(self, context: Optional[str] = None) -> Dict[str, Shortcut]:
+        """
+        Gibt die Tastaturkürzel für einen bestimmten Kontext zurück.
+        
+        Args:
+            context: Kontext (standardmäßig der aktuelle Kontext)
+            
         Returns:
-            True, wenn pausiert, False sonst
+            Dictionary mit Tastaturkürzeln
         """
-        return self.is_paused
+        if context is None:
+            context = self.context
+        
+        return {
+            key: shortcut for key, shortcut in self.shortcuts.items()
+            if shortcut.context in [context, "global"] and shortcut.enabled
+        }
+    
+    def handle_keypress(self, key: str) -> bool:
+        """
+        Behandelt einen Tastendruck.
+        
+        Args:
+            key: Gedrückte Taste
+            
+        Returns:
+            True, wenn das Tastaturkürzel verarbeitet wurde, False sonst
+        """
+        key = key.lower()
+        
+        # Prüfe, ob das Tastaturkürzel im aktuellen Kontext existiert und aktiviert ist
+        if key in self.shortcuts:
+            shortcut = self.shortcuts[key]
+            if shortcut.enabled and shortcut.context in [self.context, "global"]:
+                try:
+                    shortcut.action()
+                    logger.debug(f"Tastaturkürzel ausgeführt: {key}")
+                    return True
+                except Exception as e:
+                    logger.error(f"Fehler beim Ausführen des Tastaturkürzels {key}: {e}")
+                    return False
+        
+        return False
+    
+    def show_help(self):
+        """Zeigt eine Hilfe zu den verfügbaren Tastaturkürzeln an."""
+        print("\nVerfügbare Tastaturkürzel:")
+        print("-" * 40)
+        
+        # Gruppiere nach Kontext
+        contexts = {}
+        for shortcut in self.shortcuts.values():
+            if shortcut.enabled:
+                if shortcut.context not in contexts:
+                    contexts[shortcut.context] = []
+                contexts[shortcut.context].append(shortcut)
+        
+        # Zeige globale Tastaturkürzel
+        if "global" in contexts:
+            print("\nGlobale Tastaturkürzel:")
+            for shortcut in contexts["global"]:
+                print(f"  {shortcut.key:10} - {shortcut.description}")
+        
+        # Zeige kontextspezifische Tastaturkürzel
+        for context, shortcuts in contexts.items():
+            if context != "global":
+                print(f"\n{context.title()}-Tastaturkürzel:")
+                for shortcut in shortcuts:
+                    if shortcut.context == context:
+                        print(f"  {shortcut.key:10} - {shortcut.description}")
+    
+    # Standard-Aktionen
+    def _quit_action(self):
+        """Standardaktion zum Beenden des Programms."""
+        print("Programm wird beendet...")
+        sys.exit(0)
+    
+    def _help_action(self):
+        """Standardaktion zum Anzeigen der Hilfe."""
+        self.show_help()
+    
+    def _search_action(self):
+        """Standardaktion zum Starten einer Suche."""
+        print("Suchfunktion wird aufgerufen...")
+        # Hier würde die Suchfunktion aufgerufen werden
+    
+    def _download_action(self):
+        """Standardaktion zum Starten eines Downloads."""
+        print("Download wird gestartet...")
+        # Hier würde der Download gestartet werden
+    
+    def _pause_action(self):
+        """Standardaktion zum Pausieren/Fortsetzen von Downloads."""
+        print("Downloads werden pausiert/fortgesetzt...")
+        # Hier würde die Pausenfunktion aufgerufen werden
+    
+    def _config_action(self):
+        """Standardaktion zum Anzeigen der Einstellungen."""
+        print("Einstellungen werden angezeigt...")
+        # Hier würden die Einstellungen angezeigt werden
+    
+    def _confirm_action(self):
+        """Standardaktion zur Bestätigung einer Auswahl."""
+        print("Auswahl bestätigt.")
+        # Hier würde die Bestätigungslogik implementiert werden
+    
+    def _cancel_action(self):
+        """Standardaktion zum Abbrechen."""
+        print("Aktion abgebrochen.")
+        # Hier würde die Abbruchlogik implementiert werden
+    
+    def _toggle_action(self):
+        """Standardaktion zum Umschalten einer Auswahl."""
+        print("Auswahl umgeschaltet.")
+        # Hier würde die Umschaltlogik implementiert werden
+
 
 # Globale Instanz
-_keyboard_shortcuts: Optional[KeyboardShortcuts] = None
+_keyboard_shortcut_manager: Optional[KeyboardShortcutManager] = None
 
-def get_keyboard_shortcuts() -> KeyboardShortcuts:
+def get_keyboard_shortcut_manager() -> KeyboardShortcutManager:
     """
-    Gibt die globale Instanz der Tastaturkürzel-Verwaltung zurück.
+    Gibt die globale Instanz des KeyboardShortcutManagers zurück.
     
     Returns:
-        Instanz von KeyboardShortcuts
+        Instanz von KeyboardShortcutManager
     """
-    global _keyboard_shortcuts
-    if _keyboard_shortcuts is None:
-        _keyboard_shortcuts = KeyboardShortcuts()
-    return _keyboard_shortcuts
+    global _keyboard_shortcut_manager
+    if _keyboard_shortcut_manager is None:
+        _keyboard_shortcut_manager = KeyboardShortcutManager()
+    return _keyboard_shortcut_manager
 
-# Hilfsfunktionen für die Verwendung außerhalb der Klasse
-def register_shortcut(shortcut: Shortcut, action: Callable) -> None:
+def register_shortcut(key: str, description: str, action: Callable, context: str = "global", enabled: bool = True):
     """
-    Registriert eine Aktion für ein Tastaturkürzel.
+    Registriert ein neues Tastaturkürzel.
     
     Args:
-        shortcut: Das Tastaturkürzel
-        action: Die auszuführende Aktion
+        key: Tastenkürzel
+        description: Beschreibung der Aktion
+        action: Funktion, die bei Drücken der Taste ausgeführt wird
+        context: Kontext, in dem das Kürzel aktiv ist
+        enabled: Ob das Kürzel aktiviert ist
     """
-    keyboard = get_keyboard_shortcuts()
-    keyboard.register_shortcut(shortcut, action)
+    manager = get_keyboard_shortcut_manager()
+    manager.register_shortcut(key, description, action, context, enabled)
 
-def unregister_shortcut(shortcut: Shortcut) -> None:
+def unregister_shortcut(key: str):
     """
     Entfernt ein Tastaturkürzel.
     
     Args:
-        shortcut: Das zu entfernende Tastaturkürzel
+        key: Tastenkürzel zum Entfernen
     """
-    keyboard = get_keyboard_shortcuts()
-    keyboard.unregister_shortcut(shortcut)
+    manager = get_keyboard_shortcut_manager()
+    manager.unregister_shortcut(key)
 
-def handle_keypress(key: str) -> None:
+def handle_keypress(key: str) -> bool:
     """
-    Verarbeitet einen Tastendruck.
+    Behandelt einen Tastendruck.
     
     Args:
-        key: Der gedrückte Schlüssel
-    """
-    keyboard = get_keyboard_shortcuts()
-    keyboard.handle_keypress(key)
-
-def is_download_paused() -> bool:
-    """
-    Prüft, ob der Download pausiert ist.
-    
+        key: Gedrückte Taste
+        
     Returns:
-        True, wenn pausiert, False sonst
+        True, wenn das Tastaturkürzel verarbeitet wurde, False sonst
     """
-    keyboard = get_keyboard_shortcuts()
-    return keyboard.is_download_paused()
+    manager = get_keyboard_shortcut_manager()
+    return manager.handle_keypress(key)
+
+def set_shortcut_context(context: str):
+    """
+    Setzt den aktuellen Kontext für Tastaturkürzel.
+    
+    Args:
+        context: Neuer Kontext
+    """
+    manager = get_keyboard_shortcut_manager()
+    manager.set_context(context)
+
+def show_shortcut_help():
+    """Zeigt eine Hilfe zu den verfügbaren Tastaturkürzeln an."""
+    manager = get_keyboard_shortcut_manager()
+    manager.show_help()

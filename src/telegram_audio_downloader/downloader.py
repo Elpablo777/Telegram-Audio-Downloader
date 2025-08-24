@@ -23,17 +23,17 @@ from tqdm import tqdm
 
 from .models import AudioFile, TelegramGroup, DownloadStatus
 from .config import Config
-from .logging_config import get_logger
-from .error_handling import handle_error
-from .utils import sanitize_filename, format_file_size
-from .network_optimization import get_optimized_client
-from .prefetching import get_prefetch_manager
-from .adaptive_parallelism import get_parallelism_manager
-from .advanced_memory_management import get_memory_manager
-from .automatic_error_recovery import get_error_recovery
+from .logging_config import get_logger, get_error_tracker
+from .error_handling import handle_error, SecurityError
+from .utils.file_operations import sanitize_filename, format_file_size
+from .network_optimization import get_optimized_client, NetworkOptimizer
+from .prefetching import get_prefetch_manager, PrefetchManager
+from .adaptive_parallelism import get_parallelism_manager, AdaptiveParallelismController
+from .advanced_memory_management import get_memory_manager, AdvancedMemoryManager
+from .automatic_error_recovery import get_error_recovery, AutomaticErrorRecovery
 from .audit_logging import log_audit_event
 from .metrics_export import export_download_metric
-from .realtime_performance_analysis import get_performance_analyzer
+from .realtime_performance_analysis import get_performance_analyzer, RealtimePerformanceAnalyzer
 # Neue Importe für die fortgeschrittene Download-Wiederaufnahme
 from .advanced_resume import (
     get_resume_manager, load_file_resume_state, save_file_resume_state,
@@ -66,6 +66,15 @@ from .advanced_notifications import (
     get_advanced_notifier, send_download_completed_notification,
     send_download_failed_notification, send_batch_completed_notification
 )
+
+# Importiere fehlende Fehlerklassen
+from .error_handling import ConfigurationError, AuthenticationError, DatabaseError, DownloadError
+
+# Importiere fehlende Konstanten
+from .utils import AUDIO_EXTENSIONS
+
+# Globale Error Tracker Instanz
+error_tracker = get_error_tracker()
 
 logger = get_logger(__name__)
 
@@ -125,7 +134,7 @@ class AudioDownloader:
         self.max_concurrent_downloads = max_concurrent_downloads
         
         # Erweiterter Dateinamen-Generator
-        self.filename_generator = get_advanced_filename_generator(self.download_dir)
+        self.filename_generator = get_advanced_filename_generator()
         
         # Adaptive Parallelism Controller
         self.adaptive_parallelism = AdaptiveParallelismController(
@@ -162,12 +171,14 @@ class AudioDownloader:
         self.download_semaphore = asyncio.Semaphore(max_concurrent_downloads)
 
         # Performance-Monitor initialisieren
+        from .performance import get_performance_monitor
         self.performance_monitor = get_performance_monitor(
             download_dir=self.download_dir, max_memory_mb=1024
         )
 
         # Datenbank initialisieren
-        init_db()
+        from .database import init_db
+        self.db = init_db()
 
         # Speichereffizienter Cache für bereits heruntergeladene Dateien (max. 50.000 Einträge)
         self._downloaded_files_cache = LRUCache(max_size=50000)
@@ -584,7 +595,7 @@ class AudioDownloader:
                 # In den Cache aufnehmen
                 self._downloaded_files_cache.put(file_id, True)
 
-                // Sicherheitsprüfung: Dateiintegrität verifizieren
+                # Sicherheitsprüfung: Dateiintegrität verifizieren
                 if not verify_file_integrity(download_path):
                     log_security_event(
                         "file_integrity_violation",
@@ -593,14 +604,14 @@ class AudioDownloader:
                     )
                     raise SecurityError(f"Integritätsprüfung für {download_path} fehlgeschlagen")
 
-                // Audit-Logging für erfolgreichen Download
+                # Audit-Logging für erfolgreichen Download
                 log_security_event(
                     "download_success",
                     f"Download erfolgreich abgeschlossen: {download_path}",
                     "low"
                 )
 
-                // Audit-Logging für Dateiintegrität
+                # Audit-Logging für Dateiintegrität
                 log_security_event(
                     "file_integrity_verified",
                     f"Dateiintegrität von {download_path} bestätigt",
@@ -878,7 +889,7 @@ class AudioDownloader:
                 continue
 
             except Exception as e:
-                // Audit-Logging für Download-Fehler
+                # Audit-Logging für Download-Fehler
                 log_security_event(
                     "download_error",
                     f"Fehler beim Download von {audio_file.file_name}: {type(e).__name__}: {e}",
@@ -956,7 +967,7 @@ class AudioDownloader:
         Returns:
             True, wenn der Download erfolgreich war
         """
-        // Sicherheitsprüfung: Zugriff auf das Download-Verzeichnis prüfen
+        # Sicherheitsprüfung: Zugriff auf das Download-Verzeichnis prüfen
         if not check_file_access(self.download_dir):
             log_security_event(
                 "unauthorized_access",
@@ -1100,7 +1111,7 @@ class AudioDownloader:
                     progress_callback=progress_callback
                 )
                 
-                // Sicherheitsprüfung: Dateiintegrität verifizieren
+                # Sicherheitsprüfung: Dateiintegrität verifizieren
                 if not verify_file_integrity(full_path):
                     log_security_event(
                         "file_integrity_violation",
@@ -1109,7 +1120,7 @@ class AudioDownloader:
                     )
                     raise SecurityError(f"Integritätsprüfung für {full_path} fehlgeschlagen")
                 
-                // Audit-Logging für Dateiintegrität
+                # Audit-Logging für Dateiintegrität
                 log_security_event(
                     "file_integrity_verified",
                     f"Dateiintegrität von {full_path} bestätigt",
@@ -1139,7 +1150,7 @@ class AudioDownloader:
                     "file_size": file_size
                 })
                 
-                // Audit-Logging für erfolgreichen Download
+                # Audit-Logging für erfolgreichen Download
                 log_security_event(
                     "download_success",
                     f"Download erfolgreich abgeschlossen: {file_name}",
@@ -1155,14 +1166,14 @@ class AudioDownloader:
                 return True
                 
             except Exception as e:
-                // Audit-Logging für Download-Fehler
+                # Audit-Logging für Download-Fehler
                 log_security_event(
                     "download_error",
                     f"Fehler beim Download von {file_name}: {type(e).__name__}: {e}",
                     "medium"
                 )
                 
-                // Sicherheitsprüfung: Dateiintegrität verifizieren
+                # Sicherheitsprüfung: Dateiintegrität verifizieren
                 if full_path.exists() and not verify_file_integrity(full_path):
                     log_security_event(
                         "file_integrity_violation",
@@ -1249,7 +1260,7 @@ class AudioDownloader:
             # Registriere das Ende des Downloads
             register_download_end(file_id)
             
-            // Audit-Logging für Download-Ende
+            # Audit-Logging für Download-Ende
             log_security_event(
                 "download_end",
                 f"Download von {file_name} beendet",

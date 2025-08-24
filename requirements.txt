@@ -79,6 +79,10 @@ python-magic-bin>=0.4.14; sys_platform == "win32"
 tenacity>=8.2.0
 # Retry library with exponential backoff
 
+# ===== System Notifications =====
+plyer>=2.1.0
+# Platform-independent API for accessing features of the device
+
 # ===== DEVELOPMENT DEPENDENCIES (Install separately) =====
 # For development, use: pip install -e ".[dev]"
 # All development dependencies are defined in setup.py

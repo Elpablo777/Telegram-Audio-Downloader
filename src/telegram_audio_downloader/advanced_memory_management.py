@@ -426,3 +426,17 @@ class AdvancedMemoryManager:
         """Schließt alle Ressourcen."""
         self.mapped_file_manager.close_all()
         logger.info("AdvancedMemoryManager geschlossen")
+
+
+def get_memory_manager(download_dir: Path = Path("."), max_memory_mb: int = 1024):
+    """
+    Gibt eine Instanz des AdvancedMemoryManager zurück.
+    
+    Args:
+        download_dir: Download-Verzeichnis
+        max_memory_mb: Maximale Speicherbelegung in MB
+        
+    Returns:
+        AdvancedMemoryManager-Instanz
+    """
+    return AdvancedMemoryManager(download_dir, max_memory_mb)

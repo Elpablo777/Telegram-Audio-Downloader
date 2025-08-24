@@ -13,8 +13,9 @@ from typing import Any, Dict, Optional, Union
 import mutagen
 from mutagen.id3 import ID3NoHeaderError
 
-from .error_handling import FileOperationError, handle_error
-from .file_error_handler import handle_file_error, with_file_error_handling
+# Korrigiere den Import von error_handling
+from ..error_handling import FileOperationError, handle_error
+from ..file_error_handler import handle_file_error, with_file_error_handling
 
 try:
     from pydub import AudioSegment

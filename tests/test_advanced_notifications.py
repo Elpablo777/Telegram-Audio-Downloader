@@ -182,13 +182,13 @@ class TestWebhookNotifier:
         assert config.headers == {"Authorization": "Bearer token"}
         assert config.payload_template == '{"title": "{title}", "message": "{message}"}'
     
-    @patch('telegram_audio_downloader.advanced_notifications.requests.post')
-    def test_send_webhook_success(self, mock_post):
+    @patch('telegram_audio_downloader.advanced_notifications.requests.request')
+    def test_send_webhook_success(self, mock_request):
         """Test sendet einen Webhook erfolgreich."""
         # Mock die HTTP-Anfrage
         mock_response = Mock()
         mock_response.status_code = 200
-        mock_post.return_value = mock_response
+        mock_request.return_value = mock_response
         
         # Erstelle die Konfiguration
         config = WebhookConfig(
@@ -211,16 +211,16 @@ class TestWebhookNotifier:
         
         # Überprüfe die Ergebnisse
         assert result is True
-        mock_post.assert_called_once()
+        mock_request.assert_called_once()
     
-    @patch('telegram_audio_downloader.advanced_notifications.requests.post')
-    def test_send_webhook_failure(self, mock_post):
+    @patch('telegram_audio_downloader.advanced_notifications.requests.request')
+    def test_send_webhook_failure(self, mock_request):
         """Test behandelt einen Fehler beim Senden eines Webhooks."""
         # Mock die HTTP-Anfrage, um einen Fehler zu simulieren
         mock_response = Mock()
         mock_response.status_code = 500
         mock_response.text = "Internal Server Error"
-        mock_post.return_value = mock_response
+        mock_request.return_value = mock_response
         
         # Erstelle die Konfiguration
         config = WebhookConfig(

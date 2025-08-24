@@ -198,6 +198,18 @@ class NetworkOptimizer:
             
         return self.session
     
+
+def get_optimized_client():
+    """
+    Gibt einen optimierten HTTP-Client zurück.
+    
+    Returns:
+        aiohttp.ClientSession mit optimierten Einstellungen
+    """
+    # In einer echten Implementierung würden wir hier eine Singleton-Instanz zurückgeben
+    # Für dieses Beispiel erstellen wir eine einfache Instanz
+    optimizer = NetworkOptimizer(Path("."))
+    return optimizer.get_optimized_session()
     def get_connection_info(self) -> Dict[str, Any]:
         """
         Gibt Informationen über die aktuelle Verbindung zurück.

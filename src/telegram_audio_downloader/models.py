@@ -64,8 +64,10 @@ class AudioFile(BaseModel):
     """Modell für eine Audiodatei mit speichereffizienten Methoden."""
 
     file_id: CharField = CharField(max_length=255, unique=True)
-    file_name: CharField = CharField(max_length=255)
-    file_size: IntegerField = IntegerField(null=True)
+    file_unique_id: CharField = CharField(max_length=255, null=True)  # Hinzugefügtes Feld
+    file_name: CharField = CharField(max_length=510)  # Vergrößert auf 510
+    file_size: IntegerField = IntegerField()
+    mime_type: CharField = CharField(max_length=100, null=True)
     duration: IntegerField = IntegerField(null=True)
     title: CharField = CharField(max_length=255, null=True)
     performer: CharField = CharField(max_length=255, null=True)
@@ -74,14 +76,20 @@ class AudioFile(BaseModel):
     genre: CharField = CharField(max_length=100, null=True)
     composer: CharField = CharField(max_length=255, null=True)
     track_number: CharField = CharField(max_length=10, null=True)
-    group: ForeignKeyField = ForeignKeyField(TelegramGroup, backref='audio_files', on_delete='CASCADE')
-    downloaded_at: DateTimeField = DateTimeField(null=True)
-    status: CharField = CharField(max_length=50, default=DownloadStatus.PENDING.value)
+    local_path: TextField = TextField(null=True)  # Hinzugefügtes Feld
+    status: CharField = CharField(max_length=20, default=DownloadStatus.PENDING.value)
     error_message: TextField = TextField(null=True)
+    downloaded_at: DateTimeField = DateTimeField(null=True)
+    partial_file_path: TextField = TextField(null=True)  # Hinzugefügtes Feld
+    downloaded_bytes: IntegerField = IntegerField(default=0)
+    checksum_md5: CharField = CharField(max_length=32, null=True)  # Hinzugefügtes Feld
+    checksum_verified: BooleanField = BooleanField(default=False)  # Hinzugefügtes Feld
     download_attempts: IntegerField = IntegerField(default=0)
-    # Neue Felder für die fortgeschrittene Download-Wiederaufnahme
+    last_attempt_at: DateTimeField = DateTimeField(null=True)
+    group: ForeignKeyField = ForeignKeyField(TelegramGroup, backref='audio_files', on_delete='CASCADE', null=True)  # null=True hinzugefügt
     resume_offset: IntegerField = IntegerField(default=0)
     resume_checksum: CharField = CharField(max_length=255, null=True)
+    message_id: IntegerField = IntegerField(null=True)
 
     class Meta:
         table_name = "audio_files"

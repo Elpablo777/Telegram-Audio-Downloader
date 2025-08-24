@@ -231,6 +231,21 @@ class MetricsMiddleware:
             return wrapper
         return decorator
 
+
+def export_download_metric(status: str, file_size: int) -> None:
+    """
+    Exportiert eine Download-Metrik.
+    
+    Args:
+        status: Status des Downloads (success, failure, exception)
+        file_size: Größe der Datei in Bytes
+    """
+    collector = get_metrics_collector()
+    collector.increment_counter(f"download_{status}_total")
+    if file_size > 0:
+        collector.increment_counter("downloaded_bytes_total", file_size)
+        collector.record_histogram("download_size_bytes", file_size)
+
     def track_download(self, file_size: int):
         """
         Trackt einen Download.

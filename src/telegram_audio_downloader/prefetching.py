@@ -265,3 +265,16 @@ class PrefetchManager:
             del self.patterns[group_id]
             
         logger.debug(f"{len(old_groups)} alte Download-Muster gelöscht")
+
+
+def get_prefetch_manager(download_dir: Path = Path(".")):
+    """
+    Gibt eine Instanz des PrefetchManagers zurück.
+    
+    Args:
+        download_dir: Download-Verzeichnis
+        
+    Returns:
+        PrefetchManager-Instanz
+    """
+    return PrefetchManager(download_dir)

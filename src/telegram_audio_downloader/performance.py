@@ -9,7 +9,7 @@ import weakref
 from collections import deque, defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Deque, Dict, Optional, Tuple
+from typing import Deque, Dict, Optional, Tuple, Any
 
 import psutil
 from telethon.errors import FloodWaitError
@@ -49,6 +49,61 @@ class PerformanceMetrics:
         # Nur die letzten 60 Sekunden berücksichtigen
         recent_downloads = [t for t in self.download_times if time.time() - t < 60]
         return len(recent_downloads)
+
+
+@dataclass
+class DownloadStatistics:
+    """Statistiken für Download-Vorgänge."""
+    
+    files_downloaded: int = 0
+    files_failed: int = 0
+    total_bytes: int = 0
+    total_time: float = 0.0
+    average_speed: float = 0.0
+    success_rate: float = 0.0
+    
+    def update(self, bytes_downloaded: int, time_taken: float, success: bool) -> None:
+        """
+        Aktualisiert die Download-Statistiken.
+        
+        Args:
+            bytes_downloaded: Anzahl der heruntergeladenen Bytes
+            time_taken: Dauer des Downloads in Sekunden
+            success: Ob der Download erfolgreich war
+        """
+        if success:
+            self.files_downloaded += 1
+        else:
+            self.files_failed += 1
+            
+        self.total_bytes += bytes_downloaded
+        self.total_time += time_taken
+        
+        # Berechne Durchschnittsgeschwindigkeit
+        if time_taken > 0:
+            self.average_speed = bytes_downloaded / time_taken / (1024 * 1024)  # MB/s
+            
+        # Berechne Erfolgsrate
+        total_files = self.files_downloaded + self.files_failed
+        if total_files > 0:
+            self.success_rate = (self.files_downloaded / total_files) * 100
+
+    def get_summary(self) -> Dict[str, Any]:
+        """
+        Gibt eine Zusammenfassung der Statistiken zurück.
+        
+        Returns:
+            Dictionary mit Statistikdaten
+        """
+        return {
+            "files_downloaded": self.files_downloaded,
+            "files_failed": self.files_failed,
+            "total_bytes": self.total_bytes,
+            "total_time": self.total_time,
+            "average_speed_mbps": self.average_speed,
+            "success_rate_percent": self.success_rate,
+            "total_files": self.files_downloaded + self.files_failed
+        }
 
 
 class RateLimiter:
@@ -152,13 +207,29 @@ class MemoryManager:
         logger.info(f"Garbage Collection: {total_collected} Objekte bereinigt")
         return total_collected
 
-    def add_to_cache(self, key: str, obj: object) -> None:
-        """Fügt ein Objekt zum Weak-Reference-Cache hinzu."""
-        self._weak_cache[key] = obj
 
-    def get_from_cache(self, key: str) -> Optional[object]:
-        """Holt ein Objekt aus dem Weak-Reference-Cache."""
-        return self._weak_cache.get(key)
+def format_bytes(bytes_value: int) -> str:
+    """
+    Formatiert Bytes in ein lesbares Format.
+    
+    Args:
+        bytes_value: Anzahl der Bytes
+        
+    Returns:
+        Formatierte String-Repräsentation
+    """
+    if bytes_value == 0:
+        return "0 B"
+    
+    size_names = ["B", "KB", "MB", "GB", "TB"]
+    i = 0
+    size = float(bytes_value)
+    
+    while size >= 1024.0 and i < len(size_names) - 1:
+        size /= 1024.0
+        i += 1
+    
+    return f"{size:.1f} {size_names[i]}"
 
 
 class DiskSpaceManager:
