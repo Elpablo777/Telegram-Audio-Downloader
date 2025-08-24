@@ -1,0 +1,41 @@
+# Konfiguration für automatische Release-Notizen
+
+changelog:
+  exclude:
+    labels:
+      - ignore-for-release
+    authors:
+      - octocat
+  categories:
+    - title: 🚀 Neue Funktionen
+      labels:
+        - enhancement
+        - feature
+    - title: 🐛 Fehlerbehebungen
+      labels:
+        - bug
+        - fix
+    - title: 📚 Dokumentation
+      labels:
+        - documentation
+        - docs
+    - title: 🔧 Wartung
+      labels:
+        - maintenance
+        - chore
+    - title: 🔒 Sicherheit
+      labels:
+        - security
+    - title: ⚡ Performance
+      labels:
+        - performance
+    - title: 🧪 Tests
+      labels:
+        - testing
+        - test
+    - title: 📦 Abhängigkeiten
+      labels:
+        - dependencies
+    - title: Andere Änderungen
+      labels:
+        - "*"
