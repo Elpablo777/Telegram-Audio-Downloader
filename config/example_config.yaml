@@ -1,0 +1,13 @@
+# Beispiel-Konfiguration für den Telegram Audio Downloader
+api_id: "YOUR_API_ID"
+api_hash: "YOUR_API_HASH"
+session_name: "telegram_audio_downloader"
+download_dir: "downloads"
+max_concurrent_downloads: 3
+rate_limit_delay: 0.1
+db_path: "data/downloads.db"
+log_dir: "logs"
+log_level: "INFO"
+max_memory_mb: 1024
+cache_size: 50000
+encryption_key: null

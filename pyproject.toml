@@ -180,7 +180,11 @@ markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "integration: marks tests as integration tests",
     "network: marks tests as requiring network access",
-    "unit: marks tests as unit tests"
+    "unit: marks tests as unit tests",
+    "performance: marks tests as performance tests",
+    "security: marks tests as security tests",
+    "error_injection: marks tests as error injection tests",
+    "data_setup: marks tests as data setup tests"
 ]
 filterwarnings = [
     "error",

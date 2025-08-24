@@ -31,6 +31,7 @@ from .downloader import AudioDownloader, DownloadStatus
 from .logging_config import get_error_tracker, get_logger, setup_logging
 from .models import AudioFile, TelegramGroup
 from .performance import get_performance_monitor
+from .config import Config
 from .memory_utils import perform_memory_cleanup, get_memory_monitor
 
 # Rich-Konsole
@@ -50,27 +51,40 @@ def print_banner():
     console.print(banner, highlight=False)
 
 
-def check_env() -> bool:
-    """Überprüft, ob alle erforderlichen Umgebungsvariablen gesetzt sind."""
-    required_vars = ["API_ID", "API_HASH"]
-    missing_vars = [var for var in required_vars if not os.getenv(var)]
-
-    if missing_vars:
-        error = ConfigurationError(
-            f"Fehlende Umgebungsvariablen: {', '.join(missing_vars)}. "
-            "Bitte erstellen Sie eine .env-Datei mit den erforderlichen Variablen. "
-            "Beispiel: API_ID=12345, API_HASH=your_api_hash_here, SESSION_NAME=session_name"
-        )
-        handle_error(error, "check_env", exit_on_error=True)
-        return False
-    return True
+def load_config(ctx, config_path: Optional[str] = None) -> Config:
+    """
+    Lädt die Konfiguration mit Priorisierung.
+    
+    Args:
+        ctx: Click-Kontext
+        config_path: Optionaler Pfad zur Konfigurationsdatei
+        
+    Returns:
+        Config: Geladene Konfiguration
+    """
+    try:
+        # Lade Konfiguration mit CLI-Argumenten
+        cli_args = ctx.params if ctx else {}
+        config = Config.load(config_path=config_path, cli_args=cli_args)
+        
+        # Validiere erforderliche Felder
+        config.validate_required_fields()
+        
+        return config
+    except ConfigurationError as e:
+        handle_error(e, "load_config", exit_on_error=True)
+        return None
 
 
 @click.group()
 @click.option("--debug", is_flag=True, help="Aktiviert den Debug-Modus")
+@click.option("--config", "config_path", type=click.Path(exists=False), help="Pfad zur Konfigurationsdatei")
 @click.pass_context
-def cli(ctx, debug):
+def cli(ctx, debug, config_path):
     """Hauptbefehl für den Telegram Audio Downloader."""
+    # Konfiguration laden
+    config = load_config(ctx, config_path)
+    
     # Logging-System initialisieren
     logger = setup_logging(debug=debug)
 
@@ -89,6 +103,7 @@ def cli(ctx, debug):
     ctx.ensure_object(dict)
     ctx.obj["DEBUG"] = debug
     ctx.obj["LOGGER"] = logger
+    ctx.obj["CONFIG"] = config
 
 
 @cli.command()
@@ -103,19 +118,27 @@ def cli(ctx, debug):
     "--output",
     "-o",
     type=click.Path(file_okay=False),
-    default="downloads",
+    default=None,
     help="Ausgabeverzeichnis für die heruntergeladenen Dateien",
 )
 @click.option(
     "--parallel",
     "-p",
     type=click.IntRange(1, 10),
-    default=3,
+    default=None,
     help="Maximale Anzahl paralleler Downloads (Standard: 3, Max: 10)",
 )
 @click.pass_context
-def download(ctx, group: str, limit: Optional[int], output: str, parallel: int):
+def download(ctx, group: str, limit: Optional[int], output: Optional[str], parallel: Optional[int]):
     """Lädt Audiodateien aus einer Telegram-Gruppe herunter."""
+    config = ctx.obj.get("CONFIG")
+    
+    # Verwende Konfigurationswerte falls nicht über CLI angegeben
+    if output is None:
+        output = config.download_dir
+    if parallel is None:
+        parallel = config.max_concurrent_downloads
+    
     if not check_env():
         sys.exit(1)
     
@@ -870,6 +893,12 @@ def performance(watch: bool, cleanup: bool, output: str):
             and report["rate_limiting"]["current_rate"] >= 1.0
         ):
             console.print("  [green]✅ System läuft optimal[/green]")
+
+
+def check_env() -> bool:
+    """Überprüft, ob alle erforderlichen Umgebungsvariablen gesetzt sind."""
+    # Die Validierung erfolgt jetzt über die Config-Klasse
+    return True
 
 
 def main():

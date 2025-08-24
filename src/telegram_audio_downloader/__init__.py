@@ -45,15 +45,15 @@ __all__ = [
 
 # Import main modules for easier access
 try:
-    from .cli import main as cli_main
+    from .cli import cli as cli_main
     from .config import Config
-    from .downloader import TelegramAudioDownloader
+    from .downloader import AudioDownloader
     from .utils import format_file_size, sanitize_filename
 
     __all__.extend(
         [
             "cli_main",
-            "TelegramAudioDownloader",
+            "AudioDownloader",
             "Config",
             "sanitize_filename",
             "format_file_size",

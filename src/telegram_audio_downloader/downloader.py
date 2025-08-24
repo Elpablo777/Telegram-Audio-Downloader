@@ -36,6 +36,12 @@ from .database import init_db
 from .logging_config import get_error_tracker, get_logger
 from .models import AudioFile, DownloadStatus, TelegramGroup
 from .performance import get_performance_monitor
+from .adaptive_parallelism import AdaptiveParallelismController
+from .prefetching import PrefetchManager
+from .network_optimization import NetworkOptimizer
+from .advanced_memory_management import AdvancedMemoryManager
+from .realtime_performance_analysis import RealtimePerformanceAnalyzer
+from .automatic_error_recovery import AutomaticErrorRecovery
 
 # Logger und Error-Tracker initialisieren
 logger = get_logger(__name__)
@@ -98,6 +104,34 @@ class AudioDownloader:
         self.download_dir = Path(download_dir)
         self.download_dir.mkdir(parents=True, exist_ok=True)
         self.max_concurrent_downloads = max_concurrent_downloads
+        
+        # Adaptive Parallelism Controller
+        self.adaptive_parallelism = AdaptiveParallelismController(
+            download_dir=self.download_dir,
+            initial_concurrent_downloads=max_concurrent_downloads,
+            min_concurrent_downloads=1,
+            max_concurrent_downloads=10
+        )
+        
+        # Prefetch Manager
+        self.prefetch_manager = PrefetchManager(download_dir=self.download_dir)
+        
+        # Network Optimizer
+        self.network_optimizer = NetworkOptimizer(download_dir=self.download_dir)
+        
+        # Advanced Memory Manager
+        self.memory_manager = AdvancedMemoryManager(
+            download_dir=self.download_dir,
+            max_memory_mb=1024
+        )
+        
+        # Realtime Performance Analyzer
+        self.performance_analyzer = RealtimePerformanceAnalyzer(download_dir=self.download_dir)
+        
+        # Automatic Error Recovery
+        self.error_recovery = AutomaticErrorRecovery(download_dir=self.download_dir)
+        
+        # Verwende initially die statische Semaphore für Abwärtskompatibilität
         self.download_semaphore = asyncio.Semaphore(max_concurrent_downloads)
 
         # Performance-Monitor initialisieren
@@ -120,6 +154,8 @@ class AudioDownloader:
 
     async def initialize_client(self) -> None:
         """Initialisiert den Telegram-Client mit den Umgebungsvariablen."""
+        # Die Konfiguration wird jetzt über die CLI übergeben
+        # Diese Methode wird für Abwärtskompatibilität beibehalten
         api_id = os.getenv("API_ID")
         api_hash = os.getenv("API_HASH")
         session_name = os.getenv("SESSION_NAME", "session")
@@ -292,6 +328,9 @@ class AudioDownloader:
             logger.info(f"{len(audio_messages)} neue Audiodateien gefunden")
             self.total_downloads = len(audio_messages)
 
+            # Aufzeichnung in der Performance-Analyse
+            self.performance_analyzer.current_metrics.queue_length = len(audio_messages)
+
             if not audio_messages:
                 logger.info("Keine neuen Audiodateien zum Herunterladen gefunden")
                 return
@@ -304,6 +343,10 @@ class AudioDownloader:
 
             # Alle Downloads parallel ausführen
             results = await asyncio.gather(*download_tasks, return_exceptions=True)
+
+            # Prefetching im Hintergrund starten, wenn verfügbar
+            if self.prefetch_manager.should_prefetch():
+                asyncio.create_task(self.prefetch_manager.start_prefetching(self))
 
             # Ergebnisse auswerten
             for result in results:
@@ -338,13 +381,22 @@ class AudioDownloader:
         Returns:
             True bei Erfolg, False bei Fehler
         """
-        async with self.download_semaphore:
+        # Aufzeichnung in der Performance-Analyse
+        self.performance_analyzer.record_download_start()
+        
+        # Aktualisiere die adaptive Parallelisierung
+        await self.adaptive_parallelism.update_parallelism()
+        
+        # Verwende die adaptive Semaphore
+        async with self.adaptive_parallelism.get_semaphore():
             self.downloads_in_progress += 1
             try:
                 await self._download_audio(message, document, group)
                 return True
             except Exception as e:
                 logger.error(f"Fehler beim parallelen Download: {e}")
+                # Fehler in der Performance-Analyse aufzeichnen
+                self.performance_analyzer.record_error(type(e).__name__, "_download_audio_concurrent")
                 return False
             finally:
                 self.downloads_in_progress -= 1
@@ -369,6 +421,9 @@ class AudioDownloader:
             # Periodische Wartung
             await self.performance_monitor.periodic_maintenance()
 
+            # Speicherwartung durchführen
+            await self.memory_manager.perform_memory_maintenance()
+
             # Datenbankeintrag abrufen oder erstellen
             audio_file, created = AudioFile.get_or_create(
                 file_id=file_id,
@@ -377,6 +432,14 @@ class AudioDownloader:
                     "group": group,
                     "status": DownloadStatus.PENDING.value,
                 },
+            )
+
+            # Aufzeichnung für Prefetching-Muster
+            self.prefetch_manager.record_download(
+                group_id=group.group_id,
+                file_extension=Path(audio_info["file_name"]).suffix,
+                file_size=audio_info["file_size"],
+                file_id=file_id
             )
 
             # Prüfen, ob bereits vollständig heruntergeladen
@@ -465,6 +528,14 @@ class AudioDownloader:
                 # Performance-Tracking
                 duration = time.time() - start_time
                 self.performance_monitor.after_download(True, file_size_mb, duration)
+                
+                # Geschwindigkeit an den AdaptiveParallelismController übergeben
+                if duration > 0:
+                    speed_mbps = file_size_mb / duration
+                    self.adaptive_parallelism.record_download_speed(speed_mbps)
+                
+                # Erfolg in der Performance-Analyse aufzeichnen
+                self.performance_analyzer.record_download_completion(True, file_size_mb, duration)
 
                 logger.info(f"Download erfolgreich: {download_path} ({duration:.2f}s)")
             else:
@@ -475,6 +546,10 @@ class AudioDownloader:
                 audio_file.save()
 
                 logger.warning(f"Download unvollständig: {audio_info['file_name']}")
+                
+                # Fehler in der Performance-Analyse aufzeichnen
+                duration = time.time() - start_time
+                self.performance_analyzer.record_download_completion(False, file_size_mb, duration)
 
         except FloodWaitError as e:
             # Performance-Monitor über FloodWait informieren
@@ -491,9 +566,20 @@ class AudioDownloader:
             # Performance-Tracking für fehlgeschlagenen Download
             duration = time.time() - start_time
             self.performance_monitor.after_download(False, file_size_mb, duration)
+            
+            # Automatische Fehlerbehebung versuchen
+            recovery_data = {
+                "file_id": file_id,
+                "file_name": audio_info['file_name'],
+                "wait_time": wait_time
+            }
+            recovery_success = await self.error_recovery.attempt_recovery(e, f"download_{file_id}", recovery_data)
+            
+            # Fehler in der Performance-Analyse aufzeichnen
+            self.performance_analyzer.record_error("FloodWaitError", f"download_{file_id}")
 
-            # Retry nur wenn sinnvoll
-            if error_tracker.should_retry(e, f"download_{file_id}"):
+            # Retry nur wenn sinnvoll oder Fehlerbehebung erfolgreich
+            if recovery_success or error_tracker.should_retry(e, f"download_{file_id}"):
                 await self._download_audio(message, document, group)
             else:
                 logger.error(f"Zu viele FloodWait-Fehler für {file_id}, überspringe")
@@ -501,10 +587,18 @@ class AudioDownloader:
         except (RPCError, ConnectionError) as e:
             error_tracker.track_error(e, f"network_{file_id}", "ERROR")
 
-            if error_tracker.should_retry(e, f"network_{file_id}"):
+            # Automatische Fehlerbehebung versuchen
+            recovery_data = {
+                "file_id": file_id,
+                "file_name": audio_info['file_name'],
+                "download_attempts": audio_file.download_attempts if 'audio_file' in locals() else 0
+            }
+            recovery_success = await self.error_recovery.attempt_recovery(e, f"network_{file_id}", recovery_data)
+
+            if recovery_success or error_tracker.should_retry(e, f"network_{file_id}"):
                 retry_delay = min(
                     60, 2**audio_file.download_attempts
-                )  # Exponential backoff, max 60s
+                )  // Exponential backoff, max 60s
                 logger.warning(
                     f"Netzwerk-Fehler bei {audio_info['file_name']}, Retry in {retry_delay}s: {e}"
                 )
@@ -516,6 +610,11 @@ class AudioDownloader:
                     audio_file.status = DownloadStatus.FAILED.value
                     audio_file.error_message = f"Netzwerk-Fehler: {str(e)}"
                     audio_file.save()
+                
+                // Fehler in der Performance-Analyse aufzeichnen
+                duration = time.time() - start_time
+                self.performance_analyzer.record_download_completion(False, file_size_mb, duration)
+                self.performance_analyzer.record_error(type(e).__name__, f"network_{file_id}")
 
         except Exception as e:
             error_tracker.track_error(e, f"download_{file_id}", "ERROR")
@@ -524,11 +623,23 @@ class AudioDownloader:
                 exc_info=True,
             )
 
-            # Fehler in der Datenbank speichern
+            // Automatische Fehlerbehebung versuchen
+            recovery_data = {
+                "file_id": file_id,
+                "file_name": audio_info['file_name'] if 'audio_info' in locals() else 'unknown'
+            }
+            recovery_success = await self.error_recovery.attempt_recovery(e, f"download_{file_id}", recovery_data)
+
+            // Fehler in der Datenbank speichern
             if "audio_file" in locals():
                 audio_file.status = DownloadStatus.FAILED.value
                 audio_file.error_message = str(e)
                 audio_file.save()
+            
+            // Fehler in der Performance-Analyse aufzeichnen
+            duration = time.time() - start_time
+            self.performance_analyzer.record_download_completion(False, file_size_mb, duration)
+            self.performance_analyzer.record_error(type(e).__name__, f"download_{file_id}")
 
     async def _download_with_resume(
         self, message: Message, file_path: Path, start_byte: int, audio_file: AudioFile
@@ -596,7 +707,7 @@ class AudioDownloader:
             except Exception as e:
                 retry_count += 1
                 if retry_count < max_retries:
-                    wait_time = 2**retry_count  # Exponential backoff
+                    wait_time = 2**retry_count  // Exponential backoff
                     logger.warning(
                         f"Download-Fehler (Versuch {retry_count}/{max_retries}): {e}. "
                         f"Wiederhole in {wait_time} Sekunden..."

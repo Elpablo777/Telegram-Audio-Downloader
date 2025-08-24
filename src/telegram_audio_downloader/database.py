@@ -12,6 +12,9 @@ from playhouse.migrate import SqliteMigrator
 from .db_error_handler import handle_database_error, with_database_error_handling
 from .error_handling import DatabaseError
 from .models import AudioFile, TelegramGroup, db
+from .database_indexing import optimize_database_indexes
+from .database_migrations import run_migrations
+from .extended_models import create_extended_tables
 
 # Standard-Datenbankpfad
 DEFAULT_DB_PATH = Path("data/audio_downloader.db")
@@ -65,6 +68,27 @@ def init_db(db_path: Optional[str] = None) -> SqliteDatabase:
         except OperationalError as e:
             handle_database_error(e, "init_db_migration")
             raise DatabaseError(f"Fehler bei der Datenbankmigration: {e}")
+
+    # Optimiere die Datenbankindizes
+    try:
+        optimize_database_indexes()
+    except Exception as e:
+        logger.warning(f"Fehler bei der Datenbank-Indizierung: {e}")
+        # Nicht kritisch - die Anwendung kann weiterlaufen
+    
+    # Führe Datenbankmigrationen aus
+    try:
+        run_migrations()
+    except Exception as e:
+        logger.warning(f"Fehler bei der Datenbank-Migration: {e}")
+        # Nicht kritisch - die Anwendung kann weiterlaufen
+    
+    # Erstelle erweiterte Tabellen
+    try:
+        create_extended_tables()
+    except Exception as e:
+        logger.warning(f"Fehler beim Erstellen der erweiterten Tabellen: {e}")
+        # Nicht kritisch - die Anwendung kann weiterlaufen
 
     return db
 
