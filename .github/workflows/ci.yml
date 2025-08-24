@@ -93,6 +93,8 @@ jobs:
 
   docker-test:
     name: 🐳 Docker Build Test
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     needs: test
     if: github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'docker')
