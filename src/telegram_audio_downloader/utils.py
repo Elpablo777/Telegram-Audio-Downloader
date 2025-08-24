@@ -115,6 +115,7 @@ def create_filename_from_metadata(
     Returns:
         Generierter Dateiname
     """
+    # Verwende eine vereinfachte Logik, um den zirkulären Import zu vermeiden
     parts = []
 
     if performer:
@@ -183,13 +184,13 @@ def calculate_file_hash(file_path: Union[str, Path], algorithm: str = "md5") -> 
 @with_file_error_handling()
 def extract_audio_metadata(file_path: Union[str, Path]) -> Dict[str, Any]:
     """
-    Extrahiert Metadaten aus einer Audiodatei mit mutagen.
+    Extrahiert erweiterte Metadaten aus einer Audiodatei mit mutagen.
 
     Args:
         file_path: Pfad zur Audiodatei
 
     Returns:
-        Dictionary mit Metadaten
+        Dictionary mit erweiterten Metadaten
     """
     file_path = Path(file_path)
     metadata: Dict[str, Any] = {
@@ -198,10 +199,28 @@ def extract_audio_metadata(file_path: Union[str, Path]) -> Dict[str, Any]:
         "album": None,
         "date": None,
         "genre": None,
+        "composer": None,
+        "performer": None,
         "duration": None,
         "bitrate": None,
+        "sample_rate": None,
+        "channels": None,
         "format": None,
         "has_cover": False,
+        "track_number": None,
+        "total_tracks": None,
+        "disc_number": None,
+        "total_discs": None,
+        "copyright": None,
+        "isrc": None,
+        "upc": None,
+        "lyrics": None,
+        "comments": None,
+        "rating": None,
+        "bpm": None,
+        "key": None,
+        "mood": None,
+        "style": None,
     }
 
     try:
@@ -214,13 +233,15 @@ def extract_audio_metadata(file_path: Union[str, Path]) -> Dict[str, Any]:
         info = audio_file.info
         metadata["duration"] = getattr(info, "length", None)
         metadata["bitrate"] = getattr(info, "bitrate", None)
+        metadata["sample_rate"] = getattr(info, "sample_rate", None)
+        metadata["channels"] = getattr(info, "channels", None)
         metadata["format"] = file_path.suffix.lower()[1:]  # ohne Punkt
 
         # Tags extrahieren (verschiedene Formate haben verschiedene Tag-Namen)
         tags = audio_file.tags if audio_file.tags else {}
 
         # Titel
-        for key in ["TIT2", "TITLE", "\xa9nam"]:
+        for key in ["TIT2", "TITLE", "\xa9nam", "\xa9nam"]:
             if key in tags:
                 metadata["title"] = (
                     str(tags[key][0]) if isinstance(tags[key], list) else str(tags[key])
@@ -228,7 +249,7 @@ def extract_audio_metadata(file_path: Union[str, Path]) -> Dict[str, Any]:
                 break
 
         # Künstler
-        for key in ["TPE1", "ARTIST", "\xa9ART"]:
+        for key in ["TPE1", "ARTIST", "\xa9ART", "\xa9ART"]:
             if key in tags:
                 metadata["artist"] = (
                     str(tags[key][0]) if isinstance(tags[key], list) else str(tags[key])
@@ -236,7 +257,7 @@ def extract_audio_metadata(file_path: Union[str, Path]) -> Dict[str, Any]:
                 break
 
         # Album
-        for key in ["TALB", "ALBUM", "\xa9alb"]:
+        for key in ["TALB", "ALBUM", "\xa9alb", "\xa9alb"]:
             if key in tags:
                 metadata["album"] = (
                     str(tags[key][0]) if isinstance(tags[key], list) else str(tags[key])
@@ -244,7 +265,7 @@ def extract_audio_metadata(file_path: Union[str, Path]) -> Dict[str, Any]:
                 break
 
         # Jahr/Datum
-        for key in ["TDRC", "DATE", "\xa9day"]:
+        for key in ["TDRC", "TDRL", "DATE", "\xa9day", "\xa9day"]:
             if key in tags:
                 metadata["date"] = (
                     str(tags[key][0]) if isinstance(tags[key], list) else str(tags[key])
@@ -252,15 +273,109 @@ def extract_audio_metadata(file_path: Union[str, Path]) -> Dict[str, Any]:
                 break
 
         # Genre
-        for key in ["TCON", "GENRE", "\xa9gen"]:
+        for key in ["TCON", "GENRE", "\xa9gen", "\xa9gen"]:
             if key in tags:
                 metadata["genre"] = (
                     str(tags[key][0]) if isinstance(tags[key], list) else str(tags[key])
                 )
                 break
 
+        # Komponist
+        for key in ["TCOM", "COMPOSER", "\xa9wrt", "\xa9wrt"]:
+            if key in tags:
+                metadata["composer"] = (
+                    str(tags[key][0]) if isinstance(tags[key], list) else str(tags[key])
+                )
+                break
+
+        # Interpret (bei Compilations)
+        for key in ["TPE2", "ALBUMARTIST", "aART"]:
+            if key in tags:
+                metadata["performer"] = (
+                    str(tags[key][0]) if isinstance(tags[key], list) else str(tags[key])
+                )
+                break
+
+        # Track-Nummer
+        for key in ["TRCK", "TRACKNUMBER"]:
+            if key in tags:
+                track_info = str(tags[key][0]) if isinstance(tags[key], list) else str(tags[key])
+                if "/" in track_info:
+                    parts = track_info.split("/")
+                    metadata["track_number"] = parts[0]
+                    metadata["total_tracks"] = parts[1] if len(parts) > 1 else None
+                else:
+                    metadata["track_number"] = track_info
+                break
+
+        # Disc-Nummer
+        for key in ["TPOS", "DISCNUMBER"]:
+            if key in tags:
+                disc_info = str(tags[key][0]) if isinstance(tags[key], list) else str(tags[key])
+                if "/" in disc_info:
+                    parts = disc_info.split("/")
+                    metadata["disc_number"] = parts[0]
+                    metadata["total_discs"] = parts[1] if len(parts) > 1 else None
+                else:
+                    metadata["disc_number"] = disc_info
+                break
+
+        # Copyright
+        for key in ["TCOP", "COPYRIGHT", "\xa9cpy", "\xa9cpy"]:
+            if key in tags:
+                metadata["copyright"] = (
+                    str(tags[key][0]) if isinstance(tags[key], list) else str(tags[key])
+                )
+                break
+
+        # ISRC
+        for key in ["TSRC", "ISRC"]:
+            if key in tags:
+                metadata["isrc"] = (
+                    str(tags[key][0]) if isinstance(tags[key], list) else str(tags[key])
+                )
+                break
+
+        # Lyrics
+        for key in ["USLT", "LYRICS", "\xa9lyr", "\xa9lyr"]:
+            if key in tags:
+                metadata["lyrics"] = (
+                    str(tags[key][0]) if isinstance(tags[key], list) else str(tags[key])
+                )
+                break
+
+        # Kommentare
+        for key in ["COMM", "COMMENT", "\xa9cmt", "\xa9cmt"]:
+            if key in tags:
+                comment_data = tags[key][0] if isinstance(tags[key], list) else tags[key]
+                # Bei ID3-Tags kann der Kommentar ein Objekt mit Beschreibung sein
+                if hasattr(comment_data, "text"):
+                    metadata["comments"] = str(comment_data.text)
+                else:
+                    metadata["comments"] = str(comment_data)
+                break
+
+        # Bewertung
+        for key in ["POPM", "RATING"]:
+            if key in tags:
+                rating_data = tags[key][0] if isinstance(tags[key], list) else tags[key]
+                # Bei ID3-Tags kann die Bewertung ein Objekt mit Rating sein
+                if hasattr(rating_data, "rating"):
+                    metadata["rating"] = rating_data.rating
+                else:
+                    metadata["rating"] = str(rating_data)
+                break
+
+        # BPM
+        for key in ["TBPM", "BPM"]:
+            if key in tags:
+                metadata["bpm"] = (
+                    str(tags[key][0]) if isinstance(tags[key], list) else str(tags[key])
+                )
+                break
+
         # Cover-Art prüfen
-        for key in ["APIC:", "covr", "COVR"]:
+        for key in ["APIC:", "covr", "COVR", "covr"]:
             if key in tags:
                 metadata["has_cover"] = True
                 break

@@ -46,6 +46,16 @@ from .intelligent_bandwidth import (
     register_download_start, register_download_end,
     can_start_new_download, update_download_speed
 )
+# Neue Importe für die erweiterte Metadaten-Extraktion
+from .advanced_metadata_extraction import AdvancedMetadataExtractor
+# Neue Importe für die erweiterte Dateinamen-Generierung
+from .advanced_filename_generation import get_advanced_filename_generator
+# Neue Importe für die erweiterten Sicherheitsfunktionen
+from .enhanced_security import (
+    get_file_access_control, get_file_integrity_checker, get_audit_logger,
+    check_file_access, verify_file_integrity, secure_file_operation,
+    log_security_event
+)
 
 logger = get_logger(__name__)
 
@@ -104,6 +114,9 @@ class AudioDownloader:
         self.download_dir.mkdir(parents=True, exist_ok=True)
         self.max_concurrent_downloads = max_concurrent_downloads
         
+        # Erweiterter Dateinamen-Generator
+        self.filename_generator = get_advanced_filename_generator(self.download_dir)
+        
         # Adaptive Parallelism Controller
         self.adaptive_parallelism = AdaptiveParallelismController(
             download_dir=self.download_dir,
@@ -129,6 +142,11 @@ class AudioDownloader:
         
         # Automatic Error Recovery
         self.error_recovery = AutomaticErrorRecovery(download_dir=self.download_dir)
+        
+        // Neue Sicherheitskomponenten
+        self.file_access_control = get_file_access_control()
+        self.file_integrity_checker = get_file_integrity_checker()
+        self.audit_logger = get_audit_logger()
         
         # Verwende initially die statische Semaphore für Abwärtskompatibilität
         self.download_semaphore = asyncio.Semaphore(max_concurrent_downloads)
@@ -240,21 +258,18 @@ class AudioDownloader:
             if not file_ext or file_ext not in AUDIO_EXTENSIONS:
                 file_ext = ".mp3"  # Standardendung, falls nicht erkannt
 
-            # Generiere einen Dateinamen
-            filename = f"audio_{document.id}{file_ext}"
-
             # Extrahiere Metadaten
             title = getattr(audio_attrs, "title", None)
             performer = getattr(audio_attrs, "performer", None)
 
-            # Wenn Titel und Interpret vorhanden sind, verwende sie für den Dateinamen
-            if title and performer:
-                filename = f"{performer} - {title}{file_ext}"
-            elif title:
-                filename = f"{title}{file_ext}"
-
-            # Ersetze ungültige Zeichen im Dateinamen
-            filename = "".join(c if c.isalnum() or c in " .-_" else "_" for c in filename)
+            # Verwende den erweiterten Dateinamen-Generator
+            metadata = {
+                "title": title,
+                "artist": performer,
+            }
+            
+            # Generiere den Dateinamen mit dem erweiterten Generator
+            filename = self.filename_generator.generate_filename(metadata, file_ext)
 
             return {
                 "file_id": str(document.id),
@@ -486,6 +501,15 @@ class AudioDownloader:
                 f"({utils.format_file_size(audio_info['file_size'])})"
             )
 
+            # Sicherheitsprüfung: Zugriff auf das Download-Verzeichnis prüfen
+            if not check_file_access(self.download_dir):
+                log_security_event(
+                    "unauthorized_access",
+                    f"Zugriff auf Download-Verzeichnis {self.download_dir} verweigert",
+                    "high"
+                )
+                raise SecurityError(f"Zugriff auf Download-Verzeichnis {self.download_dir} verweigert")
+
             # Download mit Resume-Unterstützung
             downloaded_bytes = await self._download_with_resume(
                 message, partial_path, start_byte, audio_file
@@ -517,12 +541,47 @@ class AudioDownloader:
                 if not audio_file.performer and extended_metadata.get("artist"):
                     audio_file.performer = extended_metadata["artist"]
                 if not audio_file.duration and extended_metadata.get("duration"):
-                    audio_file.duration = int(extended_metadata["duration"])
+                    audio_file.duration = int(extended_metadata["duration"]) if extended_metadata["duration"] else None
+
+                # Weitere erweiterte Metadaten speichern
+                if extended_metadata.get("album"):
+                    audio_file.album = extended_metadata["album"]
+                if extended_metadata.get("date"):
+                    audio_file.date = extended_metadata["date"]
+                if extended_metadata.get("genre"):
+                    audio_file.genre = extended_metadata["genre"]
+                if extended_metadata.get("composer"):
+                    audio_file.composer = extended_metadata["composer"]
+                if extended_metadata.get("track_number"):
+                    audio_file.track_number = extended_metadata["track_number"]
 
                 audio_file.save()
 
                 # In den Cache aufnehmen
                 self._downloaded_files_cache.put(file_id, True)
+
+                // Sicherheitsprüfung: Dateiintegrität verifizieren
+                if not verify_file_integrity(download_path):
+                    log_security_event(
+                        "file_integrity_violation",
+                        f"Integritätsprüfung für {download_path} fehlgeschlagen",
+                        "high"
+                    )
+                    raise SecurityError(f"Integritätsprüfung für {download_path} fehlgeschlagen")
+
+                // Audit-Logging für erfolgreichen Download
+                log_security_event(
+                    "download_success",
+                    f"Download erfolgreich abgeschlossen: {download_path}",
+                    "low"
+                )
+
+                // Audit-Logging für Dateiintegrität
+                log_security_event(
+                    "file_integrity_verified",
+                    f"Dateiintegrität von {download_path} bestätigt",
+                    "low"
+                )
 
                 # Performance-Tracking
                 duration = time.time() - start_time
@@ -538,6 +597,13 @@ class AudioDownloader:
 
                 logger.info(f"Download erfolgreich: {download_path} ({duration:.2f}s)")
             else:
+                // Audit-Logging für unvollständigen Download
+                log_security_event(
+                    "download_incomplete",
+                    f"Download unvollständig: {audio_info['file_name']}",
+                    "medium"
+                )
+
                 # Partieller Download
                 audio_file.downloaded_bytes = downloaded_bytes
                 audio_file.status = DownloadStatus.FAILED.value
@@ -551,6 +617,13 @@ class AudioDownloader:
                 self.performance_analyzer.record_download_completion(False, file_size_mb, duration)
 
         except FloodWaitError as e:
+            // Audit-Logging für FloodWaitError
+            log_security_event(
+                "flood_wait_error",
+                f"FloodWaitError beim Download von {audio_info['file_name']}: {e.seconds} Sekunden",
+                "medium"
+            )
+
             # Performance-Monitor über FloodWait informieren
             self.performance_monitor.handle_flood_wait(e.seconds)
 
@@ -584,6 +657,13 @@ class AudioDownloader:
                 logger.error(f"Zu viele FloodWait-Fehler für {file_id}, überspringe")
 
         except (RPCError, ConnectionError) as e:
+            // Audit-Logging für Netzwerkfehler
+            log_security_event(
+                "network_error",
+                f"Netzwerkfehler beim Download von {audio_info['file_name']}: {type(e).__name__}",
+                "medium"
+            )
+
             error_tracker.track_error(e, f"network_{file_id}", "ERROR")
 
             # Automatische Fehlerbehebung versuchen
@@ -616,6 +696,13 @@ class AudioDownloader:
                 self.performance_analyzer.record_error(type(e).__name__, f"network_{file_id}")
 
         except Exception as e:
+            // Audit-Logging für unerwartete Fehler
+            log_security_event(
+                "unexpected_error",
+                f"Unerwarteter Fehler beim Download von {audio_info['file_name']}: {type(e).__name__}: {e}",
+                "high"
+            )
+
             error_tracker.track_error(e, f"download_{file_id}", "ERROR")
             logger.error(
                 f"Unerwarteter Fehler beim Herunterladen der Datei {file_id}: {e}",
@@ -654,6 +741,15 @@ class AudioDownloader:
 
         while retry_count < max_retries:
             try:
+                // Sicherheitsprüfung: Zugriff auf die Datei prüfen
+                if not check_file_access(file_path.parent):
+                    log_security_event(
+                        "unauthorized_access",
+                        f"Zugriff auf Verzeichnis {file_path.parent} verweigert",
+                        "high"
+                    )
+                    raise SecurityError(f"Zugriff auf Verzeichnis {file_path.parent} verweigert")
+
                 # Wenn partielle Datei existiert und zu groß ist, löschen
                 if (
                     file_path.exists()
@@ -693,17 +789,41 @@ class AudioDownloader:
                     # Finale Größe prüfen
                     if file_path.exists():
                         actual_size = file_path.stat().st_size
+                        
+                        // Sicherheitsprüfung: Dateiintegrität verifizieren
+                        if not verify_file_integrity(file_path):
+                            log_security_event(
+                                "file_integrity_violation",
+                                f"Integritätsprüfung für {file_path} fehlgeschlagen",
+                                "high"
+                            )
+                            raise SecurityError(f"Integritätsprüfung für {file_path} fehlgeschlagen")
+                        
                         return actual_size
                     else:
                         return downloaded_bytes
 
             except FloodWaitError as e:
+                // Audit-Logging für FloodWaitError
+                log_security_event(
+                    "flood_wait_error",
+                    f"FloodWaitError beim Download von {audio_file.file_name}: {e.seconds} Sekunden",
+                    "medium"
+                )
+
                 wait_time = e.seconds
                 logger.warning(f"FloodWaitError: Warte {wait_time} Sekunden...")
                 await asyncio.sleep(wait_time)
                 continue
 
             except Exception as e:
+                // Audit-Logging für Download-Fehler
+                log_security_event(
+                    "download_error",
+                    f"Fehler beim Download von {audio_file.file_name}: {type(e).__name__}: {e}",
+                    "medium"
+                )
+
                 retry_count += 1
                 if retry_count < max_retries:
                     wait_time = 2**retry_count  # Exponential backoff
@@ -757,6 +877,22 @@ class AudioDownloader:
         Returns:
             True, wenn der Download erfolgreich war
         """
+        // Sicherheitsprüfung: Zugriff auf das Download-Verzeichnis prüfen
+        if not check_file_access(self.download_dir):
+            log_security_event(
+                "unauthorized_access",
+                f"Zugriff auf Download-Verzeichnis {self.download_dir} verweigert",
+                "high"
+            )
+            raise SecurityError(f"Zugriff auf Download-Verzeichnis {self.download_dir} verweigert")
+
+        // Audit-Logging für Download-Start
+        log_security_event(
+            "download_start",
+            f"Starte Download von {file_name}",
+            "low"
+        )
+
         # Prüfe, ob ein neuer Download gestartet werden kann
         if not can_start_new_download():
             logger.warning(f"Maximale Anzahl gleichzeitiger Downloads erreicht, warte auf {file_name}")
@@ -807,8 +943,26 @@ class AudioDownloader:
             # Hole den Telegram-Client
             client = get_optimized_client()
             
+            // Sicherheitsprüfung: Zugriff auf das Download-Verzeichnis prüfen
+            if not check_file_access(self.download_dir):
+                log_security_event(
+                    "unauthorized_access",
+                    f"Zugriff auf Download-Verzeichnis {self.download_dir} verweigert",
+                    "high"
+                )
+                raise SecurityError(f"Zugriff auf Download-Verzeichnis {self.download_dir} verweigert")
+            
             # Erstelle den vollständigen Dateipfad
             full_path = self.download_dir / file_name
+            
+            // Sicherheitsprüfung: Zugriff auf die Datei prüfen
+            if not check_file_access(full_path.parent):
+                log_security_event(
+                    "unauthorized_access",
+                    f"Zugriff auf Verzeichnis {full_path.parent} verweigert",
+                    "high"
+                )
+                raise SecurityError(f"Zugriff auf Verzeichnis {full_path.parent.parent} verweigert")
             
             # Lade Resume-Informationen
             resume_info = load_file_resume_state(file_id, full_path, file_size)
@@ -826,120 +980,176 @@ class AudioDownloader:
             # Öffne die Datei im richtigen Modus
             file_mode = "ab" if resume_download else "wb"
             
-            # Hole den Datei-Handle
-            with open(full_path, file_mode) as f:
-                # Setze den Dateizeiger ans Ende, falls wir im Anhäng-Modus sind
-                if resume_download:
-                    f.seek(0, 2)  # Gehe ans Ende der Datei
+            // Sichere Dateioperation durchführen
+            def open_file():
+                return open(full_path, file_mode)
+            
+            f = secure_file_operation(open_file)
+            
+            # Setze den Dateizeiger ans Ende, falls wir im Anhäng-Modus sind
+            if resume_download:
+                f.seek(0, 2)  # Gehe ans Ende der Datei
+            
+            # Hole den aktuellen Dateizeiger (für Resume-Offset)
+            start_offset = f.tell() if resume_download else 0
+            
+            # Aktualisiere den AudioFile-Datensatz mit dem Start-Offset
+            audio_file.resume_offset = start_offset
+            audio_file.download_attempts += 1
+            audio_file.status = DownloadStatus.DOWNLOADING.value
+            audio_file.save()
+            
+            try:
+                # Lade die Datei herunter
+                async def progress_callback(current, total):
+                    # Aktualisiere die Resume-Informationen
+                    update_file_resume_info(file_id, start_offset + current)
+                    
+                    # Aktualisiere die Performance-Analyse
+                    analyzer = get_performance_analyzer()
+                    analyzer.record_download_progress(file_id, current, total)
+                    
+                    # Logge den Fortschritt alle 10%
+                    if total > 0 and current % (total // 10) == 0:
+                        progress_percent = (current / total) * 100
+                        logger.info(f"Download-Fortschritt für {file_name}: {progress_percent:.1f}%")
                 
-                # Hole den aktuellen Dateizeiger (für Resume-Offset)
-                start_offset = f.tell() if resume_download else 0
+                # Führe den Download durch
+                await client.download_media(
+                    message_id,
+                    output_file=f,
+                    progress_callback=progress_callback
+                )
                 
-                # Aktualisiere den AudioFile-Datensatz mit dem Start-Offset
-                audio_file.resume_offset = start_offset
-                audio_file.download_attempts += 1
-                audio_file.status = DownloadStatus.DOWNLOADING.value
+                // Sicherheitsprüfung: Dateiintegrität verifizieren
+                if not verify_file_integrity(full_path):
+                    log_security_event(
+                        "file_integrity_violation",
+                        f"Integritätsprüfung für {full_path} fehlgeschlagen",
+                        "high"
+                    )
+                    raise SecurityError(f"Integritätsprüfung für {full_path} fehlgeschlagen")
+                
+                // Audit-Logging für Dateiintegrität
+                log_security_event(
+                    "file_integrity_verified",
+                    f"Dateiintegrität von {full_path} bestätigt",
+                    "low"
+                )
+                
+                # Berechne die Download-Geschwindigkeit
+                end_time = time.time()
+                time_elapsed = end_time - start_time
+                total_bytes = full_path.stat().st_size if full_path.exists() else 0
+                update_download_speed(file_id, total_bytes, time_elapsed)
+                
+                # Aktualisiere die Resume-Informationen nach erfolgreichem Download
+                save_file_resume_state(file_id)
+                
+                # Aktualisiere den AudioFile-Datensatz
+                audio_file.downloaded_at = datetime.now()
+                audio_file.status = DownloadStatus.COMPLETED.value
+                audio_file.error_message = None
+                audio_file.resume_offset = 0  # Zurücksetzen nach erfolgreichem Download
+                audio_file.resume_checksum = None  # Zurücksetzen nach erfolgreichem Download
                 audio_file.save()
                 
-                try:
-                    # Lade die Datei herunter
-                    async def progress_callback(current, total):
-                        # Aktualisiere die Resume-Informationen
-                        update_file_resume_info(file_id, start_offset + current)
-                        
-                        # Aktualisiere die Performance-Analyse
-                        analyzer = get_performance_analyzer()
-                        analyzer.record_download_progress(file_id, current, total)
-                        
-                        # Logge den Fortschritt alle 10%
-                        if total > 0 and current % (total // 10) == 0:
-                            progress_percent = (current / total) * 100
-                            logger.info(f"Download-Fortschritt für {file_name}: {progress_percent:.1f}%")
+                logger.info(f"Download von {file_name} erfolgreich abgeschlossen")
+                log_audit_event("download_success", f"Download von {file_name} abgeschlossen", {
+                    "file_id": file_id,
+                    "file_size": file_size
+                })
+                
+                // Audit-Logging für erfolgreichen Download
+                log_security_event(
+                    "download_success",
+                    f"Download erfolgreich abgeschlossen: {file_name}",
+                    "low"
+                )
+                
+                # Exportiere die Download-Metrik
+                export_download_metric("success", file_size)
+                
+                # Bereinige die Resume-Informationen
+                cleanup_file_resume_info(file_id)
+                
+                return True
+                
+            except Exception as e:
+                // Audit-Logging für Download-Fehler
+                log_security_event(
+                    "download_error",
+                    f"Fehler beim Download von {file_name}: {type(e).__name__}: {e}",
+                    "medium"
+                )
+                
+                // Sicherheitsprüfung: Dateiintegrität verifizieren
+                if full_path.exists() and not verify_file_integrity(full_path):
+                    log_security_event(
+                        "file_integrity_violation",
+                        f"Integritätsprüfung für {full_path} nach Fehler fehlgeschlagen",
+                        "high"
+                    )
+                
+                # Speichere den Fehlerzustand
+                save_file_resume_state(file_id)
+                
+                # Aktualisiere den AudioFile-Datensatz mit dem Fehler
+                audio_file.status = DownloadStatus.FAILED.value
+                audio_file.error_message = str(e)
+                audio_file.save()
+                
+                logger.error(f"Fehler beim Download von {file_name}: {e}")
+                log_audit_event("download_error", f"Fehler beim Download von {file_name}", {
+                    "file_id": file_id,
+                    "error": str(e)
+                })
+                
+                # Exportiere die Download-Metrik
+                export_download_metric("failure", file_size)
+                
+                # Prüfe, ob eine Wiederholung möglich ist
+                retry_count = increment_file_retry_count(file_id)
+                max_retries = current_settings.max_retries
+                
+                if retry_count < max_retries:
+                    logger.info(f"Versuche erneuten Download von {file_name} (Versuch {retry_count + 1}/{max_retries})")
+                    log_audit_event("download_retry", f"Erneuter Download-Versuch von {file_name}", {
+                        "file_id": file_id,
+                        "retry_count": retry_count + 1
+                    })
                     
-                    # Führe den Download durch
-                    await client.download_media(
-                        message_id,
-                        output_file=f,
-                        progress_callback=progress_callback
+                    // Audit-Logging für Download-Wiederholung
+                    log_security_event(
+                        "download_retry",
+                        f"Erneuter Download-Versuch von {file_name} (Versuch {retry_count + 1}/{max_retries})",
+                        "low"
                     )
                     
-                    # Berechne die Download-Geschwindigkeit
-                    end_time = time.time()
-                    time_elapsed = end_time - start_time
-                    total_bytes = full_path.stat().st_size if full_path.exists() else 0
-                    update_download_speed(file_id, total_bytes, time_elapsed)
+                    # Warte etwas vor der Wiederholung
+                    await asyncio.sleep(current_settings.retry_delay * (retry_count + 1))
                     
-                    # Aktualisiere die Resume-Informationen nach erfolgreichem Download
-                    save_file_resume_state(file_id)
-                    
-                    # Aktualisiere den AudioFile-Datensatz
-                    audio_file.downloaded_at = datetime.now()
-                    audio_file.status = DownloadStatus.COMPLETED.value
-                    audio_file.error_message = None
-                    audio_file.resume_offset = 0  # Zurücksetzen nach erfolgreichem Download
-                    audio_file.resume_checksum = None  # Zurücksetzen nach erfolgreichem Download
-                    audio_file.save()
-                    
-                    logger.info(f"Download von {file_name} erfolgreich abgeschlossen")
-                    log_audit_event("download_success", f"Download von {file_name} abgeschlossen", {
+                    # Rekursiver Aufruf für die Wiederholung
+                    return await self.download_file(file_id, file_name, file_size, group_id, message_id, title, performer)
+                else:
+                    logger.error(f"Maximale Wiederholungsversuche für {file_name} erreicht")
+                    log_audit_event("download_max_retries", f"Maximale Wiederholungen für {file_name} erreicht", {
                         "file_id": file_id,
-                        "file_size": file_size
+                        "max_retries": max_retries
                     })
                     
-                    # Exportiere die Download-Metrik
-                    export_download_metric("success", file_size)
+                    // Audit-Logging für maximale Wiederholungen erreicht
+                    log_security_event(
+                        "download_max_retries",
+                        f"Maximale Wiederholungen für {file_name} erreicht",
+                        "medium"
+                    )
                     
-                    # Bereinige die Resume-Informationen
-                    cleanup_file_resume_info(file_id)
+                    # Setze die Resume-Informationen zurück
+                    reset_file_resume_info(file_id)
                     
-                    return True
-                    
-                except Exception as e:
-                    # Speichere den Fehlerzustand
-                    save_file_resume_state(file_id)
-                    
-                    # Aktualisiere den AudioFile-Datensatz mit dem Fehler
-                    audio_file.status = DownloadStatus.FAILED.value
-                    audio_file.error_message = str(e)
-                    audio_file.save()
-                    
-                    logger.error(f"Fehler beim Download von {file_name}: {e}")
-                    log_audit_event("download_error", f"Fehler beim Download von {file_name}", {
-                        "file_id": file_id,
-                        "error": str(e)
-                    })
-                    
-                    # Exportiere die Download-Metrik
-                    export_download_metric("failure", file_size)
-                    
-                    # Prüfe, ob eine Wiederholung möglich ist
-                    retry_count = increment_file_retry_count(file_id)
-                    max_retries = current_settings.max_retries
-                    
-                    if retry_count < max_retries:
-                        logger.info(f"Versuche erneuten Download von {file_name} (Versuch {retry_count + 1}/{max_retries})")
-                        log_audit_event("download_retry", f"Erneuter Download-Versuch von {file_name}", {
-                            "file_id": file_id,
-                            "retry_count": retry_count + 1
-                        })
-                        
-                        # Warte etwas vor der Wiederholung
-                        await asyncio.sleep(current_settings.retry_delay * (retry_count + 1))
-                        
-                        # Rekursiver Aufruf für die Wiederholung
-                        return await self.download_file(file_id, file_name, file_size, group_id, message_id, title, performer)
-                    else:
-                        logger.error(f"Maximale Wiederholungsversuche für {file_name} erreicht")
-                        log_audit_event("download_max_retries", f"Maximale Wiederholungen für {file_name} erreicht", {
-                            "file_id": file_id,
-                            "max_retries": max_retries
-                        })
-                        
-                        # Setze die Resume-Informationen zurück
-                        reset_file_resume_info(file_id)
-                        
-                        return False
-            
+                    return False
+        
         except Exception as e:
             handle_error(e, f"Fehler beim Download von {file_name}")
             log_audit_event("download_exception", f"Schwerwiegender Fehler beim Download von {file_name}", {
@@ -947,7 +1157,22 @@ class AudioDownloader:
                 "error": str(e)
             })
             export_download_metric("exception", 0)
+            
+            // Audit-Logging für schwerwiegenden Fehler
+            log_security_event(
+                "download_exception",
+                f"Schwerwiegender Fehler beim Download von {file_name}: {type(e).__name__}: {e}",
+                "high"
+            )
+            
             return False
         finally:
             # Registriere das Ende des Downloads
             register_download_end(file_id)
+            
+            // Audit-Logging für Download-Ende
+            log_security_event(
+                "download_end",
+                f"Download von {file_name} beendet",
+                "low"
+            )

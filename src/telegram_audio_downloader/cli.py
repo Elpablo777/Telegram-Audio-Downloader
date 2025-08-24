@@ -6,37 +6,36 @@ import asyncio
 import os
 import sys
 import time
+from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
 import click
-from peewee import JOIN, fn
 from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.table import Table
+from rich.prompt import Prompt
 
-from .error_handling import (
-    AuthenticationError,
-    ConfigurationError,
-    DatabaseError,
-    DownloadError,
-    FileOperationError,
-    NetworkError,
-    TelegramAPIError,
-    get_error_handler,
-    handle_error,
-)
-from .database import close_db, init_db
-from .downloader import AudioDownloader, DownloadStatus
-from .logging_config import get_error_tracker, get_logger, setup_logging
-from .models import AudioFile, TelegramGroup
-from .performance import get_performance_monitor
 from .config import Config
-from .memory_utils import perform_memory_cleanup, get_memory_monitor
+from .database import init_db, AudioFile, DownloadGroup
+from .downloader import AudioDownloader
+from .error_handling import handle_error, ConfigurationError
+from .logger import get_logger, log_function_call
+from .performance import PerformanceMonitor
+from .search import search_audio_files
+from .utils import format_duration, format_file_size, sanitize_filename, is_audio_file
+from .batch_processing import BatchItem, BatchProcessor, Priority  # Neue Importe für Batch-Verarbeitung
+from .enhanced_user_interaction import (
+    get_enhanced_ui, show_notification, NotificationType, 
+    show_progress_bar, show_context_menu, show_confirmation_dialog,
+    show_download_summary, enable_interactive_mode, disable_interactive_mode
+)
+from .keyboard_shortcuts import (
+    get_keyboard_shortcuts, register_shortcut, Shortcut
+)
 
 # Rich-Konsole
 console = Console()
-error_handler = get_error_handler()
 
 
 def print_banner():
@@ -77,16 +76,18 @@ def load_config(ctx, config_path: Optional[str] = None) -> Config:
 
 
 @click.group()
-@click.option("--debug", is_flag=True, help="Aktiviert den Debug-Modus")
-@click.option("--config", "config_path", type=click.Path(exists=False), help="Pfad zur Konfigurationsdatei")
+@click.option("--debug", is_flag=True, help="Aktiviert Debug-Logging")
+@click.option("--config", type=click.Path(exists=True), help="Pfad zur Konfigurationsdatei")
+@click.option("--interactive", "-i", is_flag=True, help="Aktiviert den interaktiven Modus")
 @click.pass_context
-def cli(ctx, debug, config_path):
-    """Hauptbefehl für den Telegram Audio Downloader."""
+@log_function_call
+def cli(ctx, debug: bool, config: str, interactive: bool):
+    """Telegram Audio Downloader - Ein Tool zum Herunterladen von Audiodateien aus Telegram-Gruppen."""
     # Konfiguration laden
-    config = load_config(ctx, config_path)
+    config = load_config(ctx, config_path=config)
     
     # Logging-System initialisieren
-    logger = setup_logging(debug=debug)
+    logger = get_logger(debug=debug)
 
     # Banner anzeigen
     print_banner()
@@ -96,7 +97,7 @@ def cli(ctx, debug, config_path):
         init_db()
         logger.info("Datenbank erfolgreich initialisiert")
     except Exception as e:
-        error = DatabaseError(f"Fehler bei Datenbank-Initialisierung: {e}")
+        error = ConfigurationError(f"Fehler bei Datenbank-Initialisierung: {e}")
         handle_error(error, "cli_init_db", exit_on_error=True)
 
     # Context-Objekt initialisieren
@@ -104,32 +105,32 @@ def cli(ctx, debug, config_path):
     ctx.obj["DEBUG"] = debug
     ctx.obj["LOGGER"] = logger
     ctx.obj["CONFIG"] = config
+    
+    # Erweiterte Benutzerinteraktion initialisieren
+    enhanced_ui = get_enhanced_ui()
+    if interactive:
+        enable_interactive_mode()
+        show_notification("Interaktiver Modus aktiviert", NotificationType.SUCCESS)
+    else:
+        disable_interactive_mode()
 
 
 @cli.command()
-@click.argument("group")
+@click.option("--group", "-g", required=True, help="Name der Telegram-Gruppe")
+@click.option("--limit", "-l", type=int, help="Maximale Anzahl an Dateien zum Herunterladen")
+@click.option("--output", "-o", type=click.Path(), help="Ausgabeverzeichnis")
+@click.option("--parallel", "-p", type=int, help="Anzahl paralleler Downloads")
 @click.option(
-    "--limit",
-    type=int,
+    "--filename-template",
+    "-t",
+    type=str,
     default=None,
-    help="Maximale Anzahl der zu verarbeitenden Nachrichten",
+    help="Benutzerdefinierte Vorlage für Dateinamen (z.B. '$artist - $title')",
 )
-@click.option(
-    "--output",
-    "-o",
-    type=click.Path(file_okay=False),
-    default=None,
-    help="Ausgabeverzeichnis für die heruntergeladenen Dateien",
-)
-@click.option(
-    "--parallel",
-    "-p",
-    type=click.IntRange(1, 10),
-    default=None,
-    help="Maximale Anzahl paralleler Downloads (Standard: 3, Max: 10)",
-)
+@click.option("--interactive", "-i", is_flag=True, help="Aktiviert den interaktiven Modus für diesen Download")
 @click.pass_context
-def download(ctx, group: str, limit: Optional[int], output: Optional[str], parallel: Optional[int]):
+@log_function_call
+def download(ctx, group: str, limit: Optional[int], output: Optional[str], parallel: Optional[int], filename_template: Optional[str], interactive: bool):
     """Lädt Audiodateien aus einer Telegram-Gruppe herunter."""
     config = ctx.obj.get("CONFIG")
     
@@ -159,7 +160,7 @@ def download(ctx, group: str, limit: Optional[int], output: Optional[str], paral
         output_path = Path(output)
         output_path.mkdir(parents=True, exist_ok=True)
     except Exception as e:
-        error = FileOperationError(f"Fehler beim Erstellen des Ausgabeverzeichnisses: {e}")
+        error = ConfigurationError(f"Fehler beim Erstellen des Ausgabeverzeichnisses: {e}")
         handle_error(error, "download_output_dir", exit_on_error=True)
         return
 
@@ -167,6 +168,17 @@ def download(ctx, group: str, limit: Optional[int], output: Optional[str], paral
     downloader = AudioDownloader(
         download_dir=str(output_path), max_concurrent_downloads=parallel
     )
+    
+    # Wenn eine benutzerdefinierte Vorlage angegeben wurde, füge sie hinzu
+    if filename_template:
+        try:
+            downloader.filename_generator.add_template("custom_cli_template", filename_template)
+            downloader.filename_generator.set_template("custom_cli_template")
+            console.print(f"[green]Benutzerdefinierte Dateinamen-Vorlage gesetzt:[/green] {filename_template}")
+        except Exception as e:
+            error = ConfigurationError(f"Fehler beim Setzen der Dateinamen-Vorlage: {e}")
+            handle_error(error, "download_filename_template", exit_on_error=True)
+            return
 
     console.print(f"[blue]Parallele Downloads:[/blue] {parallel}")
 
@@ -242,232 +254,57 @@ def download(ctx, group: str, limit: Optional[int], output: Optional[str], paral
 
 
 @cli.command()
-@click.argument("query", required=False)
-@click.option("--group", "-g", help="Filtere nach einer bestimmten Gruppe")
-@click.option(
-    "--status",
-    type=click.Choice([s.value for s in DownloadStatus]),
-    help="Filtere nach Download-Status",
-)
-@click.option(
-    "--limit", type=click.IntRange(1, 1000), default=10, help="Maximale Anzahl der anzuzeigenden Ergebnisse (1-1000)"
-)
-@click.option("--all", "show_all", is_flag=True, help="Zeige alle Einträge an")
-@click.option("--metadata", "-m", is_flag=True, help="Zeige erweiterte Metadaten an")
-@click.option(
-    "--fuzzy", "-f", is_flag=True, help="Aktiviere Fuzzy-Suche (unscharfe Suche)"
-)
-@click.option("--min-size", type=str, help='Minimale Dateigröße (z.B. "5MB")')
-@click.option("--max-size", type=str, help='Maximale Dateigröße (z.B. "100MB")')
-@click.option("--format", "audio_format", help="Audioformat filtern (mp3, flac, etc.)")
-@click.option("--duration-min", type=click.IntRange(0, 86400), help="Minimale Dauer in Sekunden (0-86400)")
-@click.option("--duration-max", type=click.IntRange(0, 86400), help="Maximale Dauer in Sekunden (0-86400)")
-def search(
-    query: Optional[str],
-    group: Optional[str],
-    status: Optional[str],
-    limit: int,
-    show_all: bool,
-    metadata: bool,
-    fuzzy: bool,
-    min_size: Optional[str],
-    max_size: Optional[str],
-    audio_format: Optional[str],
-    duration_min: Optional[int],
-    duration_max: Optional[int],
-):
-    """Durchsucht heruntergeladene Audiodateien mit erweiterten Filtern."""
-    
-    # Validierung der Dauer-Parameter
-    if duration_min is not None and duration_max is not None and duration_min > duration_max:
-        console.print("[red]Fehler: duration-min darf nicht größer als duration-max sein[/red]")
-        return
-
-    # Hilfsfunktion für Größen-Parsing
-    def parse_size(size_str: str) -> int:
-        """Konvertiert Größen-Strings wie '5MB' zu Bytes."""
-        if not size_str:
-            return 0
-            
-        size_str = size_str.upper().strip()
-        if size_str.endswith("KB"):
-            return int(float(size_str[:-2]) * 1024)
-        elif size_str.endswith("MB"):
-            return int(float(size_str[:-2]) * 1024 * 1024)
-        elif size_str.endswith("GB"):
-            return int(float(size_str[:-2]) * 1024 * 1024 * 1024)
-        else:
-            # Versuche, es als reine Zahl zu parsen (Bytes)
-            try:
-                return int(size_str)
-            except ValueError:
-                raise ValueError(f"Ungültiges Größenformat: {size_str}")
-
-    # Validierung der Dateigrößen-Parameter
-    if min_size:
-        try:
-            min_bytes = parse_size(min_size)
-            if min_bytes < 0:
-                console.print("[red]Fehler: Minimale Dateigröße muss positiv sein[/red]")
-                return
-        except ValueError as e:
-            console.print(f"[red]Fehler: {e}[/red]")
+@click.option("--query", "-q", required=True, help="Suchbegriff")
+@click.option("--group", "-g", help="Nach Gruppe filtern")
+@click.option("--limit", "-l", type=int, default=20, help="Maximale Anzahl an Ergebnissen")
+@click.pass_context
+@log_function_call
+def search(ctx, query: str, group: Optional[str], limit: int):
+    """Durchsucht heruntergeladene Audiodateien."""
+    try:
+        config = ctx.obj["CONFIG"]
+        console = ctx.obj["console"]
+        
+        # Durchsuche die Datenbank
+        results = search_audio_files(query, group, limit, config)
+        
+        if not results:
+            console.print("[yellow]Keine Dateien gefunden.[/yellow]")
             return
-
-    if max_size:
-        try:
-            max_bytes = parse_size(max_size)
-            if max_bytes < 0:
-                console.print("[red]Fehler: Maximale Dateigröße muss positiv sein[/red]")
-                return
-        except ValueError as e:
-            console.print(f"[red]Fehler: {e}[/red]")
-            return
-
-    # Validierung, dass min_size nicht größer als max_size ist
-    if min_size and max_size:
-        try:
-            min_bytes = parse_size(min_size)
-            max_bytes = parse_size(max_size)
-            if min_bytes > max_bytes:
-                console.print("[red]Fehler: Minimale Dateigröße darf nicht größer als maximale Dateigröße sein[/red]")
-                return
-        except ValueError:
-            # Fehler wurden bereits oben behandelt
-            return
-
-    # Validierung des Audioformat-Parameters
-    if audio_format:
-        valid_formats = {"mp3", "m4a", "ogg", "flac", "wav", "opus"}
-        if audio_format.lower() not in valid_formats:
-            console.print(f"[red]Fehler: Ungültiges Audioformat. Gültige Formate: {', '.join(valid_formats)}[/red]")
-            return
-
-    # Basis-Abfrage erstellen
-    query_set = AudioFile.select()
-
-    # Textsuche (erweitert mit Fuzzy-Option)
-    if query:
-        if fuzzy:
-            # Fuzzy-Suche: Toleriert Schreibfehler
-            # Vereinfachte Implementierung mit LIKE und Wildcards
-            fuzzy_query = f"%{query.replace(' ', '%')}%"
-            query_set = query_set.where(
-                (AudioFile.title.contains(query))
-                | (AudioFile.performer.contains(query))
-                | (AudioFile.file_name.contains(query))
-                | (AudioFile.title**fuzzy_query)  # Peewee fuzzy matching
-                | (AudioFile.performer**fuzzy_query)
-                | (AudioFile.file_name**fuzzy_query)
-            )
-        else:
-            # Normale Suche
-            query_set = query_set.where(
-                (AudioFile.title.contains(query))
-                | (AudioFile.performer.contains(query))
-                | (AudioFile.file_name.contains(query))
-            )
-
-    # Weitere Filter anwenden
-    if group:
-        query_set = query_set.join(TelegramGroup).where(
-            (TelegramGroup.title.contains(group))
-            | (TelegramGroup.username.contains(group))
-        )
-
-    if status:
-        query_set = query_set.where(AudioFile.status == status)
-
-    # Dateigrößen-Filter
-    if min_size:
-        try:
-            min_bytes = parse_size(min_size)
-            query_set = query_set.where(AudioFile.file_size >= min_bytes)
-        except ValueError:
-            console.print(f"[red]Ungültige Größen-Angabe: {min_size}[/red]")
-            return
-
-    if max_size:
-        try:
-            max_bytes = parse_size(max_size)
-            query_set = query_set.where(AudioFile.file_size <= max_bytes)
-        except ValueError:
-            console.print(f"[red]Ungültige Größen-Angabe: {max_size}[/red]")
-            return
-
-    # Format-Filter
-    if audio_format:
-        format_extension = f".{audio_format.lower()}"
-        query_set = query_set.where(AudioFile.file_name.endswith(format_extension))
-
-    # Dauer-Filter
-    if duration_min:
-        query_set = query_set.where(AudioFile.duration >= duration_min)
-
-    if duration_max:
-        query_set = query_set.where(AudioFile.duration <= duration_max)
-
-    # Sortierung und Limit
-    query_set = query_set.order_by(AudioFile.downloaded_at.desc())
-
-    if not show_all:
-        query_set = query_set.limit(limit)
-
-    # Ergebnisse anzeigen
-    files = list(query_set)
-
-    if not files:
-        console.print("[yellow]Keine Dateien gefunden.[/yellow]")
-        return
-
-    # Tabelle erstellen
-    table = Table(show_header=True, header_style="bold magenta")
-    table.add_column("Titel", style="cyan", no_wrap=True)
-    table.add_column("Künstler", style="green")
-    table.add_column("Größe", justify="right")
-
-    if metadata:
+        
+        # Erstelle eine Tabelle zur Anzeige der Ergebnisse
+        table = Table(title="Suchergebnisse")
+        table.add_column("Titel", style="cyan", no_wrap=True)
+        table.add_column("Künstler", style="green")
+        table.add_column("Größe", justify="right")
         table.add_column("Dauer", justify="right")
         table.add_column("Format", justify="center")
         table.add_column("Checksum", style="dim")
-
-    table.add_column("Status", justify="center")
-    table.add_column("Gruppe", style="blue")
-    table.add_column("Heruntergeladen am", style="dim")
-
-    for file in files:
-        # Dateigröße formatieren
-        size_mb = file.file_size / (1024 * 1024)
-        size_str = f"{size_mb:.1f} MB"
-
-        # Status formatieren
-        status_style = {
-            DownloadStatus.COMPLETED.value: "[green]✓[/green]",
-            DownloadStatus.FAILED.value: "[red]✗[/red]",
-            DownloadStatus.DOWNLOADING.value: "[yellow]↓[/yellow]",
-            DownloadStatus.PENDING.value: "[dim]…[/dim]",
-        }.get(file.status, file.status)
-
-        # Basis-Zeile vorbereiten
-        row_data = [
-            file.title or file.file_name,
-            file.performer or "Unbekannt",
-            size_str,
-        ]
-
-        # Erweiterte Metadaten hinzufügen
-        if metadata:
-            from .utils import format_duration
-
-            duration_str = format_duration(file.duration) if file.duration else "-"
-            format_str = file.file_extension[1:].upper() if file.file_extension else "-"
-            checksum_short = file.checksum_md5[:8] + "..." if file.checksum_md5 else "-"
-
-            row_data.extend([duration_str, format_str, checksum_short])
-
-        # Status und weitere Daten hinzufügen
-        row_data.extend(
-            [
+        table.add_column("Status", justify="center")
+        table.add_column("Gruppe", style="blue")
+        table.add_column("Heruntergeladen am", style="dim")
+        
+        for file in results:
+            # Dateigröße formatieren
+            size_mb = file.file_size / (1024 * 1024)
+            size_str = f"{size_mb:.1f} MB"
+            
+            # Status formatieren
+            status_style = {
+                DownloadStatus.COMPLETED.value: "[green]✓[/green]",
+                DownloadStatus.FAILED.value: "[red]✗[/red]",
+                DownloadStatus.DOWNLOADING.value: "[yellow]↓[/yellow]",
+                DownloadStatus.PENDING.value: "[dim]…[/dim]",
+            }.get(file.status, file.status)
+            
+            # Basis-Zeile vorbereiten
+            row_data = [
+                file.title or file.file_name,
+                file.performer or "Unbekannt",
+                size_str,
+                format_duration(file.duration) if file.duration else "-",
+                file.file_extension[1:].upper() if file.file_extension else "-",
+                file.checksum_md5[:8] + "..." if file.checksum_md5 else "-",
                 status_style,
                 file.group.title if file.group else "-",
                 (
@@ -476,423 +313,263 @@ def search(
                     else "-"
                 ),
             ]
-        )
-
-        table.add_row(*row_data)
-
-    console.print(table)
-    console.print(f"[dim]{len(files)} Dateien gefunden[/dim]")
-
-
-@cli.command()
-def groups():
-    """Zeigt alle bekannten Telegram-Gruppen an."""
-    groups = TelegramGroup.select().order_by(TelegramGroup.title)
-
-    if not groups:
-        console.print("[yellow]Keine Gruppen gefunden.[/yellow]")
-        return
-
-    table = Table(show_header=True, header_style="bold magenta")
-    table.add_column("ID", style="cyan")
-    table.add_column("Titel", style="green")
-    table.add_column("Benutzername", style="blue")
-    table.add_column("Letzte Überprüfung", style="dim")
-    table.add_column("Dateien", justify="right")
-
-    for group in groups:
-        file_count = AudioFile.select().where(AudioFile.group == group).count()
-        table.add_row(
-            str(group.group_id),
-            group.title,
-            f"@{group.username}" if group.username else "-",
-            (
-                group.last_checked.strftime("%d.%m.%Y %H:%M")
-                if group.last_checked
-                else "-"
-            ),
-            str(file_count),
-        )
-
-    console.print(table)
-
-
-@cli.command()
-@click.option(
-    "--update",
-    "-u",
-    is_flag=True,
-    help="Aktualisiere Metadaten aus bereits heruntergeladenen Dateien",
-)
-@click.option("--verify", "-v", is_flag=True, help="Verifiziere Checksums")
-@click.option("--file-id", help="Analysiere nur eine bestimmte Datei")
-def metadata(update: bool, verify: bool, file_id: Optional[str]):
-    """Analysiert und aktualisiert Metadaten von heruntergeladenen Dateien."""
-    from pathlib import Path
-
-    from .utils import calculate_file_hash, extract_audio_metadata
-
-    # Dateien für Analyse auswählen
-    query = AudioFile.select().where(AudioFile.status == DownloadStatus.COMPLETED.value)
-
-    if file_id:
-        query = query.where(AudioFile.file_id == file_id)
-
-    files = list(query)
-
-    if not files:
-        console.print("[yellow]Keine Dateien für Metadaten-Analyse gefunden.[/yellow]")
-        return
-
-    console.print(f"[blue]Analysiere {len(files)} Datei(en)...[/blue]")
-
-    updated_count = 0
-    verified_count = 0
-    error_count = 0
-
-    with Progress(
-        SpinnerColumn(),
-        TextColumn("[progress.description]{task.description}"),
-        transient=True,
-    ) as progress:
-        task = progress.add_task("Analysiere Metadaten...", total=len(files))
-
-        for file in files:
-            if not file.local_path or not Path(file.local_path).exists():
-                error_count += 1
-                progress.update(
-                    task,
-                    advance=1,
-                    description=f"Datei nicht gefunden: {file.file_name}",
-                )
-                continue
-
-            try:
-                file_path = Path(file.local_path)
-
-                # Metadaten aktualisieren
-                if update:
-                    metadata_info = extract_audio_metadata(file_path)
-
-                    changes_made = False
-                    if not file.title and metadata_info.get("title"):
-                        file.title = metadata_info["title"]
-                        changes_made = True
-
-                    if not file.performer and metadata_info.get("artist"):
-                        file.performer = metadata_info["artist"]
-                        changes_made = True
-
-                    if not file.duration and metadata_info.get("duration"):
-                        file.duration = int(metadata_info["duration"])
-                        changes_made = True
-
-                    if changes_made:
-                        file.save()
-                        updated_count += 1
-
-                # Checksum verifizieren
-                if verify:
-                    if file.checksum_md5:
-                        current_checksum = calculate_file_hash(file_path, "md5")
-                        if current_checksum == file.checksum_md5:
-                            verified_count += 1
-                        else:
-                            console.print(
-                                f"[red]Checksum-Fehler: {file.file_name}[/red]"
-                            )
-                            error_count += 1
-                    else:
-                        # Checksum erstmalig berechnen
-                        file.checksum_md5 = calculate_file_hash(file_path, "md5")
-                        file.checksum_verified = True
-                        file.save()
-                        verified_count += 1
-
-                progress.update(
-                    task, advance=1, description=f"Verarbeitet: {file.file_name}"
-                )
-
-            except Exception as e:
-                console.print(f"[red]Fehler bei {file.file_name}: {e}[/red]")
-                error_count += 1
-                progress.update(task, advance=1)
-
-    # Zusammenfassung
-    console.print("\n[bold]Metadaten-Analyse abgeschlossen:[/bold]")
-    if update:
-        console.print(f"[green]Metadaten aktualisiert:[/green] {updated_count}")
-    if verify:
-        console.print(f"[blue]Checksums verifiziert:[/blue] {verified_count}")
-    if error_count > 0:
-        console.print(f"[red]Fehler:[/red] {error_count}")
-
-
-@cli.command()
-def stats():
-    """Zeigt Statistiken zu den heruntergeladenen Dateien an."""
-    # Gesamtstatistiken
-    total_files = AudioFile.select().count()
-    completed = (
-        AudioFile.select()
-        .where(AudioFile.status == DownloadStatus.COMPLETED.value)
-        .count()
-    )
-    failed = (
-        AudioFile.select()
-        .where(AudioFile.status == DownloadStatus.FAILED.value)
-        .count()
-    )
-    total_size = sum(f.file_size for f in AudioFile.select() if f.file_size)
-
-    # Statistiken nach Gruppe
-    groups = (
-        TelegramGroup.select(
-            TelegramGroup,
-            fn.COUNT(AudioFile.id).alias("file_count"),
-            fn.SUM(AudioFile.file_size).alias("total_size"),
-        )
-        .join(AudioFile, JOIN.LEFT_OUTER)
-        .group_by(TelegramGroup.id)
-        .order_by(fn.COUNT(AudioFile.id).desc())
-    )
-
-    # Zusammenfassung anzeigen
-    console.print("[bold]📊 Statistik[/bold]\n")
-    console.print(f"[cyan]Gesamtanzahl Dateien:[/cyan] {total_files}")
-    console.print(f"[green]Erfolgreich heruntergeladen:[/green] {completed}")
-    console.print(f"[red]Fehlgeschlagen:[/red] {failed}")
-    console.print(f"[blue]Gesamtgröße:[/blue] {total_size / (1024*1024):.2f} MB\n")
-
-    # Gruppierte Statistiken
-    if groups:
-        table = Table(show_header=True, header_style="bold magenta")
-        table.add_column("Gruppe", style="cyan")
-        table.add_column("Dateien", justify="right")
-        table.add_column("Größe", justify="right")
-
-        for group in groups:
-            size_mb = (group.total_size or 0) / (1024 * 1024)
-            table.add_row(group.title, str(group.file_count or 0), f"{size_mb:.2f} MB")
-
-        console.print("[bold]📂 Nach Gruppe[/bold]")
+            
+            table.add_row(*row_data)
+        
         console.print(table)
+        console.print(f"[dim]{len(results)} Dateien gefunden[/dim]")
+        
+    except Exception as e:
+        handle_error(e, "search", exit_on_error=True)
 
 
 @cli.command()
-@click.option("--watch", "-w", is_flag=True, help="Überwache Performance in Echtzeit")
-@click.option(
-    "--cleanup",
-    "-c",
-    is_flag=True,
-    help="Bereinige Temp-Dateien und führe Garbage Collection durch",
-)
-@click.option(
-    "--output",
-    "-o",
-    type=click.Path(file_okay=False),
-    default="downloads",
-    help="Download-Verzeichnis für Disk-Space-Analyse",
-)
-def performance(watch: bool, cleanup: bool, output: str):
-    """Zeigt Performance-Statistiken und Systemmetriken an."""
-    output_path = Path(output)
-
-    # Performance-Monitor initialisieren
-    perf_monitor = get_performance_monitor(output_path)
-
-    if cleanup:
-        console.print("[blue]🧹 Bereinige System...[/blue]")
-
-        # Memory Cleanup
-        freed_objects = perform_memory_cleanup()
-        console.print(
-            f"[green]✓ Garbage Collection: {freed_objects} Objekte bereinigt[/green]"
-        )
-
-        # Temp-Files Cleanup
-        cleaned_files = perf_monitor.disk_manager.cleanup_temp_files()
-        console.print(
-            f"[green]✓ Temp-Dateien bereinigt: {cleaned_files} Dateien[/green]"
-        )
-
-        return
-
-    if watch:
-        console.print(
-            "[blue]👁️  Performance-Überwachung gestartet (Strg+C zum Beenden)[/blue]"
-        )
-        console.print("[dim]Aktualisierung alle 5 Sekunden...[/dim]\n")
-
-        try:
-            while True:
-                # Performance-Report abrufen
-                report = perf_monitor.get_performance_report()
-
-                # Bildschirm löschen
-                os.system("cls" if os.name == "nt" else "clear")
-
-                # Header
-                console.print("[bold blue]📊 PERFORMANCE MONITOR[/bold blue]")
-                console.print(
-                    f"[dim]Laufzeit: {report['uptime_seconds']:.0f}s | {time.strftime('%H:%M:%S')}[/dim]\n"
-                )
-
-                # Downloads-Tabelle
-                downloads_table = Table(title="Downloads", show_header=True)
-                downloads_table.add_column("Metrik")
-                downloads_table.add_column("Wert", justify="right")
-
-                downloads_table.add_row(
-                    "Erfolgreich", str(report["downloads"]["completed"])
-                )
-                downloads_table.add_row(
-                    "Fehlgeschlagen", str(report["downloads"]["failed"])
-                )
-                downloads_table.add_row(
-                    "Erfolgsrate", f"{report['downloads']['success_rate']:.1f}%"
-                )
-                downloads_table.add_row(
-                    "Downloads/Min",
-                    f"{report['performance']['downloads_per_minute']:.1f}",
-                )
-                downloads_table.add_row(
-                    "Ø Geschwindigkeit",
-                    f"{report['performance']['average_speed_mbps']:.1f} MB/s",
-                )
-                downloads_table.add_row(
-                    "Gesamt heruntergeladen",
-                    f"{report['performance']['total_gb_downloaded']:.2f} GB",
-                )
-
-                console.print(downloads_table)
-                console.print()
-
-                # System-Tabelle
-                system_table = Table(title="System-Ressourcen", show_header=True)
-                system_table.add_column("Ressource")
-                system_table.add_column("Verwendung", justify="right")
-                system_table.add_column("Status", justify="center")
-
-                # Memory Status
-                memory_mb = report["resources"]["memory_mb"]
-                memory_status = (
-                    "🟢" if memory_mb < 512 else "🟡" if memory_mb < 1024 else "🔴"
-                )
-                system_table.add_row(
-                    "Arbeitsspeicher", f"{memory_mb:.0f} MB", memory_status
-                )
-
-                # CPU Status
-                cpu_percent = report["resources"]["cpu_percent"]
-                cpu_status = (
-                    "🟢" if cpu_percent < 50 else "🟡" if cpu_percent < 80 else "🔴"
-                )
-                system_table.add_row("CPU", f"{cpu_percent:.1f}%", cpu_status)
-
-                # Disk Status
-                disk_free = report["resources"]["disk_free_gb"]
-                disk_status = "🟢" if disk_free > 5 else "🟡" if disk_free > 1 else "🔴"
-                system_table.add_row(
-                    "Freier Speicher", f"{disk_free:.1f} GB", disk_status
-                )
-
-                console.print(system_table)
-                console.print()
-
-                # Rate-Limiting
-                rate_table = Table(title="Rate-Limiting", show_header=True)
-                rate_table.add_column("Metrik")
-                rate_table.add_column("Wert", justify="right")
-
-                rate_table.add_row(
-                    "Aktuelle Rate",
-                    f"{report['rate_limiting']['current_rate']:.2f} req/s",
-                )
-                rate_table.add_row(
-                    "Verfügbare Tokens",
-                    f"{report['rate_limiting']['tokens_available']:.1f}",
-                )
-
-                console.print(rate_table)
-                console.print("\n[dim]Drücken Sie Strg+C zum Beenden...[/dim]")
-
-                time.sleep(5)
-
-        except KeyboardInterrupt:
-            console.print("\n[yellow]Performance-Überwachung beendet[/yellow]")
+@click.pass_context
+@log_function_call
+def history(ctx):
+    """Zeigt die Download-Historie an."""
+    try:
+        config = ctx.obj["CONFIG"]
+        console = ctx.obj["console"]
+        
+        # Hole die Download-Historie aus der Datenbank
+        history = AudioFile.select().order_by(AudioFile.downloaded_at.desc()).limit(20)
+        
+        if not history:
+            console.print("[yellow]Keine Downloads in der Historie.[/yellow]")
             return
+        
+        # Erstelle eine Tabelle zur Anzeige der Historie
+        table = Table(title="Download-Historie")
+        table.add_column("Titel", style="cyan", no_wrap=True)
+        table.add_column("Künstler", style="green")
+        table.add_column("Größe", justify="right")
+        table.add_column("Dauer", justify="right")
+        table.add_column("Format", justify="center")
+        table.add_column("Checksum", style="dim")
+        table.add_column("Status", justify="center")
+        table.add_column("Gruppe", style="blue")
+        table.add_column("Heruntergeladen am", style="dim")
+        
+        for file in history:
+            # Dateigröße formatieren
+            size_mb = file.file_size / (1024 * 1024)
+            size_str = f"{size_mb:.1f} MB"
+            
+            # Status formatieren
+            status_style = {
+                DownloadStatus.COMPLETED.value: "[green]✓[/green]",
+                DownloadStatus.FAILED.value: "[red]✗[/red]",
+                DownloadStatus.DOWNLOADING.value: "[yellow]↓[/yellow]",
+                DownloadStatus.PENDING.value: "[dim]…[/dim]",
+            }.get(file.status, file.status)
+            
+            # Basis-Zeile vorbereiten
+            row_data = [
+                file.title or file.file_name,
+                file.performer or "Unbekannt",
+                size_str,
+                format_duration(file.duration) if file.duration else "-",
+                file.file_extension[1:].upper() if file.file_extension else "-",
+                file.checksum_md5[:8] + "..." if file.checksum_md5 else "-",
+                status_style,
+                file.group.title if file.group else "-",
+                (
+                    file.downloaded_at.strftime("%d.%m.%Y %H:%M")
+                    if file.downloaded_at
+                    else "-"
+                ),
+            ]
+            
+            table.add_row(*row_data)
+        
+        console.print(table)
+        
+    except Exception as e:
+        handle_error(e, "history", exit_on_error=True)
 
-    else:
-        # Einmalige Anzeige
-        report = perf_monitor.get_performance_report()
 
-        console.print("[bold blue]📊 PERFORMANCE REPORT[/bold blue]\n")
+@cli.group()
+@click.pass_context
+def config(ctx):
+    """Verwaltet die Konfiguration."""
+    try:
+        config = ctx.obj["CONFIG"]
+        ctx.obj["console"] = console
+        
+    except Exception as e:
+        handle_error(e, "config_group", exit_on_error=True)
 
-        # Allgemeine Info
-        console.print(f"[cyan]Laufzeit:[/cyan] {report['uptime_seconds']:.0f} Sekunden")
-        console.print(f"[cyan]Zeitpunkt:[/cyan] {time.strftime('%d.%m.%Y %H:%M:%S')}\n")
 
-        # Downloads
-        console.print("[bold]📥 Downloads[/bold]")
-        console.print(
-            f"  Erfolgreich: [green]{report['downloads']['completed']}[/green]"
+@config.command()
+@click.pass_context
+@log_function_call
+def show(ctx):
+    """Zeigt die aktuelle Konfiguration an."""
+    try:
+        config = ctx.obj["CONFIG"]
+        console = ctx.obj["console"]
+        
+        config_data = config.to_dict()
+        console.print("Aktuelle Konfiguration:")
+        for key, value in config_data.items():
+            console.print(f"{key}: {value}")
+        
+    except Exception as e:
+        handle_error(e, "config_show", exit_on_error=True)
+
+
+@config.command()
+@click.argument("key")
+@click.argument("value")
+@click.pass_context
+@log_function_call
+def set(ctx, key: str, value: str):
+    """Setzt einen Konfigurationswert."""
+    try:
+        config = ctx.obj["CONFIG"]
+        console = ctx.obj["console"]
+        
+        config.set(key, value)
+        config.save()
+        console.print(f"[green]Konfigurationswert '{key}' auf '{value}' gesetzt[/green]")
+        
+    except Exception as e:
+        handle_error(e, "config_set", exit_on_error=True)
+
+
+@cli.command()
+@click.option("--group", "-g", required=True, help="Name der Telegram-Gruppe")
+@click.option("--limit", "-l", type=int, help="Maximale Anzahl an Dateien zum Herunterladen")
+@click.option("--output", "-o", type=click.Path(), help="Ausgabeverzeichnis")
+@click.option("--parallel", "-p", type=int, help="Anzahl paralleler Downloads")
+@click.option("--priority", "-P", type=click.Choice(['LOW', 'NORMAL', 'HIGH', 'CRITICAL']), default='NORMAL', help="Priorität des Batch-Jobs")
+@click.pass_context
+@log_function_call
+def batch_add(ctx, group: str, limit: Optional[int], output: Optional[str], parallel: Optional[int], priority: str):
+    """Fügt einen Download-Auftrag zur Batch-Verarbeitung hinzu."""
+    try:
+        config = ctx.obj["config"]
+        console = ctx.obj["console"]
+        
+        # Erstelle einen Batch-Item
+        batch_item = BatchItem(
+            id=f"batch_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+            group_name=group,
+            limit=limit,
+            priority=Priority[priority],
+            output_dir=Path(output) if output else None,
+            parallel_downloads=parallel
         )
-        console.print(f"  Fehlgeschlagen: [red]{report['downloads']['failed']}[/red]")
-        console.print(f"  Erfolgsrate: {report['downloads']['success_rate']:.1f}%")
-        console.print(
-            f"  Gesamt heruntergeladen: {report['performance']['total_gb_downloaded']:.2f} GB"
-        )
-        console.print(
-            f"  Ø Geschwindigkeit: {report['performance']['average_speed_mbps']:.1f} MB/s\n"
-        )
+        
+        # Speichere den Batch-Item (in einer echten Implementierung würde dies in einer Datenbank gespeichert)
+        # Für dieses Beispiel fügen wir ihn einfach zu einer Liste hinzu
+        if "batch_queue" not in ctx.obj:
+            ctx.obj["batch_queue"] = []
+        ctx.obj["batch_queue"].append(batch_item)
+        
+        console.print(f"[green]Batch-Auftrag {batch_item.id} zur Warteschlange hinzugefügt[/green]")
+        console.print(f"  Gruppe: {group}")
+        console.print(f"  Priorität: {priority}")
+        if limit:
+            console.print(f"  Limit: {limit}")
+        if output:
+            console.print(f"  Ausgabeverzeichnis: {output}")
+        if parallel:
+            console.print(f"  Parallele Downloads: {parallel}")
+            
+    except Exception as e:
+        error = ConfigurationError(f"Fehler beim Hinzufügen des Batch-Auftrags: {e}")
+        handle_error(error, "batch_add", exit_on_error=True)
 
-        # System-Ressourcen
-        console.print("[bold]🖥️  System-Ressourcen[/bold]")
-        console.print(f"  Arbeitsspeicher: {report['resources']['memory_mb']:.0f} MB")
-        console.print(f"  CPU-Auslastung: {report['resources']['cpu_percent']:.1f}%")
-        console.print(
-            f"  Festplatte verwendet: {report['resources']['disk_used_gb']:.1f} GB"
-        )
-        console.print(
-            f"  Festplatte frei: {report['resources']['disk_free_gb']:.1f} GB\n"
-        )
 
-        # Rate-Limiting
-        console.print("[bold]⏱️  Rate-Limiting[/bold]")
-        console.print(
-            f"  Aktuelle Rate: {report['rate_limiting']['current_rate']:.2f} Anfragen/Sekunde"
-        )
-        console.print(
-            f"  Verfügbare Tokens: {report['rate_limiting']['tokens_available']:.1f}"
-        )
-
-        # System-Memory-Details
-        memory_info = perf_monitor.memory_manager.get_system_memory_info()
-        console.print("\n[bold]💾 System-Speicher[/bold]")
-        console.print(f"  Gesamt: {memory_info['total_gb']:.1f} GB")
-        console.print(f"  Verfügbar: {memory_info['available_gb']:.1f} GB")
-        console.print(f"  Auslastung: {memory_info['used_percent']:.1f}%")
-
-        # Empfehlungen
-        console.print("\n[bold]💡 Empfehlungen[/bold]")
-        if report["resources"]["memory_mb"] > 1024:
-            console.print(
-                "  [yellow]⚠️  Hoher Speicherverbrauch - erwägen Sie --cleanup[/yellow]"
+@cli.command()
+@click.option("--max-concurrent", "-c", type=int, default=3, help="Maximale Anzahl gleichzeitiger Batch-Verarbeitungen")
+@click.pass_context
+@log_function_call
+def batch_process(ctx, max_concurrent: int):
+    """Verarbeitet alle Batch-Aufträge in der Warteschlange."""
+    try:
+        config = ctx.obj["config"]
+        console = ctx.obj["console"]
+        
+        # Prüfe, ob Batch-Aufträge vorhanden sind
+        if "batch_queue" not in ctx.obj or not ctx.obj["batch_queue"]:
+            console.print("[yellow]Keine Batch-Aufträge in der Warteschlange[/yellow]")
+            return
+        
+        # Erstelle den Batch-Prozessor
+        batch_processor = BatchProcessor(max_concurrent_batches=max_concurrent)
+        
+        # Füge alle Batch-Items zum Prozessor hinzu
+        for item in ctx.obj["batch_queue"]:
+            batch_processor.add_batch_item(item)
+        
+        # Erstelle eine Download-Funktion, die mit dem Batch-Prozessor kompatibel ist
+        async def download_function(group: str, limit: Optional[int] = None, output: Optional[str] = None, parallel: Optional[int] = None):
+            downloader = AudioDownloader(
+                download_dir=output or config.download_dir,
+                max_concurrent_downloads=parallel or config.max_concurrent_downloads
             )
-        if report["resources"]["disk_free_gb"] < 2:
-            console.print("  [red]🚨 Wenig Festplattenspeicher verfügbar[/red]")
-        if report["rate_limiting"]["current_rate"] < 0.5:
-            console.print(
-                "  [blue]ℹ️  Rate-Limiting aktiv - Downloads verlangsamt[/blue]"
-            )
+            await downloader.download_audio_files(group, limit)
+        
+        # Verarbeite die Batch-Aufträge
+        console.print(f"[blue]Starte Batch-Verarbeitung mit {len(ctx.obj['batch_queue'])} Aufträgen[/blue]")
+        asyncio.run(batch_processor.process_batches(download_function))
+        
+        # Zeige eine Zusammenfassung
+        progress = batch_processor.get_progress()
+        console.print("[bold blue]Batch-Verarbeitung abgeschlossen[/bold blue]")
+        console.print(f"  Gesamt: {progress['total_items']}")
+        console.print(f"  Abgeschlossen: {progress['completed_items']}")
+        console.print(f"  Fehlgeschlagen: {progress['failed_items']}")
+        console.print(f"  Gesamtfortschritt: {progress['overall_progress']:.2%}")
+        
+        # Leere die Warteschlange
+        ctx.obj["batch_queue"] = []
+        
+    except Exception as e:
+        error = ConfigurationError(f"Fehler bei der Batch-Verarbeitung: {e}")
+        handle_error(error, "batch_process", exit_on_error=True)
 
-        if (
-            report["resources"]["memory_mb"] <= 512
-            and report["resources"]["disk_free_gb"] > 5
-            and report["rate_limiting"]["current_rate"] >= 1.0
-        ):
-            console.print("  [green]✅ System läuft optimal[/green]")
+
+@cli.command()
+@click.pass_context
+@log_function_call
+def batch_list(ctx):
+    """Listet alle Batch-Aufträge in der Warteschlange auf."""
+    try:
+        console = ctx.obj["console"]
+        
+        # Prüfe, ob Batch-Aufträge vorhanden sind
+        if "batch_queue" not in ctx.obj or not ctx.obj["batch_queue"]:
+            console.print("[yellow]Keine Batch-Aufträge in der Warteschlange[/yellow]")
+            return
+        
+        # Erstelle eine Tabelle zur Anzeige der Batch-Aufträge
+        table = Table(title="Batch-Aufträge in der Warteschlange")
+        table.add_column("ID", style="cyan")
+        table.add_column("Gruppe", style="magenta")
+        table.add_column("Limit", style="green")
+        table.add_column("Priorität", style="yellow")
+        table.add_column("Ausgabeverzeichnis", style="blue")
+        table.add_column("Parallele Downloads", style="red")
+        
+        for item in ctx.obj["batch_queue"]:
+            table.add_row(
+                item.id,
+                item.group_name,
+                str(item.limit) if item.limit else "Kein Limit",
+                item.priority.name,
+                str(item.output_dir) if item.output_dir else "Standard",
+                str(item.parallel_downloads) if item.parallel_downloads else "Standard"
+            )
+        
+        console.print(table)
+        
+    except Exception as e:
+        error = ConfigurationError(f"Fehler beim Auflisten der Batch-Aufträge: {e}")
+        handle_error(error, "batch_list", exit_on_error=True)
 
 
 def check_env() -> bool:
