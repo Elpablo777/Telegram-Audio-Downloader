@@ -12,9 +12,12 @@ from playhouse.migrate import SqliteMigrator
 from .db_error_handler import handle_database_error, with_database_error_handling
 from .error_handling import DatabaseError
 from .models import AudioFile, TelegramGroup, db
+from .logging_config import get_logger
 from .database_indexing import optimize_database_indexes
 from .database_migrations import run_migrations
 from .extended_models import create_extended_tables
+
+logger = get_logger(__name__)
 
 # Standard-Datenbankpfad
 DEFAULT_DB_PATH = Path("data/audio_downloader.db")
@@ -24,51 +27,47 @@ DB_PATH = os.getenv("DB_PATH", str(DEFAULT_DB_PATH))
 @with_database_error_handling
 def init_db(db_path: Optional[str] = None) -> SqliteDatabase:
     """
-    Initialisiert die Datenbank und erstellt die Tabellen, falls sie nicht existieren.
-
+    Initialisiert die Datenbank.
+    
     Args:
         db_path: Optionaler Pfad zur Datenbankdatei
-
+        
     Returns:
-        Die initialisierte Datenbank-Instanz
+        Initialisierte SqliteDatabase-Instanz
     """
-    # Datenbankpfad setzen
+    global db
+    
     if db_path is None:
-        db_path = DB_PATH
-
-    # Verzeichnis erstellen, falls nicht vorhanden
-    os.makedirs(os.path.dirname(db_path), exist_ok=True)
-
-    # Datenbank initialisieren
-    db.init(
-        db_path,
-        pragmas={
-            "journal_mode": "wal",  # Bessere Parallelität
-            "cache_size": -1024 * 32,  # 32MB Cache
-            "foreign_keys": 1,  # Fremdschlüssel erzwingen
-            "ignore_check_constraints": 0,
-            "synchronous": 0,  # Schnellere Schreibvorgänge
-        },
-    )
-
-    # Tabellen erstellen
-    with db:
-        db.create_tables([TelegramGroup, AudioFile], safe=True)
-
-        # Datenbank-Migrationen durchführen
-        migrator = SqliteMigrator(db)
-
-        try:
-            # Beispiel für eine zukünftige Migration:
-            # from peewee import IntegerField
-            # migrate(
-            #     migrator.add_column('audio_files', 'new_field', IntegerField(null=True))
-            # )
-            pass
-        except OperationalError as e:
-            handle_database_error(e, "init_db_migration")
-            raise DatabaseError(f"Fehler bei der Datenbankmigration: {e}")
-
+        db_path = os.getenv('DATABASE_PATH', 'data/telegram_audio.db')
+    
+    # Stelle sicher, dass das Datenbankverzeichnis existiert
+    db_dir = Path(db_path).parent
+    db_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Initialisiere die Datenbank
+    db = SqliteDatabase(db_path)
+    
+    # Verbinde mit der Datenbank
+    db.connect()
+    
+    # Erstelle die Tabellen
+    db.create_tables([TelegramGroup, AudioFile], safe=True)
+    
+    # Füge die neuen Felder hinzu, falls sie noch nicht existieren
+    try:
+        with db.atomic():
+            # Prüfe, ob die resume_offset-Spalte existiert
+            cursor = db.execute_sql("PRAGMA table_info(audio_files);")
+            columns = [row[1] for row in cursor.fetchall()]
+            
+            if 'resume_offset' not in columns:
+                db.execute_sql("ALTER TABLE audio_files ADD COLUMN resume_offset INTEGER DEFAULT 0;")
+            
+            if 'resume_checksum' not in columns:
+                db.execute_sql("ALTER TABLE audio_files ADD COLUMN resume_checksum VARCHAR(255) NULL;")
+    except Exception as e:
+        logger.warning(f"Fehler beim Hinzufügen der Resume-Felder: {e}")
+    
     # Optimiere die Datenbankindizes
     try:
         optimize_database_indexes()

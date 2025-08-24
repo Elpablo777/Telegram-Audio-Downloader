@@ -21,34 +21,27 @@ from telethon.tl.types import (
 )
 from tqdm import tqdm
 
-from .error_handling import (
-    AuthenticationError,
-    ConfigurationError,
-    DatabaseError,
-    DownloadError,
-    FileOperationError,
-    NetworkError,
-    TelegramAPIError,
-    handle_error,
+from .models import AudioFile, TelegramGroup, DownloadStatus
+from .config import Config
+from .logging_config import get_logger
+from .error_handling import handle_error
+from .utils import sanitize_filename, format_file_size
+from .network_optimization import get_optimized_client
+from .prefetching import get_prefetch_manager
+from .adaptive_parallelism import get_parallelism_manager
+from .advanced_memory_management import get_memory_manager
+from .automatic_error_recovery import get_error_recovery
+from .audit_logging import log_audit_event
+from .metrics_export import export_download_metric
+from .realtime_performance_analysis import get_performance_analyzer
+# Neue Importe für die fortgeschrittene Download-Wiederaufnahme
+from .advanced_resume import (
+    get_resume_manager, load_file_resume_state, save_file_resume_state,
+    update_file_resume_info, can_resume_download, increment_file_retry_count,
+    reset_file_resume_info, cleanup_file_resume_info
 )
-from . import utils
-from .database import init_db
-from .logging_config import get_error_tracker, get_logger
-from .models import AudioFile, DownloadStatus, TelegramGroup
-from .performance import get_performance_monitor
-from .adaptive_parallelism import AdaptiveParallelismController
-from .prefetching import PrefetchManager
-from .network_optimization import NetworkOptimizer
-from .advanced_memory_management import AdvancedMemoryManager
-from .realtime_performance_analysis import RealtimePerformanceAnalyzer
-from .automatic_error_recovery import AutomaticErrorRecovery
 
-# Logger und Error-Tracker initialisieren
 logger = get_logger(__name__)
-error_tracker = get_error_tracker()
-
-# Unterstützte Audioformate
-AUDIO_EXTENSIONS = {".mp3", ".m4a", ".ogg", ".flac", ".wav", ".opus"}
 
 
 class LRUCache:
@@ -598,7 +591,7 @@ class AudioDownloader:
             if recovery_success or error_tracker.should_retry(e, f"network_{file_id}"):
                 retry_delay = min(
                     60, 2**audio_file.download_attempts
-                )  // Exponential backoff, max 60s
+                )  # Exponential backoff, max 60s
                 logger.warning(
                     f"Netzwerk-Fehler bei {audio_info['file_name']}, Retry in {retry_delay}s: {e}"
                 )
@@ -611,7 +604,7 @@ class AudioDownloader:
                     audio_file.error_message = f"Netzwerk-Fehler: {str(e)}"
                     audio_file.save()
                 
-                // Fehler in der Performance-Analyse aufzeichnen
+                # Fehler in der Performance-Analyse aufzeichnen
                 duration = time.time() - start_time
                 self.performance_analyzer.record_download_completion(False, file_size_mb, duration)
                 self.performance_analyzer.record_error(type(e).__name__, f"network_{file_id}")
@@ -623,20 +616,20 @@ class AudioDownloader:
                 exc_info=True,
             )
 
-            // Automatische Fehlerbehebung versuchen
+            # Automatische Fehlerbehebung versuchen
             recovery_data = {
                 "file_id": file_id,
                 "file_name": audio_info['file_name'] if 'audio_info' in locals() else 'unknown'
             }
             recovery_success = await self.error_recovery.attempt_recovery(e, f"download_{file_id}", recovery_data)
 
-            // Fehler in der Datenbank speichern
+            # Fehler in der Datenbank speichern
             if "audio_file" in locals():
                 audio_file.status = DownloadStatus.FAILED.value
                 audio_file.error_message = str(e)
                 audio_file.save()
             
-            // Fehler in der Performance-Analyse aufzeichnen
+            # Fehler in der Performance-Analyse aufzeichnen
             duration = time.time() - start_time
             self.performance_analyzer.record_download_completion(False, file_size_mb, duration)
             self.performance_analyzer.record_error(type(e).__name__, f"download_{file_id}")
@@ -707,7 +700,7 @@ class AudioDownloader:
             except Exception as e:
                 retry_count += 1
                 if retry_count < max_retries:
-                    wait_time = 2**retry_count  // Exponential backoff
+                    wait_time = 2**retry_count  # Exponential backoff
                     logger.warning(
                         f"Download-Fehler (Versuch {retry_count}/{max_retries}): {e}. "
                         f"Wiederhole in {wait_time} Sekunden..."
@@ -738,3 +731,186 @@ class AudioDownloader:
         if self.client:
             await self.client.disconnect()
             logger.info("Telegram-Client-Verbindung geschlossen")
+
+    async def download_file(self, file_id: str, file_name: str, file_size: int, 
+                           group_id: int, message_id: int, 
+                           title: Optional[str] = None, 
+                           performer: Optional[str] = None) -> bool:
+        """
+        Lädt eine Datei herunter.
+        
+        Args:
+            file_id: Telegram-Datei-ID
+            file_name: Name der Datei
+            file_size: Größe der Datei in Bytes
+            group_id: ID der Telegram-Gruppe
+            message_id: ID der Nachricht
+            title: Optionaler Titel
+            performer: Optionaler Interpret
+            
+        Returns:
+            True, wenn der Download erfolgreich war
+        """
+        try:
+            # Erstelle oder aktualisiere den AudioFile-Datensatz
+            audio_file, created = AudioFile.get_or_create(
+                file_id=file_id,
+                defaults={
+                    'file_name': file_name,
+                    'file_size': file_size,
+                    'title': title,
+                    'performer': performer,
+                    'group_id': group_id,
+                    'status': DownloadStatus.PENDING.value,
+                    'download_attempts': 0
+                }
+            )
+            
+            if not created:
+                # Aktualisiere vorhandenen Datensatz
+                audio_file.file_name = file_name
+                audio_file.file_size = file_size
+                audio_file.title = title
+                audio_file.performer = performer
+                audio_file.group_id = group_id
+                audio_file.status = DownloadStatus.PENDING.value
+                audio_file.save()
+            
+            # Hole den Telegram-Client
+            client = get_optimized_client()
+            
+            # Erstelle den vollständigen Dateipfad
+            full_path = self.download_dir / file_name
+            
+            # Lade Resume-Informationen
+            resume_info = load_file_resume_state(file_id, full_path, file_size)
+            
+            # Prüfe, ob der Download wiederaufgenommen werden kann
+            resume_download = can_resume_download(file_id) and resume_info.downloaded_bytes > 0
+            
+            if resume_download:
+                logger.info(f"Setze Download von {file_name} bei {format_file_size(resume_info.downloaded_bytes)} fort")
+                log_audit_event("download_resume", f"Fortsetzung des Downloads von {file_name}", {
+                    "file_id": file_id,
+                    "resumed_bytes": resume_info.downloaded_bytes
+                })
+            
+            # Öffne die Datei im richtigen Modus
+            file_mode = "ab" if resume_download else "wb"
+            
+            # Hole den Datei-Handle
+            with open(full_path, file_mode) as f:
+                # Setze den Dateizeiger ans Ende, falls wir im Anhäng-Modus sind
+                if resume_download:
+                    f.seek(0, 2)  # Gehe ans Ende der Datei
+                
+                # Hole den aktuellen Dateizeiger (für Resume-Offset)
+                start_offset = f.tell() if resume_download else 0
+                
+                # Aktualisiere den AudioFile-Datensatz mit dem Start-Offset
+                audio_file.resume_offset = start_offset
+                audio_file.download_attempts += 1
+                audio_file.status = DownloadStatus.DOWNLOADING.value
+                audio_file.save()
+                
+                try:
+                    # Lade die Datei herunter
+                    async def progress_callback(current, total):
+                        # Aktualisiere die Resume-Informationen
+                        update_file_resume_info(file_id, start_offset + current)
+                        
+                        # Aktualisiere die Performance-Analyse
+                        analyzer = get_performance_analyzer()
+                        analyzer.record_download_progress(file_id, current, total)
+                        
+                        # Logge den Fortschritt alle 10%
+                        if total > 0 and current % (total // 10) == 0:
+                            progress_percent = (current / total) * 100
+                            logger.info(f"Download-Fortschritt für {file_name}: {progress_percent:.1f}%")
+                    
+                    # Führe den Download durch
+                    await client.download_media(
+                        message_id,
+                        output_file=f,
+                        progress_callback=progress_callback
+                    )
+                    
+                    # Aktualisiere die Resume-Informationen nach erfolgreichem Download
+                    save_file_resume_state(file_id)
+                    
+                    # Aktualisiere den AudioFile-Datensatz
+                    audio_file.downloaded_at = datetime.now()
+                    audio_file.status = DownloadStatus.COMPLETED.value
+                    audio_file.error_message = None
+                    audio_file.resume_offset = 0  # Zurücksetzen nach erfolgreichem Download
+                    audio_file.resume_checksum = None  # Zurücksetzen nach erfolgreichem Download
+                    audio_file.save()
+                    
+                    logger.info(f"Download von {file_name} erfolgreich abgeschlossen")
+                    log_audit_event("download_success", f"Download von {file_name} abgeschlossen", {
+                        "file_id": file_id,
+                        "file_size": file_size
+                    })
+                    
+                    # Exportiere die Download-Metrik
+                    export_download_metric("success", file_size)
+                    
+                    # Bereinige die Resume-Informationen
+                    cleanup_file_resume_info(file_id)
+                    
+                    return True
+                    
+                except Exception as e:
+                    # Speichere den Fehlerzustand
+                    save_file_resume_state(file_id)
+                    
+                    # Aktualisiere den AudioFile-Datensatz mit dem Fehler
+                    audio_file.status = DownloadStatus.FAILED.value
+                    audio_file.error_message = str(e)
+                    audio_file.save()
+                    
+                    logger.error(f"Fehler beim Download von {file_name}: {e}")
+                    log_audit_event("download_error", f"Fehler beim Download von {file_name}", {
+                        "file_id": file_id,
+                        "error": str(e)
+                    })
+                    
+                    # Exportiere die Download-Metrik
+                    export_download_metric("failure", file_size)
+                    
+                    # Prüfe, ob eine Wiederholung möglich ist
+                    retry_count = increment_file_retry_count(file_id)
+                    max_retries = 3  # Konfigurierbar machen?
+                    
+                    if retry_count < max_retries:
+                        logger.info(f"Versuche erneuten Download von {file_name} (Versuch {retry_count + 1}/{max_retries})")
+                        log_audit_event("download_retry", f"Erneuter Download-Versuch von {file_name}", {
+                            "file_id": file_id,
+                            "retry_count": retry_count + 1
+                        })
+                        
+                        # Warte etwas vor der Wiederholung
+                        await asyncio.sleep(5 * (retry_count + 1))
+                        
+                        # Rekursiver Aufruf für die Wiederholung
+                        return await self.download_file(file_id, file_name, file_size, group_id, message_id, title, performer)
+                    else:
+                        logger.error(f"Maximale Wiederholungsversuche für {file_name} erreicht")
+                        log_audit_event("download_max_retries", f"Maximale Wiederholungen für {file_name} erreicht", {
+                            "file_id": file_id,
+                            "max_retries": max_retries
+                        })
+                        
+                        # Setze die Resume-Informationen zurück
+                        reset_file_resume_info(file_id)
+                        
+                        return False
+            
+        except Exception as e:
+            handle_error(e, f"Fehler beim Download von {file_name}")
+            log_audit_event("download_exception", f"Schwerwiegender Fehler beim Download von {file_name}", {
+                "file_id": file_id,
+                "error": str(e)
+            })
+            export_download_metric("exception", 0)
+            return False

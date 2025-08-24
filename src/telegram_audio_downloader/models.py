@@ -64,32 +64,19 @@ class AudioFile(BaseModel):
     """Modell für eine Audiodatei mit speichereffizienten Methoden."""
 
     file_id: CharField = CharField(max_length=255, unique=True)
-    file_unique_id: Optional[CharField] = CharField(max_length=255, null=True)  # Kann None sein
-    file_name: CharField = CharField(max_length=510)  # Doppelte Länge für UTF-8 Zeichen
-    file_size: IntegerField = IntegerField()
-    mime_type: CharField = CharField(max_length=100)
-    duration: Optional[IntegerField] = IntegerField(null=True)  # Dauer in Sekunden
-    title: Optional[CharField] = CharField(max_length=255, null=True)
-    performer: Optional[CharField] = CharField(max_length=255, null=True)
-    local_path: Optional[TextField] = TextField(null=True)  # Lokaler Pfad zur Datei
-    status: CharField = CharField(
-        max_length=20,
-        default=DownloadStatus.PENDING.value,
-        choices=[(status.value, status.name) for status in DownloadStatus],
-    )
-    error_message: Optional[TextField] = TextField(null=True)
-    downloaded_at: Optional[DateTimeField] = DateTimeField(null=True)
-
-    # Neue Felder für fortsetzbare Downloads
-    partial_file_path: Optional[TextField] = TextField(null=True)  # Pfad zur partiellen Datei
-    downloaded_bytes: IntegerField = IntegerField(default=0)  # Bereits heruntergeladene Bytes
-    checksum_md5: Optional[CharField] = CharField(max_length=32, null=True)  # MD5-Checksum
-    checksum_verified: BooleanField = BooleanField(default=False)  # Checksum verifiziert
-    download_attempts: IntegerField = IntegerField(default=0)  # Anzahl der Download-Versuche
-    last_attempt_at: Optional[DateTimeField] = DateTimeField(null=True)  # Zeitpunkt des letzten Versuchs
-
-    # Beziehungen
-    group: Optional[ForeignKeyField] = ForeignKeyField(TelegramGroup, backref="audio_files", null=True)
+    file_name: CharField = CharField(max_length=255)
+    file_size: IntegerField = IntegerField(null=True)
+    duration: IntegerField = IntegerField(null=True)
+    title: CharField = CharField(max_length=255, null=True)
+    performer: CharField = CharField(max_length=255, null=True)
+    group: ForeignKeyField = ForeignKeyField(TelegramGroup, backref='audio_files', on_delete='CASCADE')
+    downloaded_at: DateTimeField = DateTimeField(null=True)
+    status: CharField = CharField(max_length=50, default=DownloadStatus.PENDING.value)
+    error_message: TextField = TextField(null=True)
+    download_attempts: IntegerField = IntegerField(default=0)
+    # Neue Felder für die fortgeschrittene Download-Wiederaufnahme
+    resume_offset: IntegerField = IntegerField(default=0)
+    resume_checksum: CharField = CharField(max_length=255, null=True)
 
     class Meta:
         table_name = "audio_files"

@@ -159,20 +159,6 @@ telegram-audio-downloader metadata    # Metadaten analysieren
 
 ---
 
-## 🐳 **Docker Support**
-
-```bash
-# Mit Docker Compose
-docker-compose up -d
-docker-compose exec telegram-audio-downloader telegram-audio-downloader download @gruppe
-
-# Direkt mit Docker
-docker build -t telegram-audio-downloader .
-docker run -it --rm -v $(pwd)/.env:/app/.env telegram-audio-downloader
-```
-
----
-
 ## 🧪 **Tests**
 
 ```bash
@@ -249,3 +235,35 @@ MIT License - siehe [LICENSE](LICENSE) für Details.
 Made with ❤️ by [Elpablo777](https://github.com/Elpablo777)
 
 </div>
+```
+
+## Hauptfunktionen
+
+### Download-Funktionen
+- **Telegram-Integration**: Direkter Download von Audiodateien aus Telegram-Gruppen
+- **Metadatenextraktion**: Automatische Extraktion von Titel, Interpret und Dauer
+- **Dateiorganisation**: Strukturierte Speicherung nach Gruppen und Datum
+- **Fortschrittliche Download-Wiederaufnahme**: Robuste Wiederaufnahme bei Unterbrechungen
+  - Prüfsummenprüfung zur Integritätsverifikation
+  - Teilweiser Download mit automatischer Wiederaufnahme
+  - Automatische Wiederholung bei Fehlern
+  - Detaillierte Protokollierung des Download-Fortschritts
+
+### Suchfunktionen
+- **Fuzzy-Suche**: Suchen auch bei Schreibfehlern
+- **Erweiterte Filter**: Filterung nach Dateigröße, Format und Metadaten
+- **Schnelle Suche**: Optimierte Suchalgorithmus für schnelle Ergebnisse
+
+### Statistik-Funktionen
+- **Downloadstatistiken**: Anzahl der Downloads, Gesamtgröße, etc.
+- **Performance-Überwachung**: Echtzeit-Monitoring mit grafischem Dashboard
+
+### Fehlerbehandlung
+- **Automatische Wiederholung**: Automatische Wiederholung bei Netzwerkfehlern
+- **Prüfsummenprüfung**: Überprüfung der Dateiintegrität nach Download
+
+```
+
+```
+
+```
