@@ -18,7 +18,7 @@ from rich.progress import Progress, BarColumn, TextColumn, TimeRemainingColumn
 
 from .logging_config import get_logger
 from .i18n import _
-from .contextual_help import get_help_system, HelpEntry
+from .contextual_help import get_help_manager, HelpEntry
 from .auto_completion import get_completion_manager, CompletionContext, CompletionType
 from .visual_feedback import get_feedback_manager, show_message, FeedbackType, FeedbackLevel
 
@@ -93,7 +93,7 @@ class UserGuidanceManager:
         """Initialisiert den UserGuidanceManager."""
         self.console = console
         self.config = config or GuidanceConfig()
-        self.help_system = get_help_system()
+        self.help_system = get_help_manager()
         self.completion_manager = get_completion_manager()
         self.feedback_manager = get_feedback_manager()
         self.user_progress: Dict[str, UserProgress] = {}

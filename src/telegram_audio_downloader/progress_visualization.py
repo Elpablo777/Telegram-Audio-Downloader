@@ -177,8 +177,7 @@ class ProgressVisualizer:
                 task_id = progress.add_task(
                     download.file_name[:30],  # Kürze den Dateinamen
                     total=download.total_size,
-                    downloaded=filesize.decimal(download.downloaded),
-                    total=filesize.decimal(download.total_size)
+                    downloaded=filesize.decimal(download.downloaded)
                 )
                 tasks[file_id] = task_id
             
@@ -190,8 +189,7 @@ class ProgressVisualizer:
                         progress.update(
                             task_id,
                             completed=download.downloaded,
-                            downloaded=filesize.decimal(download.downloaded),
-                            total=filesize.decimal(download.total_size)
+                            downloaded=filesize.decimal(download.downloaded)
                         )
                 time.sleep(0.5)  # Aktualisiere alle 0.5 Sekunden
     

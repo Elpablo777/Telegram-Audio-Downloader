@@ -85,7 +85,7 @@ class ContextualHelpManager:
             examples=[
                 "rock - Sucht nach Dateien mit 'rock' im Titel oder Künstler",
                 "beethoven - Sucht nach klassischer Musik",
-                "" - Zeigt alle Dateien in der ausgewählten Gruppe an"
+                "* - Zeigt alle Dateien in der ausgewählten Gruppe an"
             ],
             context=HelpContext.SEARCH
         )
