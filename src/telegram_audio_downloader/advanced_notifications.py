@@ -4,8 +4,8 @@ Erweiterte Benachrichtigungen für den Telegram Audio Downloader.
 
 import json
 import smtplib
-import subprocess
 import sys
+from .secure_subprocess import secure_run_command
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from email.mime.multipart import MIMEMultipart
@@ -53,11 +53,11 @@ class SimpleSystemNotifier:
         """Sendet eine Windows-Benachrichtigung."""
         try:
             # Verwende msg-Befehl unter Windows
-            subprocess.run([
+            secure_run_command([
                 "msg", 
                 "*", 
                 f"{notification.title}: {notification.message}"
-            ], capture_output=True, timeout=5)
+            ], timeout=5)
             return True
         except Exception:
             # Fallback: Einfache Ausgabe in der Konsole
@@ -67,11 +67,11 @@ class SimpleSystemNotifier:
     def _send_macos_notification(self, notification: SystemNotification) -> bool:
         """Sendet eine macOS-Benachrichtigung."""
         try:
-            subprocess.run([
+            secure_run_command([
                 "osascript", 
                 "-e", 
                 f'display notification "{notification.message}" with title "{notification.title}"'
-            ], capture_output=True, timeout=5)
+            ], timeout=5)
             return True
         except Exception:
             # Fallback: Einfache Ausgabe in der Konsole
@@ -81,11 +81,11 @@ class SimpleSystemNotifier:
     def _send_linux_notification(self, notification: SystemNotification) -> bool:
         """Sendet eine Linux-Benachrichtigung."""
         try:
-            subprocess.run([
+            secure_run_command([
                 "notify-send", 
                 notification.title, 
                 notification.message
-            ], capture_output=True, timeout=5)
+            ], timeout=5)
             return True
         except Exception:
             # Fallback: Einfache Ausgabe in der Konsole

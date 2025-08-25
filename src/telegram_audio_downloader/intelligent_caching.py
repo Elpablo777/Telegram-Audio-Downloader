@@ -7,7 +7,6 @@ import hashlib
 import json
 import logging
 import os
-import pickle
 import time
 from abc import ABC, abstractmethod
 from collections import OrderedDict
@@ -16,6 +15,8 @@ from pathlib import Path
 from typing import Any, Dict, Optional, Union
 
 import aiofiles
+# Entferne pickle und importiere stattdessen die sicheren Serialisierungsfunktionen
+from .secure_serialization import secure_dumps, secure_loads
 from .error_handling import handle_error
 from .file_error_handler import handle_file_error, with_file_error_handling
 
@@ -330,13 +331,13 @@ class DiskCache(BaseCache):
                     try:
                         async with aiofiles.open(cache_file, 'rb') as f:
                             data = await f.read()
-                            entry = pickle.loads(data)
+                            entry = secure_loads(data)
                             
                             if not entry.is_expired():
                                 entry.access()
                                 # Aktualisiere die Datei mit den neuen Zugriffsdaten
                                 async with aiofiles.open(cache_file, 'wb') as f:
-                                    await f.write(pickle.dumps(entry))
+                                    await f.write(secure_dumps(entry))
                                 self.stats["hits"] += 1
                                 return entry.value
                             else:
@@ -385,7 +386,7 @@ class DiskCache(BaseCache):
                 # Speichere in Datei
                 cache_file = self._get_cache_file_path(key)
                 async with aiofiles.open(cache_file, 'wb') as f:
-                    await f.write(pickle.dumps(entry))
+                    await f.write(secure_dumps(entry))
                     
                 return True
         except Exception as e:
@@ -516,7 +517,7 @@ class CDNCache(BaseCache):
                             try:
                                 async with aiofiles.open(cache_file, 'rb') as f:
                                     data = await f.read()
-                                    value = pickle.loads(data)
+                                    value = secure_loads(data)
                                     
                                     # Aktualisiere Zugriffsstatistik
                                     entry_info["access_count"] += 1
@@ -584,7 +585,7 @@ class CDNCache(BaseCache):
                 # Speichere in Datei
                 cache_file = self._get_cache_file_path(key)
                 async with aiofiles.open(cache_file, 'wb') as f:
-                    await f.write(pickle.dumps(value))
+                    await f.write(secure_dumps(value))
                 
                 # Speichere Metadaten
                 self.metadata[key] = {

@@ -198,47 +198,49 @@ secrets/
 *.prof
 *.pstats
 
-# 🛠️ IDE files
-.vscode/
-*.swp
-*.swo
-*~
+# 🧪 Test files and directories
+tests/
+test_*.py
+*_test.py
+conftest.py
 
-# 🖥️ OS generated files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
+# 📚 Documentation files (except main README)
+docs/
+!README.md
 
-# 🎯 Project specific
-README_GITHUB.md
-temp/
+# 🛠️ Development tools and scripts
+prompt_modules/
+prompt_modules_backup/
+scripts/
+*.sh
+*.bat
+*.ps1
+
+# 📊 Benchmark files
+.benchmarks/
+
+# 🧹 Temporary files
 tmp/
-partial/
-*.partial
+temp/
+*.tmp
+*.temp
 
-# 📊 Testing artifacts
-.testmondata
-test_results/
-test_reports/
+# 📦 Package files
+*.whl
+*.tar.gz
 
-# 🔧 Build artifacts
-build/
-dist/
-*.egg-info/
+# 🧪 Nox and Tox
+.nox/
+.tox/
 
-# 🚀 Deployment
-deployment/
-.deploy/
+# 📊 Coverage
+.coverage
+htmlcov/
 
-# 📋 Documentation builds
-docs/build/
-docs/_build/
+# 🧹 Ruff cache
+.ruff_cache/
 
-# 🎯 Local development
-local/
-dev/
-sandbox/
+# 🧹 Other caches
+.cache/
+.pytest_cache/
+.mypy_cache/

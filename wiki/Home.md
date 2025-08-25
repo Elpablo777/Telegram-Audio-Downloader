@@ -1,83 +1,61 @@
-# Telegram Audio Downloader Wiki
+# 🏠 Telegram Audio Downloader Wiki
 
-Willkommen zur Dokumentation des Telegram Audio Downloaders!
+Willkommen im Wiki des Telegram Audio Downloaders!
 
-## Inhaltsverzeichnis
+## 📋 Inhaltsverzeichnis
 
-### Einführung
-- [Übersicht](Home.md)
-- [Schnellstart](Quick-Start.md)
-- [Installation](Installation-Guide.md)
+### 🚀 Erste Schritte
+- [Schnellstart](Quick-Start.md) - Schnelleinstieg mit Beispielen
+- [Installationsanleitung](Installation-Guide.md) - Detaillierte Installationsanleitung
 
-### Hauptfunktionen
-- [Download-Funktionen](../wiki/Download-Functions.md)
-- [Suchfunktionen](../wiki/Search-Functions.md)
-- [Performance-Überwachung](../wiki/Performance-Monitoring.md)
-- [Verwaltungsfunktionen](../wiki/Admin-Functions.md)
-- [Fortschrittliche Download-Wiederaufnahme](../wiki/Advanced-Resume.md)
+### 💻 Nutzung
+- [CLI-Befehle](CLI-Commands.md) - Vollständige Referenz aller CLI-Befehle
+- [FAQ](FAQ.md) - Häufig gestellte Fragen und Antworten
 
-### Technische Dokumentation
-- [Architektur-Überblick](Architecture-Overview.md)
-- [Datenmodell](../wiki/Data-Model.md)
-- [Fehlerbehandlung](../wiki/Error-Handling.md)
-- [Performance-Optimierung](Performance-Tuning.md)
-- [Erweiterung und Integration](../wiki/Extensibility.md)
+### 🛠️ Funktionen
+- [Erweiterte Fortsetzung](Advanced-Resume.md) - Detaillierte Informationen zur Fortsetzungsfunktion
+- [Performance-Tuning](Performance-Tuning.md) - Optimierung der Download-Performance
 
-### Entwicklung
-- [Entwicklung und Tests](../wiki/Development-and-Testing.md)
-- [Best Practices](Best-Practices.md)
+### 🧪 Entwicklung
+- [Architekturübersicht](Architecture-Overview.md) - Technische Architektur des Systems
+- [Best Practices](Best-Practices.md) - Entwicklungsbewährte Verfahren
 
-### Hilfe
-- [FAQ](FAQ.md)
-- [Fehlerbehebung](Troubleshooting.md)
-- [Fehlercodes](Error-Codes.md)
+### 🆘 Support
+- [Problembehandlung](Troubleshooting.md) - Lösungen für häufige Probleme
 
-### Community
-- [GitHub Issues](https://github.com/Elpablo777/Telegram-Audio-Downloader/issues)
-- [GitHub Discussions](https://github.com/Elpablo777/Telegram-Audio-Downloader/discussions)
+## 🎯 Was ist der Telegram Audio Downloader?
 
-## Highlights
+Der Telegram Audio Downloader ist ein leistungsstarkes Tool zum Herunterladen und Verwalten von Audiodateien aus Telegram-Gruppen. Es bietet fortschrittliche Funktionen wie parallele Downloads, fortsetzbare Downloads, Metadaten-Extraktion und vieles mehr.
 
-### Performance
-- **Parallele Downloads**: Bis zu 10 gleichzeitige Downloads
-- **Smart Rate Limiting**: Automatische Anpassung an Telegram-Limits
-- **Resume Support**: Fortsetzen unterbrochener Downloads
-- **Memory Optimization**: Effiziente Speichernutzung
+## 🚀 Schnelleinstieg
 
-### Audio
-- **Multi-Format**: MP3, FLAC, OGG, AAC, WAV, OPUS
-- **Metadata Support**: Automatische ID3-Tag-Erkennung
-- **Quality Options**: Verlustlose und komprimierte Formate
-- **Batch Processing**: Massenkonvertierung und -verarbeitung
+### Installation
+```bash
+git clone https://github.com/Elpablo777/telegram-audio-downloader.git
+cd telegram-audio-downloader
+pip install -r requirements.txt
+```
 
-### Suche und Filter
-- **Fuzzy Search**: Intelligente Suche mit Schreibfehler-Toleranz
-- **Advanced Filters**: Nach Format, Größe, Datum, Künstler
-- **Regex Support**: Erweiterte Muster-Suche
-- **Saved Searches**: Häufige Suchen speichern
+### Erster Download
+```bash
+# .env-Datei erstellen und konfigurieren
+cp .env.example .env
+# Bearbeiten Sie die .env-Datei mit Ihren Telegram-API-Zugangsdaten
 
-### Monitoring & Analytics
-- **Real-time Dashboard**: Live-Performance-Überwachung
-- **Download Statistics**: Detaillierte Statistiken und Berichte
-- **Error Tracking**: Automatische Fehler-Protokollierung
-- **Progress Tracking**: Fortschritts-Verfolgung für große Downloads
+telegram-audio-downloader download @ihre_musik_gruppe
+```
 
-## Quick Links
+## 📞 Support
 
-- 📥 [Download Latest Release](https://github.com/Elpablo777/Telegram-Audio-Downloader/releases/latest)
-- 🐛 [Report a Bug](https://github.com/Elpablo777/Telegram-Audio-Downloader/issues/new?template=bug_report.yml)
-- ✨ [Request a Feature](https://github.com/Elpablo777/Telegram-Audio-Downloader/issues/new?template=feature_request.yml)
-- 💬 [Join Discussions](https://github.com/Elpablo777/Telegram-Audio-Downloader/discussions)
+Für Support und Fragen:
+1. Überprüfen Sie die [FAQ](FAQ.md)
+2. Lesen Sie die [Problembehandlung](Troubleshooting.md)
+3. Erstellen Sie ein Issue im [GitHub Repository](https://github.com/Elpablo777/telegram-audio-downloader/issues)
 
-## Community
+## 🤝 Mitwirken
 
-- **GitHub Issues**: Für Bugs und Feature-Requests
-- **GitHub Discussions**: Für Fragen und Community-Austausch
-- **Project Board**: [Entwicklungs-Roadmap verfolgen](https://github.com/users/Elpablo777/projects/2)
-- **Email Support**: hannover84@msn.com
+Beiträge sind willkommen! Lesen Sie die [Contributing Guidelines](https://github.com/Elpablo777/telegram-audio-downloader/blob/main/CONTRIBUTING.md) für Details.
 
----
+## 📄 Lizenz
 
-> **Hinweis**: Diese Dokumentation wird kontinuierlich aktualisiert. Bei Fragen oder Verbesserungsvorschlägen öffnen Sie bitte ein Issue oder starten eine Discussion.
-
-**Happy Downloading!** 🎵✨
+Dieses Projekt ist unter der MIT-Lizenz lizenziert.

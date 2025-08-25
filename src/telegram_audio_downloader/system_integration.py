@@ -10,13 +10,14 @@ Bietet nahtlose Integration mit:
 
 import os
 import sys
-import subprocess
 import platform
 import logging
 from pathlib import Path
 from typing import Optional, Dict, Any
 from dataclasses import dataclass
 
+# Verwende sichere Subprocess-Funktionen
+from .secure_subprocess import secure_run_command, secure_which
 from .logging_config import get_logger
 from .error_handling import handle_error, SystemIntegrationError
 
@@ -71,14 +72,9 @@ class SystemNotifier:
             True, wenn das Tool verfügbar ist, False sonst
         """
         try:
-            subprocess.run(
-                ["which", tool_name] if self.platform != "windows" else ["where", tool_name],
-                check=True,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL
-            )
-            return True
-        except (subprocess.CalledProcessError, FileNotFoundError):
+            result = secure_which(tool_name)
+            return result is not None
+        except Exception:
             return False
     
     def send_notification(self, notification: SystemNotification) -> bool:
@@ -134,8 +130,8 @@ class SystemNotifier:
                     "powershell", "-Command",
                     f"New-BurntToastNotification -Text '{notification.title}', '{notification.message}'"
                 ]
-                subprocess.run(cmd, check=True, capture_output=True)
-                return True
+                result = secure_run_command(cmd, timeout=10)
+                return result.returncode == 0
         except Exception as e:
             logger.warning(f"Fehler beim Senden der Windows-Benachrichtigung: {e}")
             return False
@@ -155,8 +151,8 @@ class SystemNotifier:
                 "osascript", "-e",
                 f'display notification "{notification.message}" with title "{notification.title}"'
             ]
-            subprocess.run(cmd, check=True, capture_output=True)
-            return True
+            result = secure_run_command(cmd, timeout=10)
+            return result.returncode == 0
         except Exception as e:
             logger.warning(f"Fehler beim Senden der macOS-Benachrichtigung: {e}")
             return False
@@ -180,8 +176,8 @@ class SystemNotifier:
             ]
             if notification.icon:
                 cmd.extend(["--icon", notification.icon])
-            subprocess.run(cmd, check=True, capture_output=True)
-            return True
+            result = secure_run_command(cmd, timeout=10)
+            return result.returncode == 0
         except Exception as e:
             logger.warning(f"Fehler beim Senden der Linux-Benachrichtigung: {e}")
             return False
@@ -201,10 +197,10 @@ class SystemNotifier:
                 "kdialog",
                 "--title", notification.title,
                 "--passivepopup", notification.message,
-                str(notification.timeout // 1000)
+                str(notification.timeout // 1000)  # kdialog erwartet Sekunden
             ]
-            subprocess.run(cmd, check=True, capture_output=True)
-            return True
+            result = secure_run_command(cmd, timeout=10)
+            return result.returncode == 0
         except Exception as e:
             logger.warning(f"Fehler beim Senden der kdialog-Benachrichtigung: {e}")
             return False
@@ -254,7 +250,7 @@ class ShellIntegration:
                     "powershell", "-Command",
                     f"[Environment]::SetEnvironmentVariable('PATH', [Environment]::GetEnvironmentVariable('PATH', 'User') + ';{path_str}', 'User')"
                 ]
-                subprocess.run(cmd, check=True, capture_output=True)
+                secure_run_command(cmd, check=True)
             else:
                 # Unix-Systeme
                 shell_config = self._get_shell_config_file()
@@ -331,38 +327,43 @@ class FileManagerIntegration:
     
     def show_in_file_manager(self, path: Path) -> bool:
         """
-        Zeigt eine Datei oder ein Verzeichnis im Dateimanager an.
+        Öffnet einen Pfad im Standard-Dateimanager.
         
         Args:
-            path: Der anzuzeigende Pfad
+            path: Pfad zum Ordner oder zur Datei
             
         Returns:
-            True, wenn der Dateimanager geöffnet wurde, False sonst
+            True, wenn erfolgreich, False sonst
         """
         try:
-            path = path.resolve()
-            
             if self.platform == "windows":
                 # Windows Explorer
-                subprocess.run(["explorer", "/select,", str(path)], check=True)
+                cmd = ["explorer", "/select,", str(path)]
+                result = secure_run_command(cmd, timeout=10)
+                return result.returncode == 0
             elif self.platform == "darwin":  # macOS
                 # Finder
-                subprocess.run(["open", "-R", str(path)], check=True)
+                cmd = ["open", "-R", str(path)]
+                result = secure_run_command(cmd, timeout=10)
+                return result.returncode == 0
             else:  # Linux
                 # Versuche verschiedene Dateimanager
-                file_managers = ["xdg-open", "nautilus", "dolphin", "thunar"]
+                file_managers = ["nautilus", "dolphin", "thunar", "pcmanfm"]
                 for fm in file_managers:
-                    if self._is_tool_available(fm):
-                        if fm == "nautilus":
-                            subprocess.run([fm, "--select", str(path)], check=True)
-                        else:
-                            subprocess.run([fm, str(path.parent)], check=True)
-                        return True
+                    if secure_which(fm):
+                        try:
+                            if fm == "nautilus":
+                                cmd = [fm, "--select", str(path)]
+                            else:
+                                cmd = [fm, str(path.parent)]
+                            result = secure_run_command(cmd, timeout=10)
+                            if result.returncode == 0:
+                                return True
+                        except Exception:
+                            continue
                 return False
-            
-            return True
         except Exception as e:
-            logger.warning(f"Fehler beim Öffnen im Dateimanager: {e}")
+            logger.error(f"Fehler beim Öffnen im Dateimanager: {e}")
             return False
     
     def _is_tool_available(self, tool_name: str) -> bool:
@@ -376,12 +377,8 @@ class FileManagerIntegration:
             True, wenn das Tool verfügbar ist, False sonst
         """
         try:
-            subprocess.run(
-                ["which", tool_name] if self.platform != "windows" else ["where", tool_name],
-                check=True,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL
-            )
+            # Verwende secure_which für die Tool-Verfügbarkeitsprüfung
+            return secure_which(tool_name) is not None
             return True
         except (subprocess.CalledProcessError, FileNotFoundError):
             return False
@@ -395,119 +392,40 @@ class MediaLibraryIntegration:
     
     def add_to_media_library(self, file_path: Path) -> bool:
         """
-        Fügt eine Datei zur Medienbibliothek hinzu.
+        Fügt eine Datei zur Standard-Medienbibliothek hinzu.
         
         Args:
             file_path: Pfad zur Datei
             
         Returns:
-            True, wenn die Datei hinzugefügt wurde, False sonst
+            True, wenn erfolgreich, False sonst
         """
         try:
-            if not file_path.exists():
-                logger.warning(f"Datei {file_path} existiert nicht")
+            if self.platform == "darwin":  # macOS
+                cmd = ["osascript", "-e", f'tell application "Music" to add POSIX file "{file_path}"']
+                result = secure_run_command(cmd, timeout=30)
+                return result.returncode == 0
+            elif self.platform == "windows":  # Windows
+                # Versuche verschiedene Player
+                players = ["gmusicbrowser", "rhythmbox-client"]
+                for player in players:
+                    if secure_which(player):
+                        try:
+                            if player == "gmusicbrowser":
+                                cmd = ["gmusicbrowser", "- enqueue", str(file_path)]
+                            else:  # rhythmbox-client
+                                cmd = ["rhythmbox-client", "--enqueue", str(file_path)]
+                            result = secure_run_command(cmd, timeout=10)
+                            if result.returncode == 0:
+                                return True
+                        except Exception:
+                            continue
                 return False
-            
-            if self.platform == "windows":
-                return self._add_to_windows_media_library(file_path)
-            elif self.platform == "darwin":  # macOS
-                return self._add_to_macos_media_library(file_path)
             else:  # Linux
-                return self._add_to_linux_media_library(file_path)
+                # Für Linux verwenden wir einfach den Dateimanager
+                return self.show_in_file_manager(file_path)
         except Exception as e:
-            logger.warning(f"Fehler beim Hinzufügen zur Medienbibliothek: {e}")
-            return False
-    
-    def _add_to_windows_media_library(self, file_path: Path) -> bool:
-        """
-        Fügt eine Datei zur Windows-Medienbibliothek hinzu.
-        
-        Args:
-            file_path: Pfad zur Datei
-            
-        Returns:
-            True, wenn die Datei hinzugefügt wurde, False sonst
-        """
-        try:
-            # Windows Media Player Library aktualisieren
-            # Dies ist eine vereinfachte Implementierung
-            import ctypes
-            from ctypes import wintypes
-            
-            # Versuche, die Datei in die Medienbibliothek zu integrieren
-            # Dies erfordert möglicherweise zusätzliche Berechtigungen
-            shell = ctypes.windll.shell32
-            result = shell.SHChangeNotify(0x08000000, 0, str(file_path).encode('utf-16le'), None)
-            return True
-        except Exception as e:
-            logger.warning(f"Fehler beim Hinzufügen zur Windows-Medienbibliothek: {e}")
-            return False
-    
-    def _add_to_macos_media_library(self, file_path: Path) -> bool:
-        """
-        Fügt eine Datei zur macOS-Medienbibliothek hinzu.
-        
-        Args:
-            file_path: Pfad zur Datei
-            
-        Returns:
-            True, wenn die Datei hinzugefügt wurde, False sonst
-        """
-        try:
-            # iTunes/Music Library aktualisieren
-            cmd = ["osascript", "-e", f'tell application "Music" to add POSIX file "{file_path}"']
-            subprocess.run(cmd, check=True, capture_output=True)
-            return True
-        except Exception as e:
-            logger.warning(f"Fehler beim Hinzufügen zur macOS-Medienbibliothek: {e}")
-            return False
-    
-    def _add_to_linux_media_library(self, file_path: Path) -> bool:
-        """
-        Fügt eine Datei zur Linux-Medienbibliothek hinzu.
-        
-        Args:
-            file_path: Pfad zur Datei
-            
-        Returns:
-            True, wenn die Datei hinzugefügt wurde, False sonst
-        """
-        try:
-            # Versuche, gmusicbrowser oder rhythmbox zu verwenden
-            if self._is_tool_available("gmusicbrowser"):
-                cmd = ["gmusicbrowser", "- enqueue", str(file_path)]
-                subprocess.run(cmd, check=True, capture_output=True)
-                return True
-            elif self._is_tool_available("rhythmbox-client"):
-                cmd = ["rhythmbox-client", "--enqueue", str(file_path)]
-                subprocess.run(cmd, check=True, capture_output=True)
-                return True
-            else:
-                # Fallback: Datei in Musikordner kopieren
-                music_dir = Path.home() / "Music"
-                if music_dir.exists():
-                    import shutil
-                    shutil.copy2(file_path, music_dir)
-                    return True
-                return False
-        except Exception as e:
-            logger.warning(f"Fehler beim Hinzufügen zur Linux-Medienbibliothek: {e}")
-            return False
-    
-    def _is_tool_available(self, tool_name: str) -> bool:
-        """
-        Prüft, ob ein Tool verfügbar ist.
-        
-        Args:
-            tool_name: Name des Tools
-            
-        Returns:
-            True, wenn das Tool verfügbar ist, False sonst
-        """
-        try:
-            subprocess.run(["which", tool_name], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            return True
-        except (subprocess.CalledProcessError, FileNotFoundError):
+            logger.error(f"Fehler beim Hinzufügen zur Medienbibliothek: {e}")
             return False
 
 # Globale Instanzen

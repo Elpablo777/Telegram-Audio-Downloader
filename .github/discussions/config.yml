@@ -1,0 +1,49 @@
+# GitHub Discussions Konfiguration
+
+# Allgemeine Einstellungen
+enabled: true
+
+# Kategorien für Discussions
+categories:
+  - name: General
+    description: Allgemeine Diskussionen über das Projekt
+    emoji: 🗨️
+    
+  - name: Ideas
+    description: Neue Ideen und Feature-Vorschläge
+    emoji: 💡
+    
+  - name: Q&A
+    description: Fragen und Antworten
+    emoji: ❓
+    
+  - name: Show and Tell
+    description: Zeigt, was ihr mit dem Tool gebaut habt
+    emoji: 🎨
+    
+  - name: Announcements
+    description: Projekt-Updates und Ankündigungen
+    emoji: 📢
+
+# Standard-Kategorie
+default_category: General
+
+# Beitrags-Richtlinien
+contributing_guidelines: |
+  ## Community-Richtlinien
+  
+  Bitte beachten Sie diese Richtlinien, um eine freundliche und produktive Community zu gewährleisten:
+  
+  1. **Seien Sie respektvoll** - Behandeln Sie andere mit Respekt und Höflichkeit
+  2. **Suchen Sie zuerst** - Prüfen Sie, ob Ihre Frage bereits gestellt wurde
+  3. **Verwenden Sie klare Titel** - Hilft anderen, den Inhalt Ihres Beitrags zu verstehen
+  4. **Geben Sie Kontext** - Fügen Sie relevante Informationen hinzu
+  5. **Bleiben Sie thematisch** - Posten Sie in der richtigen Kategorie
+  6. **Befolgen Sie den Code of Conduct** - Siehe CODE_OF_CONDUCT.md
+  
+  ## Wie man eine gute Frage stellt
+  
+  - Beschreiben Sie Ihr Problem klar und präzise
+  - Fügen Sie relevante Systeminformationen hinzu
+  - Teilen Sie Schritte zur Reproduktion mit
+  - Fügen Sie Screenshots oder Logs hinzu, wenn hilfreich
