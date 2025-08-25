@@ -8,7 +8,7 @@ import time
 import weakref
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Optional, Set
+from typing import Any, Dict, List, Optional, Set
 from collections import OrderedDict
 
 from telethon import TelegramClient
@@ -25,15 +25,9 @@ from .models import AudioFile, TelegramGroup, DownloadStatus
 from .config import Config
 from .logging_config import get_logger, get_error_tracker
 from .error_handling import handle_error, SecurityError
-from .utils.file_operations import sanitize_filename, format_file_size
-from .network_optimization import get_optimized_client, NetworkOptimizer
-from .prefetching import get_prefetch_manager, PrefetchManager
-from .adaptive_parallelism import get_parallelism_manager, AdaptiveParallelismController
-from .advanced_memory_management import get_memory_manager, AdvancedMemoryManager
-from .automatic_error_recovery import get_error_recovery, AutomaticErrorRecovery
-from .audit_logging import log_audit_event
-from .metrics_export import export_download_metric
-from .realtime_performance_analysis import get_performance_analyzer, RealtimePerformanceAnalyzer
+# Neue Importe für die intelligente Warteschlange
+from .intelligent_queue import IntelligentQueue, QueueItem, Priority
+
 # Neue Importe für die fortgeschrittene Download-Wiederaufnahme
 from .advanced_resume import (
     get_resume_manager, load_file_resume_state, save_file_resume_state,
@@ -132,6 +126,9 @@ class AudioDownloader:
         self.download_dir = Path(download_dir)
         self.download_dir.mkdir(parents=True, exist_ok=True)
         self.max_concurrent_downloads = max_concurrent_downloads
+        
+        # Initialisiere die intelligente Warteschlange
+        self.download_queue = IntelligentQueue(max_concurrent_downloads)
         
         # Erweiterter Dateinamen-Generator
         self.filename_generator = get_advanced_filename_generator()
@@ -947,6 +944,143 @@ class AudioDownloader:
                 timeout=3000
             )
             return False
+
+    async def download_from_group(
+        self,
+        group_name: str,
+        limit: Optional[int] = None,
+        output_dir: Optional[str] = None,
+        parallel_downloads: Optional[int] = None,
+    ) -> None:
+        """
+        Lädt Audiodateien aus einer Telegram-Gruppe mit intelligenter Warteschlange herunter.
+
+        Args:
+            group_name: Name der Telegram-Gruppe
+            limit: Maximale Anzahl herunterzuladender Dateien
+            output_dir: Ausgabeverzeichnis (optional)
+            parallel_downloads: Anzahl paralleler Downloads (optional)
+        """
+        try:
+            # Erstelle einen Download-Auftrag für die Warteschlange
+            queue_item = QueueItem(
+                id=f"download_{group_name}_{int(time.time())}",
+                group_name=group_name,
+                priority=Priority.NORMAL,
+                created_at=datetime.now(),
+                limit=limit,
+                output_dir=output_dir,
+                parallel_downloads=parallel_downloads
+            )
+            
+            # Füge den Auftrag zur intelligenten Warteschlange hinzu
+            self.download_queue.add_item(queue_item)
+            
+            # Verarbeite die Warteschlange
+            await self._process_queue()
+            
+        except Exception as e:
+            error = DownloadError(f"Fehler beim Herunterladen aus Gruppe {group_name}: {e}")
+            handle_error(error, "download_from_group")
+            raise
+
+    async def download_batch_from_groups(
+        self,
+        group_names: List[str],
+        limit: Optional[int] = None,
+        output_dir: Optional[str] = None,
+        parallel_downloads: Optional[int] = None,
+    ) -> None:
+        """
+        Lädt Audiodateien aus mehreren Telegram-Gruppen als Batch herunter.
+
+        Args:
+            group_names: Liste von Namen der Telegram-Gruppen
+            limit: Maximale Anzahl herunterzuladender Dateien pro Gruppe
+            output_dir: Ausgabeverzeichnis (optional)
+            parallel_downloads: Anzahl paralleler Downloads (optional)
+        """
+        try:
+            batch_id = f"batch_{int(time.time())}"
+            items = []
+            
+            # Erstelle Download-Aufträge für alle Gruppen
+            for group_name in group_names:
+                queue_item = QueueItem(
+                    id=f"download_{group_name}_{int(time.time())}",
+                    group_name=group_name,
+                    priority=Priority.NORMAL,
+                    created_at=datetime.now(),
+                    limit=limit,
+                    output_dir=output_dir,
+                    parallel_downloads=parallel_downloads
+                )
+                items.append(queue_item)
+            
+            # Füge den Batch zur intelligenten Warteschlange hinzu
+            self.download_queue.add_batch(batch_id, items)
+            
+            # Verarbeite die Warteschlange
+            await self._process_queue()
+            
+        except Exception as e:
+            error = DownloadError(f"Fehler beim Batch-Download aus Gruppen: {e}")
+            handle_error(error, "download_batch_from_groups")
+            raise
+
+    async def _process_queue(self) -> None:
+        """
+        Verarbeitet die intelligente Warteschlange.
+        """
+        try:
+            while True:
+                # Optimiere die Warteschlange regelmäßig
+                self.download_queue.optimize_queue()
+                
+                # Hole den nächsten verfügbaren Auftrag
+                queue_item = self.download_queue.get_next_item()
+                
+                if queue_item is None:
+                    # Keine weiteren Aufträge verfügbar
+                    if len(self.download_queue.active_items) == 0 and len(self.download_queue.pending_queue) == 0:
+                        break
+                    else:
+                        # Warte etwas, bevor wir erneut prüfen
+                        await asyncio.sleep(1)
+                        continue
+                
+                # Verarbeite den Auftrag
+                await self._process_queue_item(queue_item)
+                
+        except Exception as e:
+            error = DownloadError(f"Fehler bei der Warteschlangenverarbeitung: {e}")
+            handle_error(error, "_process_queue")
+            raise
+
+    async def _process_queue_item(self, queue_item: QueueItem) -> None:
+        """
+        Verarbeitet einen einzelnen Auftrag aus der Warteschlange.
+
+        Args:
+            queue_item: Der zu verarbeitende Auftrag
+        """
+        try:
+            # Rufe die ursprüngliche Download-Methode auf
+            await self._download_from_group(
+                queue_item.group_name,
+                queue_item.limit,
+                queue_item.output_dir,
+                queue_item.parallel_downloads
+            )
+            
+            # Markiere den Auftrag als abgeschlossen
+            self.download_queue.mark_item_completed(queue_item.id)
+            
+        except Exception as e:
+            # Markiere den Auftrag als fehlgeschlagen
+            self.download_queue.mark_item_failed(queue_item.id, str(e))
+            error = DownloadError(f"Fehler bei der Verarbeitung des Auftrags {queue_item.id}: {e}")
+            handle_error(error, "_process_queue_item")
 
     async def download_file(self, file_id: str, file_name: str, file_size: int, 
                            group_id: int, message_id: int, 

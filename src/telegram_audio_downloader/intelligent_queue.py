@@ -1,5 +1,46 @@
 """
 Intelligente Warteschlange für den Telegram Audio Downloader.
+====================================================================
+
+Die intelligente Warteschlange ist ein zentrales Element des Telegram Audio Downloaders,
+das die Verwaltung und Priorisierung von Download-Aufträgen übernimmt. Sie bietet
+folgende Funktionen:
+
+- Prioritäten-basiertes Queue-Management mit vier Prioritätsstufen (LOW, NORMAL, HIGH, CRITICAL)
+- Abhängigkeitsverwaltung zwischen Aufträgen
+- Batch-Verarbeitung für Gruppen von Aufträgen
+- Dynamische Queue-Optimierung basierend auf Leistungsdaten
+- Ressourcenkontrolle zur Begrenzung gleichzeitiger Downloads
+- Fortschrittsverfolgung für einzelne Aufträge und Batches
+
+Die Warteschlange verwendet eine Heap-basierte Datenstruktur für effiziente Sortierung
+und Abruf von Aufträgen mit einer Zeitkomplexität von O(log n) für Einfüge- und 
+Löschvorgänge. Die Implementierung verwendet asyncio.Semaphore zur Begrenzung der
+Anzahl gleichzeitiger Downloads, was eine effiziente Ressourcennutzung gewährleistet.
+
+Example:
+    queue = IntelligentQueue(max_concurrent_items=3)
+    
+    # Einfacher Auftrag
+    item = QueueItem(
+        id="download_1",
+        group_name="Music Group",
+        priority=Priority.NORMAL,
+        created_at=datetime.now()
+    )
+    queue.add_item(item)
+    
+    # Batch-Auftrag
+    items = [QueueItem(...) for _ in range(5)]
+    queue.add_batch("batch_1", items)
+    
+    # Verarbeitung
+    while True:
+        item = queue.get_next_item()
+        if item is None:
+            break
+        # Verarbeite den Auftrag
+        queue.mark_item_completed(item.id)
 """
 
 import asyncio
@@ -33,7 +74,25 @@ class DependencyType(Enum):
 
 @dataclass
 class QueueItem:
-    """Ein Element in der Download-Warteschlange."""
+    """Ein Element in der Download-Warteschlange.
+    
+    Attributes:
+        id: Eindeutige ID des Auftrags
+        group_name: Name der Telegram-Gruppe
+        priority: Priorität des Auftrags (LOW, NORMAL, HIGH, CRITICAL)
+        created_at: Erstellungszeitpunkt des Auftrags
+        dependencies: Menge von IDs, von denen dieser Auftrag abhängt
+        dependent_items: Menge von IDs, die von diesem Auftrag abhängen
+        status: Aktueller Status des Auftrags (PENDING, DOWNLOADING, COMPLETED, FAILED)
+        limit: Maximale Anzahl herunterzuladender Dateien
+        output_dir: Ausgabeverzeichnis für Downloads
+        parallel_downloads: Anzahl paralleler Downloads
+        batch_id: ID des Batches, zu dem dieser Auftrag gehört (optional)
+        batch_priority: Priorität des Batches (optional)
+        progress: Fortschritt des Auftrags (0-100)
+        total_items: Gesamtanzahl der Aufträge im Batch
+        sort_key: Schlüssel für die Sortierung in der Heap-basierten Warteschlange
+    """
     id: str
     group_name: str
     priority: Priority
@@ -44,6 +103,11 @@ class QueueItem:
     limit: Optional[int] = None
     output_dir: Optional[str] = None
     parallel_downloads: Optional[int] = None
+    # Neue Felder für Batch-Verarbeitung
+    batch_id: Optional[str] = None
+    batch_priority: Optional[Priority] = None
+    progress: int = 0
+    total_items: int = 1
     # Für die Heap-Queue benötigen wir eine Methode zum Vergleichen
     # Wir verwenden eine Kombination aus Priorität, Erstellungszeit und ID
     sort_key: tuple = field(init=False)
@@ -58,7 +122,37 @@ class QueueItem:
         return self.sort_key < other.sort_key
 
 class IntelligentQueue:
-    """Intelligente Warteschlange mit Priorisierung und Abhängigkeitsverwaltung."""
+    """Intelligente Warteschlange mit Priorisierung und Abhängigkeitsverwaltung.
+    
+    Die intelligente Warteschlange verwaltet Download-Aufträge mit folgenden Funktionen:
+    
+    - Prioritäten-basierte Verarbeitung mit vier Stufen
+    - Abhängigkeitsmanagement zwischen Aufträgen
+    - Batch-Verarbeitung für Gruppen von Aufträgen
+    - Dynamische Optimierung basierend auf Leistungsdaten
+    - Ressourcenkontrolle zur Begrenzung gleichzeitiger Downloads
+    - Fortschrittsverfolgung
+    
+    Example:
+        queue = IntelligentQueue(max_concurrent_items=3)
+        
+        # Einfügen eines Auftrags
+        item = QueueItem(
+            id="download_1",
+            group_name="Music Group",
+            priority=Priority.HIGH,
+            created_at=datetime.now()
+        )
+        queue.add_item(item)
+        
+        # Verarbeiten der Warteschlange
+        while True:
+            item = queue.get_next_item()
+            if item is None:
+                break
+            # Verarbeite den Auftrag
+            queue.mark_item_completed(item.id)
+    """
     
     def __init__(self, max_concurrent_items: int = 3):
         """
@@ -77,6 +171,12 @@ class IntelligentQueue:
         self.resource_usage: Dict[str, int] = {}  # Ressourcennutzung pro Auftrag
         self.semaphore = asyncio.Semaphore(max_concurrent_items)
         self._stop_processing = False
+        # Neue Strukturen für Batch-Verarbeitung
+        self.batches: Dict[str, List[QueueItem]] = defaultdict(list)
+        self.batch_progress: Dict[str, int] = defaultdict(int)
+        # Neue Attribute für dynamische Optimierung
+        self.performance_history: List[Dict[str, Any]] = []
+        self.resource_utilization: Dict[str, float] = defaultdict(float)
         heapq.heapify(self.pending_queue)
     
     def add_item(self, item: QueueItem) -> None:
@@ -235,6 +335,10 @@ class IntelligentQueue:
                 item.status = DownloadStatus.COMPLETED
                 item.completed_at = datetime.now()
                 self.completed_items[item_id] = item
+                
+                # Aktualisiere Batch-Fortschritt, wenn das Element zu einem Batch gehört
+                if item.batch_id:
+                    self.update_batch_progress(item.batch_id, item_id)
                 
                 # Entferne Ressourcennutzung
                 if item_id in self.resource_usage:
@@ -435,3 +539,154 @@ class IntelligentQueue:
             True, wenn die Verarbeitung gestoppt ist, False sonst
         """
         return self._stop_processing
+    
+    def add_batch(self, batch_id: str, items: List[QueueItem], batch_priority: Priority = Priority.NORMAL) -> None:
+        """
+        Fügt eine Gruppe von Download-Aufträgen als Batch zur Warteschlange hinzu.
+        
+        Args:
+            batch_id: Eindeutige ID für den Batch
+            items: Liste von QueueItem-Objekten
+            batch_priority: Priorität für den gesamten Batch
+        """
+        try:
+            # Setze Batch-Informationen für alle Elemente
+            for item in items:
+                item.batch_id = batch_id
+                item.batch_priority = batch_priority
+                item.total_items = len(items)
+                self.add_item(item)
+            
+            # Speichere den Batch
+            self.batches[batch_id] = items
+            self.batch_progress[batch_id] = 0
+            
+            logger.info(f"Batch {batch_id} mit {len(items)} Aufträgen zur Warteschlange hinzugefügt")
+        except Exception as e:
+            error = DownloadError(f"Fehler beim Hinzufügen des Batches {batch_id}: {e}")
+            handle_error(error, "intelligent_queue_add_batch")
+            raise
+    
+    def get_batch_progress(self, batch_id: str) -> float:
+        """
+        Gibt den Fortschritt eines Batches als Prozentsatz zurück.
+        
+        Args:
+            batch_id: ID des Batches
+            
+        Returns:
+            Fortschritt als Prozentsatz (0-100)
+        """
+        if batch_id not in self.batches:
+            return 0.0
+        
+        total_items = len(self.batches[batch_id])
+        if total_items == 0:
+            return 0.0
+            
+        completed = self.batch_progress.get(batch_id, 0)
+        return (completed / total_items) * 100
+    
+    def update_batch_progress(self, batch_id: str, item_id: str) -> None:
+        """
+        Aktualisiert den Fortschritt eines Batches, wenn ein Element abgeschlossen wird.
+        
+        Args:
+            batch_id: ID des Batches
+            item_id: ID des abgeschlossenen Elements
+        """
+        if batch_id in self.batches:
+            self.batch_progress[batch_id] = self.batch_progress.get(batch_id, 0) + 1
+            logger.info(f"Batch {batch_id} Fortschritt: {self.batch_progress[batch_id]}/{len(self.batches[batch_id])}")
+    
+    def optimize_queue(self) -> None:
+        """
+        Optimiert die Warteschlange basierend auf Leistungsdaten und Ressourcennutzung.
+        """
+        try:
+            # Sammle aktuelle Leistungsdaten
+            performance_data = self._collect_performance_data()
+            self.performance_history.append(performance_data)
+            
+            # Behalte nur die letzten 100 Einträge
+            if len(self.performance_history) > 100:
+                self.performance_history.pop(0)
+            
+            # Analysiere die Leistungsdaten
+            if len(self.performance_history) >= 10:
+                self._analyze_performance_trends()
+            
+            # Optimiere Prioritäten basierend auf Ressourcennutzung
+            self._optimize_priorities()
+            
+            logger.info("Warteschlange optimiert")
+        except Exception as e:
+            error = DownloadError(f"Fehler bei der Warteschlangen-Optimierung: {e}")
+            handle_error(error, "intelligent_queue_optimize")
+    
+    def _collect_performance_data(self) -> Dict[str, Any]:
+        """
+        Sammelt aktuelle Leistungsdaten der Warteschlange.
+        
+        Returns:
+            Dictionary mit Leistungsdaten
+        """
+        return {
+            "timestamp": datetime.now(),
+            "pending_items": len(self.pending_queue),
+            "active_items": len(self.active_items),
+            "completed_items": len(self.completed_items),
+            "failed_items": len(self.failed_items),
+            "resource_utilization": dict(self.resource_utilization),
+            "batch_progress": dict(self.batch_progress)
+        }
+    
+    def _analyze_performance_trends(self) -> None:
+        """
+        Analysiert Leistungstrends basierend auf der Historie.
+        """
+        # Berechne Durchschnittswerte der letzten 10 Messungen
+        recent_data = self.performance_history[-10:]
+        
+        avg_pending = sum(data["pending_items"] for data in recent_data) / len(recent_data)
+        avg_active = sum(data["active_items"] for data in recent_data) / len(recent_data)
+        avg_completion_rate = sum(data["completed_items"] for data in recent_data) / len(recent_data)
+        
+        # Einfache Anpassung der maximalen gleichzeitigen Downloads
+        if avg_active < self.max_concurrent_items * 0.5:
+            # Wenn weniger als 50% der Kapazität genutzt wird, reduziere die Anzahl
+            self.max_concurrent_items = max(1, self.max_concurrent_items - 1)
+        elif avg_active > self.max_concurrent_items * 0.8 and len(self.pending_queue) > 5:
+            # Wenn mehr als 80% der Kapazität genutzt wird und viele ausstehende Aufträge vorhanden sind, erhöhe die Anzahl
+            self.max_concurrent_items += 1
+        
+        logger.info(f"Leistungstrends analysiert: Durchschnittlich {avg_active} aktive Aufträge")
+    
+    def _optimize_priorities(self) -> None:
+        """
+        Optimiert Prioritäten basierend auf Ressourcennutzung und Wartezeiten.
+        """
+        current_time = datetime.now()
+        
+        # Aktualisiere Ressourcennutzung für aktive Aufträge
+        for item_id, item in self.active_items.items():
+            # Berechne Wartezeit
+            wait_time = (current_time - item.created_at).total_seconds()
+            
+            # Aktualisiere Ressourcennutzung (einfache Formel)
+            self.resource_utilization[item_id] = min(1.0, wait_time / 3600)  # Normalisiert auf Stunden
+        
+        # Prüfe ausstehende Aufträge auf Prioritätsanpassungen
+        for item in self.pending_queue:
+            # Wenn ein Auftrag lange wartet, erhöhe die Priorität
+            wait_time = (current_time - item.created_at).total_seconds()
+            
+            if wait_time > 7200:  # 2 Stunden
+                if item.priority != Priority.CRITICAL:
+                    old_priority = item.priority
+                    item.priority = Priority.HIGH if item.priority == Priority.NORMAL else Priority.CRITICAL
+                    item.sort_key = (-item.priority.value, item.created_at.timestamp(), item.id)
+                    logger.info(f"Priorität von Auftrag {item.id} von {old_priority.name} auf {item.priority.name} erhöht")
+        
+        # Neuordnung des Heaps nach Prioritätsänderungen
+        heapq.heapify(self.pending_queue)

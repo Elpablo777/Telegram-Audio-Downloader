@@ -235,3 +235,93 @@ class TestIntelligentQueue:
         item3 = queue.get_next_item()
         assert item3 is not None
         assert item3.id == "test2"
+    
+    def test_add_batch(self):
+        """Test fügt eine Gruppe von Elementen als Batch hinzu."""
+        queue = IntelligentQueue()
+        
+        items = [
+            QueueItem(
+                id=f"test{i}",
+                group_name=f"Test Group {i}",
+                priority=Priority.NORMAL,
+                created_at=datetime.now()
+            )
+            for i in range(3)
+        ]
+        
+        batch_id = "batch1"
+        queue.add_batch(batch_id, items)
+        
+        assert len(queue.pending_queue) == 3
+        assert batch_id in queue.batches
+        assert len(queue.batches[batch_id]) == 3
+        assert queue.get_batch_progress(batch_id) == 0.0
+    
+    def test_batch_progress(self):
+        """Test verfolgt den Fortschritt eines Batches."""
+        queue = IntelligentQueue()
+        
+        items = [
+            QueueItem(
+                id=f"test{i}",
+                group_name=f"Test Group {i}",
+                priority=Priority.NORMAL,
+                created_at=datetime.now()
+            )
+            for i in range(3)
+        ]
+        
+        batch_id = "batch1"
+        queue.add_batch(batch_id, items)
+        
+        # Prüfe den anfänglichen Fortschritt
+        assert queue.get_batch_progress(batch_id) == 0.0
+        
+        # Hole ein Element aus der Warteschlange und markiere es als abgeschlossen
+        item = queue.get_next_item()
+        assert item is not None
+        queue.mark_item_completed(item.id)
+        assert queue.get_batch_progress(batch_id) > 0.0
+    
+    def test_queue_optimization(self):
+        """Test optimiert die Warteschlange."""
+        queue = IntelligentQueue()
+        
+        # Füge einige Elemente hinzu
+        for i in range(5):
+            item = QueueItem(
+                id=f"test{i}",
+                group_name=f"Test Group {i}",
+                priority=Priority.NORMAL,
+                created_at=datetime.now()
+            )
+            queue.add_item(item)
+        
+        # Führe die Optimierung durch
+        queue.optimize_queue()
+        
+        # Prüfe, ob die Optimierung durchgeführt wurde
+        assert len(queue.performance_history) == 1
+    
+    def test_priority_boost_for_long_waiting_items(self):
+        """Test erhöht die Priorität für lange wartende Elemente."""
+        queue = IntelligentQueue()
+        
+        # Erstelle ein Element, das vor 3 Stunden hinzugefügt wurde
+        old_item = QueueItem(
+            id="old_item",
+            group_name="Old Group",
+            priority=Priority.NORMAL,
+            created_at=datetime.now().replace(year=2020)  # Sehr alte Zeit
+        )
+        
+        queue.add_item(old_item)
+        
+        # Führe die Optimierung durch
+        queue._optimize_priorities()
+        
+        # Prüfe, ob die Priorität erhöht wurde
+        # Das Element sollte jetzt in der Warteschlange mit höherer Priorität sein
+        queue.pending_queue.sort()
+        assert queue.pending_queue[0].priority.value >= Priority.HIGH.value
