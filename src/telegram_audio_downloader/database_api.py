@@ -560,7 +560,14 @@ def run_database_api_server(host: str = '127.0.0.1', port: int = 5000,
             return jsonify({'status': 'healthy', 'timestamp': datetime.now().isoformat()})
         
         logger.info(f"Starte Datenbank-API-Server auf {host}:{port}")
-        app.run(host=host, port=port, debug=debug)
+        # Debug-Modus wird nur aktiviert, wenn explizit gewünscht und in einer Entwicklungsumgebung
+        use_debug = debug and os.environ.get('FLASK_ENV') == 'development'
+        
+        # Sicherstellen, dass der Debug-Modus in Produktion immer aus ist
+        if os.environ.get('FLASK_ENV') == 'production':
+            use_debug = False
+            
+        app.run(host=host, port=port, debug=use_debug)
         
     except Exception as e:
         logger.error(f"Fehler beim Starten des Datenbank-API-Servers: {e}")
@@ -569,4 +576,5 @@ def run_database_api_server(host: str = '127.0.0.1', port: int = 5000,
 
 if __name__ == "__main__":
     # Wenn das Skript direkt ausgeführt wird, starte den API-Server
-    run_database_api_server(debug=True)
+    # Debug-Modus ist standardmäßig deaktiviert
+    run_database_api_server(debug=False)

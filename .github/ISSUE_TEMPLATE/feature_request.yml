@@ -1,70 +1,127 @@
 ---
 name: ✨ Feature Request
-about: Schlagen Sie eine neue Funktion oder Verbesserung vor
-title: '[FEATURE] '
-labels: ['enhancement', 'triage']
-assignees: ['Elpablo777']
+description: Schlagen Sie eine neue Funktion oder Verbesserung vor
+labels: ["enhancement", "triage"]
+assignees: ["Elpablo777"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # ✨ **Feature-Anfrage**
+        Vielen Dank für Ihren Vorschlag zur Verbesserung des Projekts!
+
+  - type: textarea
+    id: description
+    attributes:
+      label: "Feature-Beschreibung"
+      description: "Eine klare und präzise Beschreibung der gewünschten Funktion."
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: "Problem/Motivation"
+      description: |
+        Beschreiben Sie das Problem oder den Use Case, den diese Funktion lösen würde.
+        Warum ist diese Funktion nützlich für das Projekt?
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: "Vorgeschlagene Lösung"
+      description: |
+        Beschreiben Sie Ihre Idee für die Implementierung dieser Funktion.
+        
+        ```python
+        # Optional: Pseudo-Code oder Beispiel-Implementation
+        def new_feature():
+            # Ihre Idee hier
+            pass
+        ```
+    render: bash
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: "Alternativen"
+      description: "Beschreiben Sie alternative Lösungen oder Features, die Sie in Betracht gezogen haben."
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: "Nutzen/Impact"
+      description: |
+        - **Benutzer-Nutzen**: Wie hilft dies den Endnutzern?
+        - **Entwickler-Nutzen**: Vereinfacht es die Entwicklung?
+        - **Performance**: Auswirkungen auf die Performance?
+        - **Kompatibilität**: Bricht es bestehende Funktionen?
+
+  - type: checkboxes
+    id: acceptance_criteria
+    attributes:
+      label: "Akzeptanzkriterien"
+      options:
+        - label: "Feature funktioniert wie beschrieben"
+          required: true
+        - label: "Tests sind implementiert"
+          required: true
+        - label: "Dokumentation ist aktualisiert"
+          required: true
+        - label: "Performance ist nicht beeinträchtigt"
+        - label: "Rückwärtskompatibilität ist gewährleistet"
+
+  - type: textarea
+    id: implementation
+    attributes:
+      label: "Implementierungsdetails (Optional)"
+      description: |
+        - **Betroffene Module**: [z.B. downloader, database, cli]
+        - **Neue Dependencies**: [z.B. neue Python-Pakete]
+        - **Breaking Changes**: [Ja/Nein, falls ja: welche?]"
+
+  - type: dropdown
+    id: feature_type
+    attributes:
+      label: "Feature-Typ"
+      options:
+        - "🎨 UI/UX Verbesserung"
+        - "⚡ Performance-Optimierung"
+        - "🔧 Entwickler-Tools"
+        - "📱 Platform-spezifisch"
+        - "🔌 Integration/API"
+        - "🛡️ Security/Privacy"
+        - "📊 Analytics/Monitoring"
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: "Priorität"
+      options:
+        - "🔥 Critical - Muss in nächster Version"
+        - "🚨 High - Wichtig für Roadmap"
+        - "⚠️ Medium - Nice to have"
+        - "📝 Low - Future consideration"
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: "Zusätzlicher Kontext"
+      description: "Fügen Sie Screenshots, Mockups, Links oder andere relevante Informationen hinzu."
+
+  - type: checkboxes
+    id: checkboxes
+    attributes:
+      label: "Checkliste"
+      options:
+        - label: "Ich habe nach ähnlichen Feature Requests gesucht"
+          required: true
+        - label: "Ich habe die [Roadmap](https://github.com/users/Elpablo777/projects/2) überprüft"
+          required: true
+        - label: "Das Feature passt zum Scope des Projekts"
+          required: true
+        - label: "Ich bin bereit bei der Implementation zu helfen"
 ---
-
-## 🎯 **Feature-Beschreibung**
-Eine klare und präzise Beschreibung der gewünschten Funktion.
-
-## 🤔 **Problem/Motivation**
-Beschreiben Sie das Problem oder den Use Case, den diese Funktion lösen würde.
-Warum ist diese Funktion nützlich für das Projekt?
-
-## 💡 **Vorgeschlagene Lösung**
-Beschreiben Sie Ihre Idee für die Implementierung dieser Funktion.
-
-```python
-# Optional: Pseudo-Code oder Beispiel-Implementation
-def new_feature():
-    # Ihre Idee hier
-    pass
-```
-
-## 🔄 **Alternativen**
-Beschreiben Sie alternative Lösungen oder Features, die Sie in Betracht gezogen haben.
-
-## 📊 **Nutzen/Impact**
-- **Benutzer-Nutzen**: Wie hilft dies den Endnutzern?
-- **Entwickler-Nutzen**: Vereinfacht es die Entwicklung?
-- **Performance**: Auswirkungen auf die Performance?
-- **Kompatibilität**: Bricht es bestehende Funktionen?
-
-## 🧪 **Akzeptanzkriterien**
-- [ ] Feature funktioniert wie beschrieben
-- [ ] Tests sind implementiert
-- [ ] Dokumentation ist aktualisiert
-- [ ] Performance ist nicht beeinträchtigt
-- [ ] Rückwärtskompatibilität ist gewährleistet
-
-## 📋 **Implementation Details** (Optional)
-- **Betroffene Module**: [z.B. downloader, database, cli]
-- **Neue Dependencies**: [z.B. neue Python-Pakete]
-- **Breaking Changes**: [Ja/Nein, falls ja: welche?]
-- **Migration**: [Erforderliche Schritte für bestehende Nutzer]
-
-## 🏷️ **Kategorien**
-- [ ] 🎨 UI/UX Verbesserung
-- [ ] ⚡ Performance-Optimierung  
-- [ ] 🔧 Entwickler-Tools
-- [ ] 📱 Platform-spezifisch
-- [ ] 🔌 Integration/API
-- [ ] 🛡️ Security/Privacy
-- [ ] 📊 Analytics/Monitoring
-
-## 🎯 **Priority**
-- [ ] 🔥 Critical - Muss in nächster Version
-- [ ] 🚨 High - Wichtig für Roadmap
-- [ ] ⚠️ Medium - Nice to have
-- [ ] 📝 Low - Future consideration
-
-## 📖 **Zusätzlicher Kontext**
-Fügen Sie Screenshots, Mockups, Links oder andere relevante Informationen hinzu.
-
-## ✅ **Checklist**
-- [ ] Ich habe nach ähnlichen Feature Requests gesucht
-- [ ] Ich habe die [Roadmap](https://github.com/users/Elpablo777/projects/2) überprüft
-- [ ] Das Feature passt zum Scope des Projekts
-- [ ] Ich bin bereit bei der Implementation zu helfen

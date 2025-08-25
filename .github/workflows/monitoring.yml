@@ -10,6 +10,12 @@ on:
   pull_request:
     branches: [ main ]
 
+# Minimal required permissions
+permissions:
+  contents: read
+  issues: write  # Für das Erstellen von Issues bei kritischen Problemen
+  pull-requests: write  # Für das Aktualisieren von PRs mit Metriken
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true

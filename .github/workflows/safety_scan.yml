@@ -1,0 +1,50 @@
+name: Python Package Security Scan
+
+on:
+  schedule:
+    # Führe wöchentlich am Montag um 3 Uhr morgens aus
+    - cron: '0 3 * * 1'
+  # Manueller Trigger
+  workflow_dispatch:
+  # Bei Push in den main-Branch oder bei Pull Requests gegen main
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  security-scan:
+    name: Run Safety Check
+    runs-on: ubuntu-latest
+    
+    # Minimale Berechtigungen für Sicherheit
+    permissions:
+      contents: read
+      security-events: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install safety
+          
+      - name: Run Safety Check
+        # Führe Safety ohne API-Key aus (nur öffentliche Datenbank)
+        run: |
+          echo "Running safety check..."
+          safety check --full-report --file=requirements.txt || \
+            (echo "##[error]Safety check failed!" && exit 1)
+            
+      - name: Upload SARIF report
+        if: always()
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: safety-report.sarif
