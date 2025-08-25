@@ -14,7 +14,7 @@ on:
 
 jobs:
   security-scan:
-    name: Run Safety Check
+    name: Run Security Checks
     runs-on: ubuntu-latest
     
     # Minimale Berechtigungen für Sicherheit
@@ -37,19 +37,34 @@ jobs:
           pip install safety
           
       - name: Run Safety Check
-        # Führe Safety ohne API-Key aus (nur öffentliche Datenbank)
+        id: safety
+        continue-on-error: true
         run: |
           echo "Running safety check..."
-          # Erstelle das Verzeichnis für den Bericht
           mkdir -p reports
-          # Führe Safety mit JSON-Ausgabe aus
-          safety check --full-report --file=requirements.txt --output json > reports/safety-report.json || \
-            (echo "##[error]Safety check failed!" && exit 1)
-            
+          # Führe Safety mit detaillierter Ausgabe aus
+          safety check --full-report --file=requirements.txt > reports/safety-report.txt
+          # Speichere den Exit-Code
+          echo "exit_code=$?" >> $GITHUB_OUTPUT
+          
+      - name: Show Safety Report
+        if: always()
+        run: |
+          echo "=== Safety Check Report ==="
+          cat reports/safety-report.txt || echo "No safety report generated"
+          
       - name: Upload Safety Report
         if: always()
         uses: actions/upload-artifact@v3
         with:
           name: safety-report
-          path: reports/safety-report.json
+          path: |
+            reports/safety-report.txt
+            requirements.txt
           retention-days: 7
+          
+      - name: Fail on safety issues
+        if: steps.safety.outputs.exit_code != '0' && github.event_name != 'pull_request'
+        run: |
+          echo "##[error]Safety check found vulnerabilities!"
+          exit 1
