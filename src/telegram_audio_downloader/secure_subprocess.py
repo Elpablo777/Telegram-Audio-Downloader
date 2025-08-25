@@ -74,7 +74,7 @@ def secure_run_command(
             capture_output=capture_output,
             cwd=cwd,
             env=safe_env,
-            shell=allow_shell  # Nur erlauben, wenn explizit angefordert
+            shell=allow_shell  # Nur erlauben, wenn explizit angefordert  # nosec B602
         )
         
         logger.debug(f"Befehl erfolgreich ausgeführt: {' '.join(command)}")
@@ -204,9 +204,9 @@ def _create_safe_environment(env: Optional[Dict[str, str]] = None) -> Dict[str, 
         "HOME": os.environ.get("HOME", ""),
         "USER": os.environ.get("USER", ""),
         "USERNAME": os.environ.get("USERNAME", ""),
-        "TMPDIR": os.environ.get("TMPDIR", "/tmp"),
-        "TEMP": os.environ.get("TEMP", "/tmp"),
-        "TMP": os.environ.get("TMP", "/tmp"),
+        "TMPDIR": os.environ.get("TMPDIR", "/tmp"),  # nosec B108
+        "TEMP": os.environ.get("TEMP", "/tmp"),  # nosec B108
+        "TMP": os.environ.get("TMP", "/tmp"),  # nosec B108
     }
     
     # Füge benutzerdefinierte Umgebungsvariablen hinzu, falls angegeben

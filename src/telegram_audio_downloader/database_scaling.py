@@ -67,7 +67,21 @@ class DatabaseSharder:
             Shard-Key als Integer
         """
         # Erstelle einen Hash des Record-IDs und verwende die letzten 4 Hex-Ziffern
-        hash_value = hashlib.md5(record_id.encode()).hexdigest()
+        hash_value = hashlib.sha256(record_id.encode()).hexdigest()
+        return int(hash_value[-4:], 16)
+    
+    def __call__(self, record_id: str) -> int:
+        """
+        Berechnet den Shard-Key für eine Record-ID.
+        
+        Args:
+            record_id: ID des Datensatzes
+            
+        Returns:
+            Shard-Key als Integer
+        """
+        # Erstelle einen Hash des Record-IDs und verwende die letzten 4 Hex-Ziffern
+        hash_value = hashlib.sha256(record_id.encode()).hexdigest()
         return int(hash_value[-4:], 16)
     
     def add_shard(self, shard_id: str, shard_key_range: tuple, database_path: str) -> None:

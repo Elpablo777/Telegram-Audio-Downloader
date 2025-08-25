@@ -38,7 +38,7 @@ class Migration:
     def get_hash(self) -> str:
         """Berechnet den Hash der Migration."""
         content = f"{self.version}{self.name}{self.description}{self.up_script}{self.down_script}"
-        return hashlib.md5(content.encode()).hexdigest()
+        return hashlib.sha256(content.encode()).hexdigest()
 
 
 class MigrationManager:

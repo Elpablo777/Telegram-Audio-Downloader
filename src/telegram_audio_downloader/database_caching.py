@@ -379,7 +379,7 @@ class QueryResultCache:
         
         logger.info("QueryResultCache initialisiert")
     
-    def _generate_cache_key(self, query: str, params: tuple = ()) -> str:
+    def _generate_cache_key(self, query: str, params: tuple) -> str:
         """
         Generiert einen Cache-Schlüssel für eine Abfrage.
         
@@ -392,8 +392,8 @@ class QueryResultCache:
         """
         # Kombiniere Abfrage und Parameter
         key_data = f"{query}:{params}"
-        # Erstelle MD5-Hash als Schlüssel
-        return self.query_cache_prefix + hashlib.md5(key_data.encode()).hexdigest()
+        # Erstelle SHA-256-Hash als Schlüssel (sicherer als MD5)
+        return self.query_cache_prefix + hashlib.sha256(key_data.encode()).hexdigest()
     
     def get_query_result(self, query: str, params: tuple = ()) -> Optional[Any]:
         """
@@ -685,7 +685,7 @@ def cache_database_query(ttl_seconds: Optional[int] = None):
         def wrapper(*args, **kwargs):
             # Erstelle Cache-Schlüssel aus Funktionsname und Argumenten
             key_data = f"{func.__name__}:{args}:{kwargs}"
-            cache_key = hashlib.md5(key_data.encode()).hexdigest()
+            cache_key = hashlib.sha256(key_data.encode()).hexdigest()
             
             # Hole Cache-Manager
             cache_manager = get_cache_manager()
