@@ -1,4 +1,3 @@
-[1.1.0]: https://github.com/Elpablo777/Telegram-Audio-Downloader/releases/tag/v1.1.0
 # 📝 Changelog
 
 Alle bemerkenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
@@ -6,7 +5,6 @@ Alle bemerkenswerten Änderungen an diesem Projekt werden in dieser Datei dokume
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/),
 und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
 ## [Unreleased]
 
 ### Hinzugefügt
@@ -21,34 +19,39 @@ und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/spec/v
 
 ### Sicherheit
 
-
-## [1.1.0] - 2025-08-23
+## [1.1.0] - 2024-08-23
 
 ### Hinzugefügt
 - Neue Skripte für Repository-Pflege und Versionsverwaltung
 - Detaillierte Anleitung für Repository-Wartung
+- Sichere Serialisierungsfunktionen zur Vermeidung von pickle-Sicherheitslücken
+- Sichere Subprocess-Funktionen zur Vermeidung von Sicherheitslücken
+- Konfigurationsdateien für GitHub Discussions
+- Aktualisierte Testinfrastruktur mit manuellen Testskripten
+- Umfassende Testdokumentation
 
 ### Geändert
 - Setup.py und pyproject.toml für verbesserte Versionskonsistenz aktualisiert
+- Unsichere pickle-Verwendungen durch sichere JSON-basierte Serialisierung ersetzt
+- Unsichere subprocess-Aufrufe durch sichere Wrapper-Funktionen ersetzt
+- CLI-Interface für bessere Benutzerführung optimiert
+- Dokumentation umfassend überarbeitet und aktualisiert
 
 ### Behoben
-- Kleiner Fehler in der Dateiverarbeitung behoben
-
-
-### Hinzugefügt
-
-- Neue Skripte für Repository-Pflege und Versionsverwaltung
-- Detaillierte Anleitung für Repository-Wartung
-
-### Geändert
-
-- Setup.py und pyproject.toml für verbesserte Versionskonsistenz aktualisiert
-
-### Behoben
-
-- Kleiner Fehler in der Dateiverarbeitung behoben
+- Kritische Syntax-Fehler in cli.py behoben
+- Fehlende Import-Statements ergänzt
+- Memory-Leaks bei großen Downloads behoben
+- Race-Conditions bei parallelen Downloads eliminiert
+- Dateinamen-Kollisionen durch bessere Bereinigung verhindert
+- pydub Kompatibilitätsprobleme mit Python 3.13 gelöst
+- Fehlerhafte Dateiverarbeitung korrigiert
 
 ### Sicherheit
+- Verbesserte Input-Validation
+- Sichere Dateinamen-Bereinigung
+- Rate-Limiting zum Schutz vor API-Missbrauch
+- Sichere Serialisierung zur Vermeidung von Code-Injection
+- Sichere Subprocess-Aufrufe zur Vermeidung von Shell-Injection
 
 ## [1.0.0] - 2024-08-23
 
@@ -132,7 +135,7 @@ und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/spec/v
 - Sichere Dateinamen-Bereinigung
 - Rate-Limiting zum Schutz vor API-Missbrauch
 
-## [0.1.0] - 2025-08-21
+## [0.1.0] - 2024-08-21
 
 ### Hinzugefügt
 - Grundlegende Funktionalität zum Herunterladen von Audiodateien aus Telegram-Gruppen

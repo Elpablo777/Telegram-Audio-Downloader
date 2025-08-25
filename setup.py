@@ -47,7 +47,7 @@ def read_requirements():
 
 setup(
     name="telegram-audio-downloader",
-    version=__version__,
+    version="1.1.0",
     author="Elpablo777",
     author_email="hannover84@msn.com",
     description="🎵 A powerful, asynchronous Python tool for downloading and managing audio files from Telegram groups",
@@ -72,6 +72,7 @@ setup(
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.14",
         "Topic :: Communications :: Chat",
         "Topic :: Multimedia :: Sound/Audio",
         "Topic :: Software Development :: Libraries :: Python Modules",
