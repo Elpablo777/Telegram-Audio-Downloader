@@ -1,5 +1,6 @@
 ---
-trigger: manual
+trigger: always_on
+alwaysApply: true
 ---
 
 # Telegram Audio Downloader - Qoder Quest Konfiguration
