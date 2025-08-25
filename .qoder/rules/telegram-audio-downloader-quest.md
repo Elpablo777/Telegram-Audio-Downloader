@@ -17,6 +17,7 @@ Diese Quest-Konfiguration soll die KI von Qoder dabei unterstützen, effektive V
 - Tests: [tests/](file:///c:/Users/Pablo/Desktop/Telegram%20Musik%20Tool/tests) Verzeichnis
 - Dokumentation: [docs/](file:///c:/Users/Pablo/Desktop/Telegram%20Musik%20Tool/docs) Verzeichnis
 - Skripte: [scripts/](file:///c:/Users/Pablo/Desktop/Telegram%20Musik%20Tool/scripts) Verzeichnis
+- Docker: [Dockerfile](file:///c:/Users/Pablo/Desktop/Telegram%20Musik%20Tool/Dockerfile) und [docker-compose.yml](file:///c:/Users/Pablo/Desktop/Telegram%20Musik%20Tool/docker-compose.yml)
 
 ## Wichtige Abhängigkeiten
 - Python 3.11+
@@ -24,6 +25,7 @@ Diese Quest-Konfiguration soll die KI von Qoder dabei unterstützen, effektive V
 - aiofiles
 - aiohttp
 - pydub (für Audioverarbeitung)
+- ffmpeg (für Docker-Images)
 
 ## Projektstruktur
 ```
@@ -35,7 +37,8 @@ Telegram-Audio-Downloader/
 ├── docs/
 ├── scripts/
 ├── data/
-└── docker/
+├── docker/
+└── Dockerfile
 ```
 
 ## Entwicklungshinweise
@@ -44,6 +47,7 @@ Telegram-Audio-Downloader/
 3. Implementiere umfassende Fehlerbehandlung
 4. Schreibe Unit-Tests für neue Funktionen
 5. Halte dich an die bestehenden Codierungsstandards
+6. Berücksichtige Docker-Unterstützung bei neuen Funktionen
 
 ## Typische Quest-Aufgaben
 1. Neue Download-Filter implementieren
@@ -54,3 +58,4 @@ Telegram-Audio-Downloader/
 6. Verbesserung der Fehlerbehandlung
 7. Erweiterung der Dokumentation
 8. Docker-Image-Optimierung
+9. Erweiterung der Docker-Konfiguration
