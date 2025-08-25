@@ -40,11 +40,16 @@ jobs:
         # Führe Safety ohne API-Key aus (nur öffentliche Datenbank)
         run: |
           echo "Running safety check..."
-          safety check --full-report --file=requirements.txt || \
+          # Erstelle das Verzeichnis für den Bericht
+          mkdir -p reports
+          # Führe Safety mit JSON-Ausgabe aus
+          safety check --full-report --file=requirements.txt --output json > reports/safety-report.json || \
             (echo "##[error]Safety check failed!" && exit 1)
             
-      - name: Upload SARIF report
+      - name: Upload Safety Report
         if: always()
-        uses: github/codeql-action/upload-sarif@v2
+        uses: actions/upload-artifact@v3
         with:
-          sarif_file: safety-report.sarif
+          name: safety-report
+          path: reports/safety-report.json
+          retention-days: 7
