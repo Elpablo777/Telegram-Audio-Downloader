@@ -1,7 +1,7 @@
 import re
 from string import Template
 
-# Teste den regulären Ausdruck
+# Test the regular expression
 pattern = r'\$(\w+)|\$\{(\w+)\}'
 template_string = '$artist - $title - $counter'
 matches = re.findall(pattern, template_string)
@@ -13,8 +13,8 @@ print('Matches:', matches)
 # Extrahiere die Platzhalter
 placeholders = set()
 for match in matches:
-    # match ist ein Tupel, eines der beiden Elemente ist der Platzhalter
-    # In jedem Tupel ist eines der Elemente leer, das andere enthält den Platzhalter
+    # match is a tuple, one of the two elements is the placeholder
+    # In each tuple, one of the elements is empty, the other contains the placeholder
     placeholder = match[0] if match[0] else match[1]
     placeholders.add(placeholder)
     

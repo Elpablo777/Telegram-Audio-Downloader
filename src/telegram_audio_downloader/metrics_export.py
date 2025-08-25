@@ -189,7 +189,7 @@ class MetricsCollector:
                 sock.sendto(message, (host, port))
         except Exception as e:
             # Im Fehlerfall stillschweigend fehlschlagen
-            pass
+            logger.debug(f"StatsD-Export fehlgeschlagen (nicht kritisch): {e}")
 
 
 class MetricsMiddleware:

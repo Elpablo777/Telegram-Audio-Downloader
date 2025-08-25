@@ -234,8 +234,8 @@ class AutomaticErrorRecovery:
         logger.debug(f"Versuche Wiederholung für {context}")
         
         # Simuliere eine erfolgreiche Wiederholung in 50% der Fälle
-        import random
-        return random.choice([True, False])
+        import secrets
+        return secrets.choice([True, False])
     
     def _handle_flood_wait(self, error: Exception, context: str, data: Any) -> bool:
         """

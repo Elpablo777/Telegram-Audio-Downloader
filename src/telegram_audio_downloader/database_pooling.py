@@ -149,8 +149,8 @@ class DatabaseConnectionPool:
                     if not conn_wrapper.connection.is_closed():
                         try:
                             conn_wrapper.connection.rollback()
-                        except:
-                            pass
+                        except Exception as rollback_error:
+                            logger.debug(f"Rollback fehlgeschlagen (nicht kritisch): {rollback_error}")
                     
                     # Verbindung zurück in den Pool
                     conn_wrapper.in_use = False

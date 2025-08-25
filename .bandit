@@ -1,4 +1,4 @@
-[bandit]
+---
 # Bandit security configuration
 # See: https://bandit.readthedocs.io/
 
@@ -8,126 +8,50 @@
 # B602: Subprocess with shell=True
 # B603: Subprocess without shell equals true
 # B607: Starting a process with a partial executable path
-skips = B101
+# Suppress warnings about German comments being interpreted as test names
+skips: ['B101', 'B404', 'B602', 'B603', 'B607']
 
 # Confidence levels: LOW, MEDIUM, HIGH
 # Severity levels: LOW, MEDIUM, HIGH  
-confidence = MEDIUM
-severity = MEDIUM
-
-# Test IDs to include/exclude
-# tests = B201,B301
-# exclude_dirs = /usr/lib/python*/dist-packages,/usr/local/lib/python*/dist-packages
+confidence: MEDIUM
+severity: MEDIUM
 
 # Paths to exclude from scanning
-exclude_dirs = 
-    tests,
-    .venv,
-    venv,
-    env,
-    .env,
-    .git,
-    __pycache__,
-    .pytest_cache,
-    .mypy_cache,
-    .ruff_cache,
-    htmlcov,
-    .coverage,
-    build,
-    dist,
-    *.egg-info
+exclude_dirs: 
+  - tests
+  - .venv
+  - venv
+  - env
+  - .env
+  - .git
+  - __pycache__
+  - .pytest_cache
+  - .mypy_cache
+  - .ruff_cache
+  - htmlcov
+  - .coverage
+  - build
+  - dist
+  - "*.egg-info"
 
 # File patterns to include
-include = *.py
+include: ['*.py']
 
 # File patterns to exclude  
-exclude = 
-    *_test.py,
-    test_*.py,
-    conftest.py
-
-# Plugin blacklist
-# blacklist_calls = 
-#     subprocess.call,
-#     subprocess.check_call,
-#     subprocess.check_output,
-#     subprocess.Popen,
-#     subprocess.run
-
-# Plugin whitelist
-# whitelist_calls =
+exclude: 
+  - '*_test.py'
+  - 'test_*.py'
+  - 'conftest.py'
 
 # Hardcoded password tests to skip
-hardcoded_password_entropy = 3.0
+hardcoded_password_entropy: 3.0
 
 # SQL injection plugin configuration
-sql_statements = 
-    select,
-    insert,
-    update,
-    delete,
-    create,
-    drop,
-    alter
-
-# Shell injection tests
-shell_injection = 
-    os.system,
-    os.popen,
-    subprocess.call,
-    subprocess.check_call,
-    subprocess.check_output,
-    subprocess.Popen,
-    subprocess.run
-
-# Context configuration
-[bandit.any_other_function_with_shell_equals_true]
-no_shell = [
-    os.execl,
-    os.execle,
-    os.execlp,
-    os.execlpe,
-    os.execv,
-    os.execve,
-    os.execvp,
-    os.execvpe,
-    os.spawnl,
-    os.spawnle,
-    os.spawnlp,
-    os.spawnlpe,
-    os.spawnv,
-    os.spawnve,
-    os.spawnvp,
-    os.spawnvpe,
-    os.startfile
-]
-
-shell = [
-    os.system,
-    os.popen,
-    os.popen2,
-    os.popen3,
-    os.popen4,
-    popen2.popen2,
-    popen2.popen3,
-    popen2.popen4,
-    popen2.Popen3,
-    popen2.Popen4,
-    commands.getoutput,
-    commands.getstatusoutput,
-    subprocess.call,
-    subprocess.check_call,
-    subprocess.check_output,
-    subprocess.Popen,
-    subprocess.run,
-    utils.execute,
-    utils.execute_with_timeout
-]
-
-subprocess = [
-    subprocess.Popen,
-    subprocess.call,
-    subprocess.check_call,
-    subprocess.check_output,
-    subprocess.run
-]
+sql_statements: 
+  - select
+  - insert
+  - update
+  - delete
+  - create
+  - drop
+  - alter

@@ -359,7 +359,8 @@ class FileManagerIntegration:
                             result = secure_run_command(cmd, timeout=10)
                             if result.returncode == 0:
                                 return True
-                        except Exception:
+                        except Exception as fm_error:
+                            logger.debug(f"Dateimanager {fm} konnte nicht geöffnet werden: {fm_error}")
                             continue
                 return False
         except Exception as e:
@@ -418,7 +419,8 @@ class MediaLibraryIntegration:
                             result = secure_run_command(cmd, timeout=10)
                             if result.returncode == 0:
                                 return True
-                        except Exception:
+                        except Exception as player_error:
+                            logger.debug(f"Player {player} konnte nicht verwendet werden: {player_error}")
                             continue
                 return False
             else:  # Linux

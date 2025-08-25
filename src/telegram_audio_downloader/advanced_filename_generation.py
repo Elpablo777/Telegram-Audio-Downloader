@@ -15,7 +15,7 @@ from .utils import sanitize_filename
 
 logger = logging.getLogger(__name__)
 
-# Standardvorlagen für Dateinamen
+# Standard templates for filenames
 DEFAULT_TEMPLATES = {
     "simple": "$artist - $title",
     "detailed": "$artist - $title ($year)",
@@ -23,7 +23,7 @@ DEFAULT_TEMPLATES = {
     "full": "$artist - $album ($year) - $track_number. $title"
 }
 
-# Verfügbare Platzhalter
+# Available placeholders
 AVAILABLE_PLACEHOLDERS = {
     "title", "artist", "album", "year", "genre", "track_number", 
     "disc_number", "date", "composer", "performer", "duration",
@@ -32,14 +32,14 @@ AVAILABLE_PLACEHOLDERS = {
 }
 
 class FilenameTemplate:
-    """Klasse zur Verwaltung von Dateinamen-Vorlagen."""
+    """Class for managing filename templates."""
     
     def __init__(self, template_string: str):
         """
-        Initialisiert eine Dateinamen-Vorlage.
+        Initializes a filename template.
         
         Args:
-            template_string: Vorlage als String mit Platzhaltern
+            template_string: Template as string with placeholders
         """
         self.template_string = template_string
         self.template = Template(template_string)
@@ -47,10 +47,10 @@ class FilenameTemplate:
         
     def _extract_placeholders(self) -> set:
         """
-        Extrahiert die Platzhalter aus der Vorlage.
+        Extracts placeholders from the template.
         
         Returns:
-            Menge der Platzhalter in der Vorlage
+            Set of placeholders in the template
         """
         # Finde alle Platzhalter im Format $platzhalter oder ${platzhalter}
         pattern = r'\$(\w+)|\$\{(\w+)\}'
@@ -60,7 +60,7 @@ class FilenameTemplate:
         placeholders = set()
         for match in matches:
             # match ist ein Tupel, eines der beiden Elemente ist der Platzhalter
-            # In jedem Tupel ist eines der Elemente leer, das andere enthält den Platzhalter
+            # In each tuple, one element is empty, the other contains the placeholder
             placeholder = match[0] if match[0] else match[1]
             placeholders.add(placeholder)
             
@@ -68,23 +68,23 @@ class FilenameTemplate:
         
     def validate_placeholders(self) -> bool:
         """
-        Validiert, ob alle Platzhalter in der Vorlage gültig sind.
+        Validates that all placeholders in the template are valid.
         
         Returns:
-            True, wenn alle Platzhalter gültig sind
+            True if all placeholders are valid
         """
         return self.placeholders.issubset(AVAILABLE_PLACEHOLDERS)
         
     def render(self, metadata: Dict[str, Any], counter: int = 1) -> str:
         """
-        Rendert die Vorlage mit den gegebenen Metadaten.
+        Renders the template with the given metadata.
         
         Args:
-            metadata: Metadaten für die Platzhalter
-            counter: Zähler für nummerierte Dateinamen
+            metadata: Metadata for placeholders
+            counter: Counter for numbered filenames
             
         Returns:
-            Gerenderter Dateiname
+            Rendered filename
         """
         # Erstelle ein Dictionary mit allen verfügbaren Platzhaltern
         template_data = {
@@ -92,10 +92,10 @@ class FilenameTemplate:
             "download_date": datetime.now().strftime("%Y-%m-%d"),
         }
         
-        # Füge die Metadaten hinzu
+        # Add the metadata
         template_data.update(metadata)
         
-        # Füge abgeleitete Felder hinzu
+        # Add derived fields
         if "date" in template_data and template_data["date"]:
             try:
                 # Versuche, das Jahr aus dem Datum zu extrahieren
@@ -113,7 +113,7 @@ class FilenameTemplate:
                 if isinstance(template_data["date"], str) and len(template_data["date"]) == 4 and template_data["date"].isdigit():
                     template_data["year"] = template_data["date"]
         
-        # Fülle fehlende Platzhalter mit leeren Strings
+        # Fill missing placeholders with empty strings
         for placeholder in self.placeholders:
             if placeholder not in template_data:
                 template_data[placeholder] = ""
@@ -129,18 +129,18 @@ class FilenameTemplate:
             return filename
         except KeyError as e:
             logger.warning(f"Fehlender Platzhalter in Vorlage: {e}")
-            # Fallback: Verwende safe_substitute
+            # Fallback: Use safe_substitute
             return self.template.safe_substitute(template_data)
 
 class AdvancedFilenameGenerator:
-    """Erweiterte Dateinamen-Generierung mit anpassbaren Vorlagen."""
+    """Advanced filename generation with customizable templates."""
     
     def __init__(self, download_dir: Union[str, Path]):
         """
-        Initialisiert den erweiterten Dateinamen-Generator.
+        Initializes the advanced filename generator.
         
         Args:
-            download_dir: Verzeichnis für Downloads
+            download_dir: Download directory
         """
         self.download_dir = Path(download_dir)
         self.templates = DEFAULT_TEMPLATES.copy()
@@ -150,57 +150,57 @@ class AdvancedFilenameGenerator:
         
     def add_template(self, name: str, template: str) -> bool:
         """
-        Fügt eine neue Vorlage hinzu.
+        Adds a new template.
         
         Args:
-            name: Name der Vorlage
-            template: Vorlagen-String
+            name: Template name
+            template: Template string
             
         Returns:
-            True, wenn die Vorlage erfolgreich hinzugefügt wurde
+            True if template was successfully added
         """
         try:
-            # Validiere die Vorlage
+            # Validate the template
             template_obj = FilenameTemplate(template)
             if not template_obj.validate_placeholders():
-                logger.error(f"Ungültige Platzhalter in Vorlage '{name}': {template}")
+                logger.error(f"Invalid placeholders in template '{name}': {template}")
                 return False
                 
             self.templates[name] = template
             return True
         except Exception as e:
-            logger.error(f"Fehler beim Hinzufügen der Vorlage '{name}': {e}")
+            logger.error(f"Error adding template '{name}': {e}")
             return False
             
     def set_template(self, name: str) -> bool:
         """
-        Setzt die aktuelle Vorlage.
+        Sets the current template.
         
         Args:
-            name: Name der Vorlage
+            name: Template name
             
         Returns:
-            True, wenn die Vorlage erfolgreich gesetzt wurde
+            True if template was successfully set
         """
         if name in self.templates:
             self.current_template = name
             return True
-        logger.error(f"Vorlage '{name}' nicht gefunden")
+        logger.error(f"Template '{name}' not found")
         return False
         
     def generate_filename(self, metadata: Dict[str, Any], 
                          file_extension: str = ".mp3",
                          template_name: Optional[str] = None) -> str:
         """
-        Generiert einen Dateinamen basierend auf den Metadaten.
+        Generates a filename based on metadata.
         
         Args:
-            metadata: Metadaten für die Dateinamen-Generierung
-            file_extension: Dateiendung
-            template_name: Name der zu verwendenden Vorlage (optional)
+            metadata: Metadata for filename generation
+            file_extension: File extension
+            template_name: Name of template to use (optional)
             
         Returns:
-            Generierter Dateiname
+            Generated filename
         """
         # Bestimme die zu verwendende Vorlage
         template_key = template_name if template_name and template_name in self.templates else self.current_template
@@ -261,6 +261,53 @@ class AdvancedFilenameGenerator:
                 # Fallback: Verwende einen Zeitstempel
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                 return f"{stem}_{timestamp}{suffix}"
+                
+    def get_available_templates(self) -> Dict[str, str]:
+        """
+        Returns available templates.
+        
+        Returns:
+            Dictionary of template names and template strings
+        """
+        return self.templates.copy()
+    
+    def reset_counter(self) -> None:
+        """Resets the filename counter."""
+        self.counter = 1
+        
+    def _make_filename_unique(self, filename: str, file_extension: str) -> str:
+        """
+        Makes a filename unique by adding a counter if necessary.
+        
+        Args:
+            filename: Base filename
+            file_extension: File extension
+            
+        Returns:
+            Unique filename
+        """
+        full_filename = f"{filename}{file_extension}"
+        counter = 1
+        
+        # Wenn der Dateiname bereits verwendet wird, füge einen Zähler hinzu
+        while full_filename in self.used_filenames:
+            full_filename = f"{filename}_{counter}{file_extension}"
+            counter += 1
+            
+        self.used_filenames.add(full_filename)
+        return full_filename
+
+def get_filename_generator(download_dir: Union[str, Path]) -> AdvancedFilenameGenerator:
+    """
+    Returns an instance of AdvancedFilenameGenerator.
+    
+    Args:
+        download_dir: Download directory
+        
+    Returns:
+        AdvancedFilenameGenerator instance
+    """
+    return AdvancedFilenameGenerator(download_dir)
 
 # Globale Instanz des erweiterten Dateinamen-Generators
 _advanced_filename_generator: Optional[AdvancedFilenameGenerator] = None

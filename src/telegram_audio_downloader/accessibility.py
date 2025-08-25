@@ -191,14 +191,14 @@ class AccessibilityManager:
         
         self.last_spoken = text
         
-        # Füge den Text zum Screenreader-Puffer hinzu
+        # Add text to screen reader buffer
         if interrupt:
             self.screen_reader_buffer = [text]
         else:
             self.screen_reader_buffer.append(text)
         
-        # In einer echten Implementierung würde hier die Text-to-Speech-API aufgerufen werden
-        # Für dieses Beispiel geben wir den Text einfach auf der Konsole aus
+        # In a real implementation, the text-to-speech API would be called here
+        # For this example, we simply print the text to the console
         if self.settings.screen_reader_mode != ScreenReaderMode.OFF:
             mode_prefix = {
                 ScreenReaderMode.VERBOSE: "[SR-V]",
@@ -210,13 +210,13 @@ class AccessibilityManager:
     
     def describe_element(self, element_type: str, element_name: str, state: str = "", additional_info: str = ""):
         """
-        Beschreibt ein UI-Element für Screenreader.
+        Describes a UI element for screen readers.
         
         Args:
-            element_type: Typ des Elements (button, link, input, etc.)
-            element_name: Name des Elements
-            state: Zustand des Elements (selected, disabled, etc.)
-            additional_info: Zusätzliche Informationen
+            element_type: Type of element (button, link, input, etc.)
+            element_name: Name of element
+            state: State of element (selected, disabled, etc.)
+            additional_info: Additional information
         """
         if self.settings.screen_reader_mode == ScreenReaderMode.OFF:
             return
@@ -239,21 +239,21 @@ class AccessibilityManager:
     
     def announce_state_change(self, state: str):
         """
-        Kündigt eine Zustandsänderung an.
+        Announces a state change.
         
         Args:
-            state: Neuer Zustand
+            state: New state
         """
         if self.settings.screen_reader_mode != ScreenReaderMode.OFF:
             self._speak(state, interrupt=True)
     
     def add_focus_element(self, element: str, callback: Optional[Callable] = None):
         """
-        Fügt ein Element zur Tastaturnavigation hinzu.
+        Adds an element to keyboard navigation.
         
         Args:
-            element: Name des Elements
-            callback: Funktion, die bei Aktivierung aufgerufen wird
+            element: Name of element
+            callback: Function called when activated
         """
         self.focus_elements.append((element, callback))
         logger.debug(f"Fokuselement hinzugefügt: {element}")
@@ -307,56 +307,56 @@ class AccessibilityManager:
     
     def get_accessible_style(self) -> Style:
         """
-        Gibt einen barrierefreien Stil zurück.
+        Returns an accessible style.
         
         Returns:
-            Rich Style-Objekt
+            Rich Style object
         """
         if self.settings.high_contrast:
-            # Verwende hoher Kontrast Farben
+            # Use high contrast colors
             return Style(color="white", bgcolor="black", bold=True)
         elif self.settings.custom_colors and self.settings.custom_color_scheme:
-            # Verwende benutzerdefinierte Farben
+            # Use custom colors
             primary_color = self.settings.custom_color_scheme.get("primary", "blue")
             return Style(color=primary_color)
         else:
-            # Standardstil
+            # Default style
             return Style()
     
     def get_accessible_text(self, text: str) -> Text:
         """
-        Gibt barrierefreien Text zurück.
+        Returns accessible text.
         
         Args:
-            text: Eingabetext
+            text: Input text
             
         Returns:
-            Rich Text-Objekt
+            Rich Text object
         """
         accessible_text = Text(text)
         style = self.get_accessible_style()
         accessible_text.stylize(style)
         
-        # Bei aktiviertem Large Text vergrößern
+        # Enlarge when large text is enabled
         if self.settings.large_text:
-            # In einer echten Implementierung würden wir die Schriftgröße ändern
-            # Für Rich Text können wir fette Schrift verwenden
+            # In a real implementation, we would change the font size
+            # For Rich text, we can use bold font
             accessible_text.stylize("bold")
         
         return accessible_text
     
     def provide_audio_feedback(self, event_type: str):
         """
-        Gibt akustisches Feedback für ein Ereignis.
+        Provides audio feedback for an event.
         
         Args:
-            event_type: Typ des Ereignisses (success, error, warning, navigation, etc.)
+            event_type: Type of event (success, error, warning, navigation, etc.)
         """
         if not self.settings.audio_feedback:
             return
         
-        # In einer echten Implementierung würden wir hier Töne abspielen
-        # Für dieses Beispiel geben wir eine Beschreibung aus
+        # In a real implementation, we would play sounds here
+        # For this example, we output a description
         feedback_sounds = {
             "success": _("sound_success"),
             "error": _("sound_error"),
@@ -375,10 +375,10 @@ _accessibility_manager: Optional[AccessibilityManager] = None
 
 def get_accessibility_manager() -> AccessibilityManager:
     """
-    Gibt die globale Instanz des AccessibilityManagers zurück.
+    Returns the global instance of AccessibilityManager.
     
     Returns:
-        Instanz von AccessibilityManager
+        Instance of AccessibilityManager
     """
     global _accessibility_manager
     if _accessibility_manager is None:
@@ -387,63 +387,63 @@ def get_accessibility_manager() -> AccessibilityManager:
 
 def enable_accessibility_feature(feature: AccessibilityFeature):
     """
-    Aktiviert eine Barrierefreiheitsfunktion.
+    Enables an accessibility feature.
     
     Args:
-        feature: Zu aktivierende Funktion
+        feature: Feature to enable
     """
     manager = get_accessibility_manager()
     manager.enable_feature(feature)
 
 def disable_accessibility_feature(feature: AccessibilityFeature):
     """
-    Deaktiviert eine Barrierefreiheitsfunktion.
+    Disables an accessibility feature.
     
     Args:
-        feature: Zu deaktivierende Funktion
+        feature: Feature to disable
     """
     manager = get_accessibility_manager()
     manager.disable_feature(feature)
 
 def speak(text: str, interrupt: bool = True):
     """
-    Spricht einen Text mit dem Screenreader.
+    Speaks text with the screen reader.
     
     Args:
-        text: Zu sprechender Text
-        interrupt: Ob vorherige Ausgaben unterbrochen werden sollen
+        text: Text to speak
+        interrupt: Whether to interrupt previous outputs
     """
     manager = get_accessibility_manager()
     manager.speak(text, interrupt)
 
 def describe_element(element_type: str, element_name: str, state: str = "", additional_info: str = ""):
     """
-    Beschreibt ein UI-Element für Screenreader.
+    Describes a UI element for screen readers.
     
     Args:
-        element_type: Typ des Elements
-        element_name: Name des Elements
-        state: Zustand des Elements
-        additional_info: Zusätzliche Informationen
+        element_type: Type of element
+        element_name: Name of element
+        state: State of element
+        additional_info: Additional information
     """
     manager = get_accessibility_manager()
     manager.describe_element(element_type, element_name, state, additional_info)
 
 def announce_state_change(state: str):
     """
-    Kündigt eine Zustandsänderung an.
+    Announces a state change.
     
     Args:
-        state: Neuer Zustand
+        state: New state
     """
     manager = get_accessibility_manager()
     manager.announce_state_change(state)
 
-# Initialisiere die Übersetzungen für Barrierefreiheit
+# Initialize translations for accessibility
 def init_accessibility_translations():
-    """Initialisiert die Übersetzungen für Barrierefreiheitsfunktionen."""
-    # Diese Funktion würde in einer echten Implementierung die entsprechenden
-    # Übersetzungen für Barrierefreiheitsfunktionen laden
+    """Initializes translations for accessibility features."""
+    # This function would load the appropriate translations
+    # for accessibility features in a real implementation
     pass
 
 

@@ -74,7 +74,7 @@ class AdaptiveParallelismController:
         self.memory_threshold_low = memory_threshold_low
         self.network_latency_threshold_ms = network_latency_threshold_ms
         
-        # Semaphore für die aktuelle Anzahl paralleler Downloads
+        # Semaphore for current number of parallel downloads
         self.semaphore = asyncio.Semaphore(initial_concurrent_downloads)
         
         # Systemressourcen-Monitoring
@@ -85,7 +85,7 @@ class AdaptiveParallelismController:
         # Performance-Monitor
         self.performance_monitor = get_performance_monitor(download_dir)
         
-        # Historische Daten für intelligente Anpassung
+        # Historical data for intelligent adaptation
         self.download_speed_history = []
         self.resource_history = []
         self.max_history_size = 100
@@ -128,108 +128,108 @@ class AdaptiveParallelismController:
             )
         except Exception as e:
             logger.error(f"Fehler beim Erfassen der Systemressourcen: {e}")
-            # Rückfall auf Standardwerte
+            # Fall back to default values
             return SystemResources()
     
     def _calculate_optimal_concurrent_downloads(self, resources: SystemResources) -> int:
         """
-        Berechnet die optimale Anzahl paralleler Downloads basierend auf Systemressourcen.
+        Calculates the optimal number of parallel downloads based on system resources.
         
         Args:
-            resources: Aktuelle Systemressourcen
+            resources: Current system resources
             
         Returns:
-            Optimale Anzahl paralleler Downloads
+            Optimal number of parallel downloads
         """
         optimal_count = self.current_concurrent_downloads
         
         # CPU-basierte Anpassung
         if resources.cpu_percent > self.cpu_threshold_high:
-            # CPU-Auslastung hoch - reduzieren
+            # CPU usage high - reduce
             optimal_count = max(self.min_concurrent_downloads, optimal_count - 1)
             logger.debug(f"CPU-Auslastung hoch ({resources.cpu_percent:.1f}%): Reduziere auf {optimal_count}")
         elif resources.cpu_percent < self.cpu_threshold_low and optimal_count < self.max_concurrent_downloads:
-            # CPU-Auslastung niedrig - erhöhen
+            # CPU usage low - increase
             optimal_count = min(self.max_concurrent_downloads, optimal_count + 1)
             logger.debug(f"CPU-Auslastung niedrig ({resources.cpu_percent:.1f}%): Erhöhe auf {optimal_count}")
         
         # Speicher-basierte Anpassung
         if resources.memory_percent > self.memory_threshold_high:
-            # Speicherauslastung hoch - reduzieren
+            # Memory usage high - reduce
             optimal_count = max(self.min_concurrent_downloads, optimal_count - 1)
             logger.debug(f"Speicherauslastung hoch ({resources.memory_percent:.1f}%): Reduziere auf {optimal_count}")
         elif resources.memory_percent < self.memory_threshold_low and optimal_count < self.max_concurrent_downloads:
-            # Speicherauslastung niedrig - erhöhen
+            # Memory usage low - increase
             optimal_count = min(self.max_concurrent_downloads, optimal_count + 1)
             logger.debug(f"Speicherauslastung niedrig ({resources.memory_percent:.1f}%): Erhöhe auf {optimal_count}")
         
         # Netzwerk-basierte Anpassung (vereinfacht)
-        # In einer echten Implementierung würden wir hier Ping-Zeiten messen
-        # Für jetzt verwenden wir eine vereinfachte Annahme
+        # In a real implementation, we would measure ping times here
+        # For now, we use a simplified assumption
         
         return optimal_count
     
     async def update_parallelism(self) -> None:
-        """Aktualisiert die Parallelität basierend auf Systemressourcen."""
+        """Updates parallelism based on system resources."""
         current_time = time.time()
         
-        # Nur alle check_interval Sekunden aktualisieren
+        # Only update every check_interval seconds
         if current_time - self.last_check_time < self.check_interval:
             return
         
         self.last_check_time = current_time
         
-        # Systemressourcen erfassen
+        # Capture system resources
         resources = self._get_system_resources()
         
-        # Historische Daten speichern
+        # Save historical data
         self.resource_history.append(resources)
         if len(self.resource_history) > self.max_history_size:
             self.resource_history.pop(0)
         
-        # Optimale Anzahl paralleler Downloads berechnen
+        # Calculate optimal number of parallel downloads
         optimal_count = self._calculate_optimal_concurrent_downloads(resources)
         
-        # Semaphore aktualisieren, wenn sich die Anzahl ändert
+        # Update semaphore when count changes
         if optimal_count != self.current_concurrent_downloads:
             logger.info(
-                f"Ändere parallele Downloads von {self.current_concurrent_downloads} auf {optimal_count} "
+                f"Changing parallel downloads from {self.current_concurrent_downloads} to {optimal_count} "
                 f"(CPU: {resources.cpu_percent:.1f}%, RAM: {resources.memory_percent:.1f}%)"
             )
             
-            # Neue Semaphore erstellen
+            # Create new semaphore
             self.semaphore = asyncio.Semaphore(optimal_count)
             self.current_concurrent_downloads = optimal_count
             
-            # Performance-Monitor aktualisieren
+            # Update performance monitor
             if self.performance_monitor:
-                # Hier könnten wir zusätzliche Metriken an den Performance-Monitor senden
+                # Here we could send additional metrics to the performance monitor
                 pass
     
     def get_semaphore(self) -> asyncio.Semaphore:
         """
-        Gibt die aktuelle Semaphore zurück.
+        Returns the current semaphore.
         
         Returns:
-            asyncio.Semaphore für die Download-Kontrolle
+            asyncio.Semaphore for download control
         """
         return self.semaphore
     
     def get_current_concurrent_downloads(self) -> int:
         """
-        Gibt die aktuelle Anzahl paralleler Downloads zurück.
+        Returns the current number of parallel downloads.
         
         Returns:
-            Aktuelle Anzahl paralleler Downloads
+            Current number of parallel downloads
         """
         return self.current_concurrent_downloads
     
     def record_download_speed(self, speed_mbps: float) -> None:
         """
-        Zeichnet eine Download-Geschwindigkeit auf.
+        Records a download speed.
         
         Args:
-            speed_mbps: Download-Geschwindigkeit in MB/s
+            speed_mbps: Download speed in MB/s
         """
         self.download_speed_history.append(speed_mbps)
         if len(self.download_speed_history) > self.max_history_size:
@@ -237,10 +237,10 @@ class AdaptiveParallelismController:
     
     def get_average_download_speed(self) -> float:
         """
-        Berechnet die durchschnittliche Download-Geschwindigkeit.
+        Calculates the average download speed.
         
         Returns:
-            Durchschnittliche Download-Geschwindigkeit in MB/s
+            Average download speed in MB/s
         """
         if not self.download_speed_history:
             return 0.0
@@ -249,12 +249,12 @@ class AdaptiveParallelismController:
 
 def get_parallelism_manager(download_dir: Path = Path(".")):
     """
-    Gibt eine Instanz des AdaptiveParallelismController zurück.
+    Returns an instance of AdaptiveParallelismController.
     
     Args:
-        download_dir: Download-Verzeichnis
+        download_dir: Download directory
         
     Returns:
-        AdaptiveParallelismController-Instanz
+        AdaptiveParallelismController instance
     """
     return AdaptiveParallelismController(download_dir)

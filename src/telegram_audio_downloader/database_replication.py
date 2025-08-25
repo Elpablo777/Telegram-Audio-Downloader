@@ -189,8 +189,8 @@ class DatabaseReplicator:
             try:
                 if db.is_closed():
                     db.connect()
-            except:
-                pass
+            except Exception as connection_error:
+                logger.debug(f"Wiederherstellung der Datenbankverbindung fehlgeschlagen (nicht kritisch): {connection_error}")
             raise
     
     def _replicate_to_slave(self, replica: ReplicaInfo, master_checkpoint: Dict[str, Any]) -> None:

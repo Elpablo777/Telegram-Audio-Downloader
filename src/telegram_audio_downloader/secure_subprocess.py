@@ -8,7 +8,7 @@ Bietet sichere Wrapper für subprocess-Aufrufe mit zusätzlichen Sicherheitsmaß
 - Sichere Handhabung von Umgebungsvariablen
 """
 
-import subprocess
+import subprocess  # nosec B404 - Subprocess wird sicher verwendet mit Validierung und Timeout
 import asyncio
 import logging
 import os
@@ -23,7 +23,7 @@ logger = get_logger(__name__)
 
 
 class SecureSubprocessError(SystemIntegrationError):
-    """Fehler bei sicheren Subprocess-Operationen."""
+    """Error in secure subprocess operations."""
     pass
 
 
@@ -37,36 +37,36 @@ def secure_run_command(
     allow_shell: bool = False
 ) -> subprocess.CompletedProcess:
     """
-    Führt einen Befehl sicher aus.
+    Executes a command securely.
     
     Args:
-        command: Liste von Befehlsargumenten
-        timeout: Timeout in Sekunden
-        check: Ob bei Fehlern eine Exception geworfen werden soll
-        capture_output: Ob Ausgabe erfasst werden soll
-        cwd: Arbeitsverzeichnis
-        env: Umgebungsvariablen
-        allow_shell: Ob Shell-Ausführung erlaubt ist (unsicher!)
+        command: List of command arguments
+        timeout: Timeout in seconds
+        check: Whether to throw an exception on errors
+        capture_output: Whether to capture output
+        cwd: Working directory
+        env: Environment variables
+        allow_shell: Whether shell execution is allowed (unsafe!)
         
     Returns:
-        CompletedProcess-Objekt
+        CompletedProcess object
         
     Raises:
-        SecureSubprocessError: Bei Ausführungsfehlern
+        SecureSubprocessError: On execution errors
     """
     try:
         # Validiere Eingabeparameter
         if not command or not isinstance(command, list):
-            raise SecureSubprocessError("Ungültiger Befehl: Muss eine nicht-leere Liste sein")
+            raise SecureSubprocessError("Invalid command: Must be a non-empty list")
         
-        # Prüfe, ob der Befehl erlaubt ist
+        # Check if the command is allowed
         if not _is_command_allowed(command[0]):
-            raise SecureSubprocessError(f"Unerlaubter Befehl: {command[0]}")
+            raise SecureSubprocessError(f"Unauthorized command: {command[0]}")
         
-        # Erstelle sichere Umgebung
+        # Create secure environment
         safe_env = _create_safe_environment(env)
         
-        # Führe den Befehl aus
+        # Execute the command
         result = subprocess.run(
             command,
             timeout=timeout,
@@ -74,21 +74,21 @@ def secure_run_command(
             capture_output=capture_output,
             cwd=cwd,
             env=safe_env,
-            shell=allow_shell  # Nur erlauben, wenn explizit angefordert  # nosec B602
+            shell=allow_shell  # Only allow if explicitly requested  # nosec B602
         )
         
-        logger.debug(f"Befehl erfolgreich ausgeführt: {' '.join(command)}")
+        logger.debug(f"Command executed successfully: {' '.join(command)}")
         return result
         
     except subprocess.TimeoutExpired as e:
-        logger.error(f"Befehl wegen Timeout abgebrochen: {' '.join(command)}")
-        raise SecureSubprocessError(f"Befehl wegen Timeout abgebrochen: {e.cmd}") from e
+        logger.error(f"Command cancelled due to timeout: {' '.join(command)}")
+        raise SecureSubprocessError(f"Command cancelled due to timeout: {e.cmd}") from e
     except subprocess.CalledProcessError as e:
-        logger.error(f"Befehl fehlgeschlagen: {' '.join(command)} - Exit-Code: {e.returncode}")
-        raise SecureSubprocessError(f"Befehl fehlgeschlagen mit Exit-Code {e.returncode}: {e.cmd}") from e
+        logger.error(f"Command failed: {' '.join(command)} - Exit code: {e.returncode}")
+        raise SecureSubprocessError(f"Command failed with exit code {e.returncode}: {e.cmd}") from e
     except Exception as e:
-        logger.error(f"Unerwarteter Fehler bei Befehlsausführung: {e}")
-        raise SecureSubprocessError(f"Unerwarteter Fehler: {e}") from e
+        logger.error(f"Unexpected error during command execution: {e}")
+        raise SecureSubprocessError(f"Unexpected error: {e}") from e
 
 
 async def secure_run_command_async(
@@ -99,34 +99,34 @@ async def secure_run_command_async(
     env: Optional[Dict[str, str]] = None
 ) -> subprocess.CompletedProcess:
     """
-    Führt einen Befehl asynchron sicher aus.
+    Executes a command securely asynchronously.
     
     Args:
-        command: Liste von Befehlsargumenten
-        timeout: Timeout in Sekunden
-        capture_output: Ob Ausgabe erfasst werden soll
-        cwd: Arbeitsverzeichnis
-        env: Umgebungsvariablen
+        command: List of command arguments
+        timeout: Timeout in seconds
+        capture_output: Whether to capture output
+        cwd: Working directory
+        env: Environment variables
         
     Returns:
-        CompletedProcess-Objekt
+        CompletedProcess object
         
     Raises:
-        SecureSubprocessError: Bei Ausführungsfehlern
+        SecureSubprocessError: On execution errors
     """
     try:
         # Validiere Eingabeparameter
         if not command or not isinstance(command, list):
-            raise SecureSubprocessError("Ungültiger Befehl: Muss eine nicht-leere Liste sein")
+            raise SecureSubprocessError("Invalid command: Must be a non-empty list")
         
-        # Prüfe, ob der Befehl erlaubt ist
+        # Check if the command is allowed
         if not _is_command_allowed(command[0]):
-            raise SecureSubprocessError(f"Unerlaubter Befehl: {command[0]}")
+            raise SecureSubprocessError(f"Unauthorized command: {command[0]}")
         
-        # Erstelle sichere Umgebung
+        # Create secure environment
         safe_env = _create_safe_environment(env)
         
-        # Erstelle das subprocess-Objekt
+        # Create subprocess object
         process = await asyncio.create_subprocess_exec(
             *command,
             stdout=asyncio.subprocess.PIPE if capture_output else None,
@@ -135,16 +135,16 @@ async def secure_run_command_async(
             env=safe_env
         )
         
-        # Warte auf das Ergebnis mit Timeout
+        # Wait for result with timeout
         try:
             stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=timeout)
         except asyncio.TimeoutError:
             process.kill()
             await process.wait()
-            logger.error(f"Asynchroner Befehl wegen Timeout abgebrochen: {' '.join(command)}")
-            raise SecureSubprocessError(f"Asynchroner Befehl wegen Timeout abgebrochen: {' '.join(command)}")
+            logger.error(f"Asynchronous command cancelled due to timeout: {' '.join(command)}")
+            raise SecureSubprocessError(f"Asynchronous command cancelled due to timeout: {' '.join(command)}")
         
-        # Erstelle CompletedProcess-Objekt
+        # Create CompletedProcess object
         result = subprocess.CompletedProcess(
             args=command,
             returncode=process.returncode,
@@ -152,53 +152,53 @@ async def secure_run_command_async(
             stderr=stderr if capture_output else None
         )
         
-        # Prüfe auf Fehler
+        # Check for errors
         if process.returncode != 0:
-            logger.error(f"Asynchroner Befehl fehlgeschlagen: {' '.join(command)} - Exit-Code: {process.returncode}")
-            raise SecureSubprocessError(f"Asynchroner Befehl fehlgeschlagen mit Exit-Code {process.returncode}: {' '.join(command)}")
+            logger.error(f"Asynchronous command failed: {' '.join(command)} - Exit code: {process.returncode}")
+            raise SecureSubprocessError(f"Asynchronous command failed with exit code {process.returncode}: {' '.join(command)}")
         
-        logger.debug(f"Asynchroner Befehl erfolgreich ausgeführt: {' '.join(command)}")
+        logger.debug(f"Asynchronous command executed successfully: {' '.join(command)}")
         return result
         
     except SecureSubprocessError:
         raise
     except Exception as e:
-        logger.error(f"Unerwarteter Fehler bei asynchroner Befehlsausführung: {e}")
-        raise SecureSubprocessError(f"Unerwarteter Fehler: {e}") from e
+        logger.error(f"Unexpected error during asynchronous command execution: {e}")
+        raise SecureSubprocessError(f"Unexpected error: {e}") from e
 
 
 def _is_command_allowed(command: str) -> bool:
     """
-    Prüft, ob ein Befehl erlaubt ist.
+    Checks if a command is allowed.
     
     Args:
-        command: Befehlsname
+        command: Command name
         
     Returns:
-        True, wenn der Befehl erlaubt ist
+        True if the command is allowed
     """
-    # Liste erlaubter Befehle
+    # List of allowed commands
     allowed_commands = {
         "msg", "osascript", "notify-send", "kdialog", "which", "where",
         "explorer", "open", "nautilus", "dolphin", "thunar", "pcmanfm",
         "gmusicbrowser", "rhythmbox-client", "which"
     }
     
-    # Prüfe, ob der Befehl in der Liste erlaubter Befehle ist
+    # Check if the command is in the list of allowed commands
     return command in allowed_commands
 
 
 def _create_safe_environment(env: Optional[Dict[str, str]] = None) -> Dict[str, str]:
     """
-    Erstellt eine sichere Umgebung für subprocess-Aufrufe.
+    Creates a secure environment for subprocess calls.
     
     Args:
-        env: Benutzerdefinierte Umgebungsvariablen
+        env: Custom environment variables
         
     Returns:
-        Sichere Umgebungsvariablen
+        Secure environment variables
     """
-    # Starte mit einem minimalen Satz von Umgebungsvariablen
+    # Start with a minimal set of environment variables
     safe_env = {
         "PATH": os.environ.get("PATH", ""),
         "HOME": os.environ.get("HOME", ""),
@@ -209,11 +209,11 @@ def _create_safe_environment(env: Optional[Dict[str, str]] = None) -> Dict[str, 
         "TMP": os.environ.get("TMP", "/tmp"),  # nosec B108
     }
     
-    # Füge benutzerdefinierte Umgebungsvariablen hinzu, falls angegeben
+    # Add custom environment variables if provided
     if env:
-        # Filtere potenziell unsichere Variablen
+        # Filter potentially unsafe variables
         for key, value in env.items():
-            # Erlaube nur bestimmte Umgebungsvariablen
+            # Only allow certain environment variables
             if key in ["LANG", "LC_ALL", "LC_CTYPE", "DISPLAY", "XAUTHORITY"]:
                 safe_env[key] = value
     
@@ -222,13 +222,13 @@ def _create_safe_environment(env: Optional[Dict[str, str]] = None) -> Dict[str, 
 
 def secure_which(tool_name: str) -> Optional[str]:
     """
-    Findet den Pfad zu einem Tool sicher.
+    Finds the path to a tool securely.
     
     Args:
-        tool_name: Name des Tools
+        tool_name: Tool name
         
     Returns:
-        Pfad zum Tool oder None, wenn nicht gefunden
+        Path to the tool or None if not found
     """
     try:
         if sys.platform == "win32":
@@ -237,7 +237,7 @@ def secure_which(tool_name: str) -> Optional[str]:
             result = secure_run_command(["which", tool_name], timeout=5)
         
         if result.returncode == 0 and result.stdout:
-            # Extrahiere den ersten Pfad
+            # Extract the first path
             paths = result.stdout.decode().strip().split("\n")
             return paths[0] if paths else None
         return None
