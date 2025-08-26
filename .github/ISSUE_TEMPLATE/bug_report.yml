@@ -1,54 +1,103 @@
 ---
-name: 🐛 Bug Report
-about: Melden Sie einen Fehler um das Projekt zu verbessern
-title: '[BUG] '
-labels: ['bug', 'triage']
-assignees: ['Elpablo777']
+name: "🐛 Bug Report"
+description: "Melden Sie einen Fehler um das Projekt zu verbessern"
+labels: ["bug", "triage"]
+assignees: ["Elpablo777"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # 🐛 **Fehlerbericht**
+        Bitte füllen Sie dieses Formular aus, um uns bei der Behebung des Problems zu helfen.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: "Fehlerbeschreibung"
+      description: "Eine klare und präzise Beschreibung des Fehlers."
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: "Schritte zur Reproduktion"
+      description: |
+        Schritte zur Reproduktion des Fehlers:
+        1. Gehe zu '...'
+        2. Klicke auf '...'
+        3. Scrolle nach unten zu '...'
+        4. Sieh den Fehler
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: "Erwartetes Verhalten"
+      description: "Eine klare und präzise Beschreibung dessen, was passieren sollte."
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: "Tatsächliches Verhalten"
+      description: "Eine klare und präzise Beschreibung dessen, was tatsächlich passiert."
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: "Screenshots/Logs"
+      description: |
+        Falls zutreffend, fügen Sie Screenshots oder Logs hinzu, um Ihr Problem zu erklären.
+        
+        ```bash
+        # Fügen Sie hier relevante Logs ein
+        ```
+    render: bash
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: "Betriebssystem"
+      options:
+        - "Windows"
+        - "macOS"
+        - "Linux"
+        - "Andere"
+    validations:
+      required: true
+
+  - type: input
+    id: python_version
+    attributes:
+      label: "Python Version"
+      placeholder: "z.B. 3.11.2"
+    validations:
+      required: true
+
+  - type: input
+    id: project_version
+    attributes:
+      label: "Projektversion"
+      placeholder: "z.B. 1.0.0"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Checkliste
+      description: Bitte bestätigen Sie folgende Punkte
+      options:
+        - label: Ich habe die [Dokumentation](https://github.com/Elpablo777/Telegram-Audio-Downloader/wiki) gelesen
+          required: true
+        - label: Ich habe nach ähnlichen Issues gesucht
+          required: true
+        - label: Ich habe die neueste Version getestet
+          required: true
 ---
-
-## 🐛 **Fehlerbeschreibung**
-Eine klare und präzise Beschreibung des Fehlers.
-
-## 🔄 **Reproduktion**
-Schritte zur Reproduktion des Fehlers:
-
-1. Gehe zu '...'
-2. Klicke auf '...'
-3. Scrolle nach unten zu '...'
-4. Sieh den Fehler
-
-## ✅ **Erwartetes Verhalten**
-Eine klare und präzise Beschreibung dessen, was passieren sollte.
-
-## 📸 **Screenshots/Logs**
-Falls zutreffend, fügen Sie Screenshots oder Logs hinzu, um Ihr Problem zu erklären.
-
-```bash
-# Fügen Sie hier relevante Logs ein
-```
-
-## 💻 **Umgebung**
-- **OS**: [z.B. Windows 10, Ubuntu 20.04, macOS 12.0]
-- **Python Version**: [z.B. 3.11.2]
-- **Projektversion**: [z.B. 1.0.0]
-- **Telegram Client**: [z.B. Desktop, Mobile]
-
-## 📋 **Konfiguration**
-- **Parallele Downloads**: [z.B. 3]
-- **Audio Format**: [z.B. MP3, FLAC]
-- **Download-Verzeichnis**: [Pfad zum Download-Ordner]
-
-## 🔍 **Zusätzlicher Kontext**
-Fügen Sie hier weitere Informationen zum Problem hinzu.
-
-## ✅ **Checklist**
-- [ ] Ich habe die [Dokumentation](https://github.com/Elpablo777/Telegram-Audio-Downloader/wiki) gelesen
-- [ ] Ich habe nach ähnlichen Issues gesucht
-- [ ] Ich habe die neueste Version getestet
-- [ ] Ich habe die Logs überprüft
-
-## 🏷️ **Priority**
-- [ ] 🔥 Critical - Blockiert wichtige Funktionen
-- [ ] 🚨 High - Beeinträchtigt normale Nutzung
-- [ ] ⚠️ Medium - Kleinere Funktionsstörungen
-- [ ] 📝 Low - Kosmetische Probleme oder kleine Verbesserungen

@@ -1,50 +1,111 @@
 ---
-name: ❓ Question / Support
-about: Stellen Sie eine Frage oder bitten Sie um Hilfe
-title: '[QUESTION] '
-labels: ['question', 'support']
+name: "❓ Question / Support"
+description: "Stellen Sie eine Frage oder bitten Sie um Hilfe"
+labels: ["question", "support"]
 assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # ❓ **Frage / Support**
+        Vielen Dank, dass Sie sich an uns wenden! Bitte beantworten Sie die folgenden Fragen so detailliert wie möglich.
+
+  - type: textarea
+    id: question
+    attributes:
+      label: "Ihre Frage"
+      description: "Stellen Sie Ihre Frage so detailliert wie möglich."
+    validations:
+      required: true
+
+  - type: textarea
+    id: tried
+    attributes:
+      label: "Was haben Sie bereits versucht?"
+      description: "Beschreiben Sie, was Sie bereits unternommen haben, um das Problem zu lösen."
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: docs_checked
+    attributes:
+      label: "Dokumentation geprüft?"
+      description: "Bitte bestätigen Sie, dass Sie die folgenden Ressourcen überprüft haben"
+      options:
+        - label: "[README](https://github.com/Elpablo777/Telegram-Audio-Downloader/blob/main/README.md)"
+          required: true
+        - label: "[Wiki](https://github.com/Elpablo777/Telegram-Audio-Downloader/wiki)"
+        - label: "[FAQ](https://github.com/Elpablo777/Telegram-Audio-Downloader/wiki/FAQ)"
+        - label: "[Discussions](https://github.com/Elpablo777/Telegram-Audio-Downloader/discussions)"
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: "Betriebssystem"
+      options:
+        - "Windows"
+        - "macOS"
+        - "Linux"
+        - "Andere"
+    validations:
+      required: true
+
+  - type: input
+    id: python_version
+    attributes:
+      label: "Python Version"
+      placeholder: "z.B. 3.11.2"
+    validations:
+      required: true
+
+  - type: input
+    id: project_version
+    attributes:
+      label: "Projektversion"
+      placeholder: "z.B. 1.0.0"
+
+  - type: textarea
+    id: configuration
+    attributes:
+      label: "Konfiguration (falls relevant)"
+      description: "Zeigen Sie Ihre Konfiguration (ohne sensitive Daten!)"
+      render: bash
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: "Screenshots/Logs (falls relevant)"
+      description: "Fügen Sie hier relevante Logs oder Screenshots hinzu"
+      render: bash
+
+  - type: checkboxes
+    id: category
+    attributes:
+      label: "Kategorie"
+      description: "Bitte wählen Sie die passende Kategorie aus"
+      options:
+        - label: "📥 Installation/Setup"
+        - label: "⚙️ Konfiguration"
+        - label: "🔧 Nutzung/Bedienung"
+        - label: "🐛 Möglicher Bug"
+        - label: "📊 Performance"
+        - label: "🔌 Integration"
+        - label: "📚 Dokumentation"
+        - label: "💡 Best Practices"
+
+  - type: checkboxes
+    id: checkboxes
+    attributes:
+      label: "Checkliste"
+      description: "Bitte bestätigen Sie folgende Punkte"
+      options:
+        - label: "Ich habe in den Issues nach ähnlichen Fragen gesucht"
+          required: true
+        - label: "Ich habe die Dokumentation gelesen"
+          required: true
+        - label: "Meine Frage ist spezifisch und nachvollziehbar"
+          required: true
+        - label: "Ich habe alle relevanten Informationen bereitgestellt"
+          required: true
 ---
-
-## ❓ **Ihre Frage**
-Stellen Sie Ihre Frage so detailliert wie möglich.
-
-## 🔍 **Was haben Sie bereits versucht?**
-Beschreiben Sie, was Sie bereits unternommen haben, um das Problem zu lösen.
-
-## 📖 **Dokumentation gecheckt?**
-- [ ] [README](https://github.com/Elpablo777/Telegram-Audio-Downloader/blob/main/README.md)
-- [ ] [Wiki](https://github.com/Elpablo777/Telegram-Audio-Downloader/wiki)
-- [ ] [FAQ](https://github.com/Elpablo777/Telegram-Audio-Downloader/wiki/FAQ)
-- [ ] [Discussions](https://github.com/Elpablo777/Telegram-Audio-Downloader/discussions)
-
-## 💻 **Umgebung** (falls relevant)
-- **OS**: [z.B. Windows 10, Ubuntu 20.04, macOS 12.0]
-- **Python Version**: [z.B. 3.11.2]
-- **Projektversion**: [z.B. 1.0.0]
-
-## 📋 **Konfiguration** (falls relevant)
-```bash
-# Zeigen Sie Ihre Konfiguration (ohne sensitive Daten!)
-```
-
-## 📸 **Screenshots/Logs** (falls relevant)
-```bash
-# Fügen Sie hier relevante Logs ein
-```
-
-## 🏷️ **Kategorie**
-- [ ] 📥 Installation/Setup
-- [ ] ⚙️ Konfiguration  
-- [ ] 🔧 Nutzung/Bedienung
-- [ ] 🐛 Möglicher Bug
-- [ ] 📊 Performance
-- [ ] 🔌 Integration
-- [ ] 📚 Dokumentation
-- [ ] 💡 Best Practices
-
-## ✅ **Checklist**
-- [ ] Ich habe in den Issues nach ähnlichen Fragen gesucht
-- [ ] Ich habe die Dokumentation gelesen
-- [ ] Meine Frage ist spezifisch und nachvollziehbar
-- [ ] Ich habe alle relevanten Informationen bereitgestellt

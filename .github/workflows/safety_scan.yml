@@ -1,0 +1,70 @@
+name: Python Package Security Scan
+
+on:
+  schedule:
+    # Führe wöchentlich am Montag um 3 Uhr morgens aus
+    - cron: '0 3 * * 1'
+  # Manueller Trigger
+  workflow_dispatch:
+  # Bei Push in den main-Branch oder bei Pull Requests gegen main
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  security-scan:
+    name: Run Security Checks
+    runs-on: ubuntu-latest
+    
+    # Minimale Berechtigungen für Sicherheit
+    permissions:
+      contents: read
+      security-events: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install safety
+          
+      - name: Run Safety Check
+        id: safety
+        continue-on-error: true
+        run: |
+          echo "Running safety check..."
+          mkdir -p reports
+          # Führe Safety mit detaillierter Ausgabe aus
+          safety check --full-report --file=requirements.txt > reports/safety-report.txt
+          # Speichere den Exit-Code
+          echo "exit_code=$?" >> $GITHUB_OUTPUT
+          
+      - name: Show Safety Report
+        if: always()
+        run: |
+          echo "=== Safety Check Report ==="
+          cat reports/safety-report.txt || echo "No safety report generated"
+          
+      - name: Upload Safety Report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: safety-report
+          path: |
+            reports/safety-report.txt
+            requirements.txt
+          retention-days: 7
+          
+      - name: Fail on safety issues
+        if: steps.safety.outputs.exit_code != '0' && github.event_name != 'pull_request'
+        run: |
+          echo "##[error]Safety check found vulnerabilities!"
+          exit 1
