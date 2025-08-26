@@ -404,6 +404,8 @@ jobs:
   notification:
     name: 📢 Status Notification
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     needs: [health-check, quality-trends]
     if: always()
     
