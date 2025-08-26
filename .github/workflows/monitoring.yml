@@ -311,6 +311,9 @@ jobs:
 
   quality-trends:
     name: 📈 Quality Trends Analysis  
+    permissions:
+      contents: read
+      issues: write
     runs-on: ubuntu-latest
     needs: health-check
     if: always()
