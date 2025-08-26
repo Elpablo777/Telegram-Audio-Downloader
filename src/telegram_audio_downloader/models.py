@@ -60,6 +60,20 @@ class TelegramGroup(BaseModel):
         table_name = "telegram_groups"
 
 
+class GroupProgress(BaseModel):
+    """Modell für den Fortschritt einer Gruppe (letzte verarbeitete Nachrichten-ID)."""
+
+    group: ForeignKeyField = ForeignKeyField(TelegramGroup, backref='progress', on_delete='CASCADE')
+    last_message_id: IntegerField = IntegerField()
+    updated_at: DateTimeField = DateTimeField(default=datetime.now)
+
+    class Meta:
+        table_name = "group_progress"
+        indexes = (
+            (('group',), True),  # Eindeutiger Index für group
+        )
+
+
 class AudioFile(BaseModel):
     """Modell für eine Audiodatei mit speichereffizienten Methoden."""
 

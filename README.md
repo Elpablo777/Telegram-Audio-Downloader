@@ -47,6 +47,7 @@
 - 🧠 **Memory-Management** mit automatischer Garbage Collection
 - 🔄 **Fortsetzbare Downloads** bei Unterbrechungen
 - 📈 **Performance-Monitoring** in Echtzeit
+- 📚 **Persistente Download-Historie** (keine doppelten Downloads)
 
 ### **🎵 Audio-Funktionalitäten**
 - 🎼 **Erweiterte Metadaten-Extraktion** (Titel, Künstler, Album, etc.)
@@ -66,12 +67,14 @@
 - 🔄 **Exponential Backoff** bei Netzwerk-Fehlern
 - 📊 **Error-Tracking** mit detaillierter Protokollierung
 - 🎯 **Graceful Degradation** bei API-Limits
+- 🔒 **Proxy-Support** für eingeschränkte Regionen
 
 ### **🖥️ Benutzerfreundlichkeit**
 - 🌈 **Rich CLI-Interface** mit Farben und Tabellen
 - 📊 **Fortschritts-Anzeigen** mit Spinner und Progress-Bars
 - 📈 **Performance-Dashboard** mit Echtzeit-Überwachung
 - 📋 **Detaillierte Statistiken** und Berichte
+- 🐣 **Lite-Modus** für Systeme mit begrenzten Ressourcen
 
 ---
 
@@ -133,6 +136,9 @@ telegram-audio-downloader download @musikgruppe
 
 # Mit Optionen
 telegram-audio-downloader download @musikgruppe --limit=50 --parallel=5 --output=./music
+
+# Lite-Modus (weniger Ressourcen)
+telegram-audio-downloader download-lite @musikgruppe --limit=10
 ```
 
 ### **3. Downloads durchsuchen**
@@ -171,23 +177,21 @@ DEFAULT_DOWNLOAD_DIR=downloads    # Standard Download-Ordner
 LOG_LEVEL=INFO                    # Logging-Level (DEBUG, INFO, WARNING, ERROR)
 ```
 
-### **Konfigurationsdatei (config/default.ini)**
-```ini
-[downloads]
-max_concurrent = 3
-chunk_size = 1048576
-retry_attempts = 3
-retry_delay = 5
+### **YAML-Konfiguration**
+Exportieren Sie die aktuelle Konfiguration in eine YAML-Datei:
+```bash
+telegram-audio-downloader config-export --output config/my_config.yaml
+```
 
-[performance]
-max_memory_mb = 1024
-rate_limit_requests_per_second = 1.0
-rate_limit_burst_size = 5
-
-[metadata]
-extract_extended = true
-verify_checksums = true
-update_id3_tags = true
+### **Proxy-Konfiguration**
+Konfigurieren Sie einen Proxy in Ihrer `config.yaml`:
+```yaml
+proxy:
+  type: socks5  # oder http
+  host: proxy.example.com
+  port: 1080
+  username: your_username
+  password: your_password
 ```
 
 ---
@@ -199,91 +203,34 @@ update_id3_tags = true
 # Basis-Download
 telegram-audio-downloader download <GRUPPE>
 
-# Download mit Limit
-telegram-audio-downloader download <GRUPPE> --limit <ANZAHL>
+# Download mit Optionen
+telegram-audio-downloader download <GRUPPE> --limit=50 --parallel=3 --output=./downloads
 
-# Download in bestimmtes Verzeichnis
-telegram-audio-downloader download <GRUPPE> --output <PFAD>
+# Lite-Modus (weniger Ressourcen, keine Datenbank)
+telegram-audio-downloader download-lite <GRUPPE> --limit=10 --no-db --no-metadata
 
-# Parallele Downloads
-telegram-audio-downloader download <GRUPPE> --parallel <ANZAHL>
+# Konfiguration exportieren
+telegram-audio-downloader config-export --output config.yaml
 ```
 
-### **Such-Befehle**
+### **Suchbefehle**
 ```bash
 # Alle Dateien durchsuchen
-telegram-audio-downloader search <SUCHBEGRIFF>
+telegram-audio-downloader search
 
-# Suche mit Fuzzy-Matching
-telegram-audio-downloader search <SUCHBEGRIFF> --fuzzy
+# Fuzzy-Suche
+telegram-audio-downloader search "beethoven" --fuzzy
 
 # Suche mit Filtern
-telegram-audio-downloader search <SUCHBEGRIFF> --format=mp3 --min-size=5MB
+telegram-audio-downloader search "rock" --format=mp3 --min-size=5MB
 ```
 
-### **Batch-Verarbeitung**
+### **Performance-Befehle**
 ```bash
-# Download-Auftrag zur Warteschlange hinzufügen
-telegram-audio-downloader batch-add --group <GRUPPE> --priority HIGH
+# Aktuelle Performance-Statistiken
+telegram-audio-downloader performance
 
-# Alle Batch-Aufträge verarbeiten
-telegram-audio-downloader batch-process
-
-# Batch-Aufträge auflisten
-telegram-audio-downloader batch-list
-```
-
-### **Konfigurations-Befehle**
-```bash
-# Aktuelle Konfiguration anzeigen
-telegram-audio-downloader config show
-
-# Konfigurationswert setzen
-telegram-audio-downloader config set <SCHLÜSSEL> <WERT>
-```
-
----
-
-## 🎯 **Erweiterte Funktionen**
-
-### **Dateinamen-Vorlagen**
-Unterstützt anpassbare Dateinamen-Vorlagen mit Platzhaltern:
-- `$title` - Titel des Tracks
-- `$artist` - Künstler/Interpret
-- `$album` - Albumname
-- `$year` - Erscheinungsjahr
-- `$genre` - Genre
-- `$track_number` - Track-Nummer
-
-Beispiel:
-```bash
-telegram-audio-downloader download "Gruppe" --filename-template "$artist - $title ($year)"
-```
-
-### **Automatische Kategorisierung**
-Dateien werden automatisch anhand von Metadaten in Ordner organisiert:
-- Nach Künstler
-- Nach Album
-- Nach Jahr
-- Nach Genre
-
-### **Intelligente Warteschlange**
-- Priorisierung von Downloads
-- Dynamische Ressourcenverteilung
-- Fehlerbehandlung und Wiederholung
-
----
-
-## 📊 **Performance-Monitoring**
-
-Das Tool bietet detaillierte Performance-Metriken:
-- Download-Geschwindigkeit in Echtzeit
-- Speicherverbrauch
-- API-Nutzung
-- Fehlerstatistiken
-
-```bash
-# Performance-Dashboard starten
+# Echtzeit-Monitoring
 telegram-audio-downloader performance --watch
 ```
 
@@ -291,70 +238,94 @@ telegram-audio-downloader performance --watch
 
 ## 🐳 **Docker Support**
 
-### **Mit Docker bauen**
+### **Docker Compose**
 ```bash
-docker build -t telegram-audio-downloader .
-```
-
-### **Mit Docker ausführen**
-```bash
-docker run --env-file .env -v ./downloads:/app/downloads telegram-audio-downloader download @musikgruppe
-```
-
-### **Mit docker-compose**
-```bash
+# Container bauen und starten
 docker-compose up --build
+
+# Download-Befehl ausführen
+docker-compose exec telegram-audio-downloader telegram-audio-downloader download @musikgruppe
+
+# Lite-Modus
+docker-compose exec telegram-audio-downloader telegram-audio-downloader download-lite @musikgruppe
 ```
+
+### **Volumes und Persistenz**
+- `./.env:/app/.env` - API-Zugangsdaten
+- `./data:/app/data` - Datenbank und Anwendungsdaten
+- `./downloads:/app/downloads` - Heruntergeladene Audiodateien
+- `./config:/app/config` - Konfigurationsdateien
+- `./logs:/app/logs` - Log-Dateien
+
+Weitere Details finden Sie in [docker/README.md](docker/README.md).
+
+---
+
+## 🐣 **Lite-Modus**
+
+Der Lite-Modus ist für Systeme mit begrenzten Ressourcen gedacht:
+
+```bash
+# Lite-Modus mit allen Optionen
+telegram-audio-downloader download-lite @musikgruppe --limit=10 --no-db --no-metadata
+
+# Lite-Modus in Docker
+docker-compose exec telegram-audio-downloader telegram-audio-downloader download-lite @musikgruppe
+```
+
+Vorteile des Lite-Modus:
+- Weniger Speicherbedarf
+- Keine Datenbank (optional)
+- Keine Metadaten-Extraktion (optional)
+- Maximal 1 paralleler Download
+- Schnellerer Start
+
+---
+
+## 🔒 **Proxy-Support**
+
+Für Benutzer in eingeschränkten Regionen:
+
+1. Konfigurieren Sie den Proxy in Ihrer `config.yaml`:
+```yaml
+proxy:
+  type: socks5
+  host: proxy.example.com
+  port: 1080
+  username: your_username
+  password: your_password
+```
+
+2. Verwenden Sie den Download-Befehl wie gewohnt:
+```bash
+telegram-audio-downloader download @musikgruppe
+```
+
+---
+
+## 📚 **Persistente Download-Historie**
+
+Das Tool speichert automatisch den Fortschritt pro Gruppe, um doppelte Downloads zu vermeiden:
+
+- Letzte verarbeitete Nachrichten-ID pro Gruppe
+- Cache für bereits heruntergeladene Dateien
+- Automatische Fortsetzung bei erneutem Start
 
 ---
 
 ## 🧪 **Tests**
 
-### **Unit-Tests ausführen**
+Das Projekt verfügt über umfassende Tests:
+
 ```bash
-python -m pytest tests/
-```
+# Unit-Tests ausführen
+python -m pytest tests/unit/
 
-### **Tests mit Coverage**
-```bash
-python -m pytest --cov=src tests/
-```
+# Integrationstests ausführen
+python -m pytest tests/integration/
 
-### **Integrationstests**
-```bash
-python -m pytest tests/test_integration.py
-```
-
----
-
-## 📚 **API Referenz**
-
-### **Hauptklassen**
-
-#### **AudioDownloader**
-Die Hauptklasse für das Herunterladen von Audiodateien.
-
-```python
-from telegram_audio_downloader import AudioDownloader
-
-downloader = AudioDownloader(
-    download_dir="./downloads",
-    max_concurrent_downloads=3
-)
-
-# Dateien herunterladen
-await downloader.download_audio_files("gruppenname")
-```
-
-#### **Config**
-Zentrale Konfigurationsklasse.
-
-```python
-from telegram_audio_downloader import Config
-
-config = Config()
-config.set("max_concurrent_downloads", 5)
-config.save()
+# Alle Tests ausführen
+python -m pytest
 ```
 
 ---
@@ -365,28 +336,30 @@ Beiträge sind willkommen! Bitte lesen Sie [CONTRIBUTING.md](CONTRIBUTING.md) f�
 
 ### **Entwicklungsumgebung einrichten**
 ```bash
-# Entwicklungspakete installieren
-pip install -e ".[dev]"
+# Abhängigkeiten für Entwicklung installieren
+pip install -e ".[dev,test,docs]"
+
+# Pre-commit Hooks installieren
+pre-commit install
 
 # Tests ausführen
-python -m pytest
-
-# Code-Qualität prüfen
-black --check src/
-isort --check-only src/
-flake8 src/
-mypy src/
+pytest
 ```
 
 ---
 
 ## 📄 **Lizenz**
 
-Dieses Projekt ist unter der MIT-Lizenz lizenziert - siehe die [LICENSE](LICENSE) Datei für Details.
+Dieses Projekt ist unter der MIT-Lizenz lizenziert - siehe [LICENSE](LICENSE) für Details.
 
 ---
 
-## 🙏 **Danksagung**
+<div align="center">
 
-- [Telethon](https://docs.telethon.dev/) für die leistungsstarke Telegram-Client-Bibliothek
-- Allen Mitwirkenden und Unterstützern
+**Made with ❤️ für Musikliebhaber weltweit**
+
+[Issues](https://github.com/Elpablo777/telegram-audio-downloader/issues) •
+[Pull Requests](https://github.com/Elpablo777/telegram-audio-downloader/pulls) •
+[Wiki](https://github.com/Elpablo777/telegram-audio-downloader/wiki)
+
+</div>

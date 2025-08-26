@@ -9,13 +9,31 @@ services:
       - ./data:/app/data
       - ./downloads:/app/downloads
       - ./config:/app/config
+      - ./logs:/app/logs
     tty: true
     stdin_open: true
-    command: /bin/bash
     environment:
       - PYTHONPATH=/app
     networks:
       - telegram-audio-net
+    # Beispiel für den Betrieb im Lite-Modus
+    # command: telegram-audio-downloader download-lite --group "meine-gruppe" --limit 10
+
+  # Beispiel für einen separaten Service zur Überwachung
+  telegram-audio-monitor:
+    build: .
+    container_name: telegram-audio-monitor
+    volumes:
+      - ./.env:/app/.env
+      - ./data:/app/data
+      - ./logs:/app/logs
+    environment:
+      - PYTHONPATH=/app
+    networks:
+      - telegram-audio-net
+    command: python scripts/monitoring/continuous_monitor.py
+    depends_on:
+      - telegram-audio-downloader
 
 networks:
   telegram-audio-net:

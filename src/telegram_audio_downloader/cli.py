@@ -121,6 +121,28 @@ def cli(ctx, debug: bool, config: str, interactive: bool):
 
 
 @cli.command()
+@click.option("--output", "-o", type=click.Path(), default="config.yaml", help="Ausgabedatei für die Konfiguration")
+@click.pass_context
+@log_function_call
+def config_export(ctx, output: str):
+    """Exportiert die aktuelle Konfiguration in eine YAML-Datei."""
+    config = ctx.obj.get("CONFIG")
+    
+    try:
+        # Erstelle das Ausgabeverzeichnis, falls es nicht existiert
+        output_path = Path(output)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        # Exportiere die Konfiguration
+        config.export_to_yaml(str(output_path))
+        
+        console.print(f"[green]Konfiguration erfolgreich exportiert nach:[/green] {output_path}")
+    except Exception as e:
+        error = ConfigurationError(f"Fehler beim Exportieren der Konfiguration: {e}")
+        handle_error(error, "config_export", exit_on_error=True)
+
+
+@cli.command()
 @click.option("--group", "-g", required=True, help="Name der Telegram-Gruppe")
 @click.option("--limit", "-l", type=int, help="Maximale Anzahl an Dateien zum Herunterladen")
 @click.option("--output", "-o", type=click.Path(), help="Ausgabeverzeichnis")
@@ -171,7 +193,9 @@ def download(ctx, group: str, limit: Optional[int], output: Optional[str], paral
 
     # Downloader initialisieren
     downloader = AudioDownloader(
-        download_dir=str(output_path), max_concurrent_downloads=parallel or config.max_concurrent_downloads  # Korrigiert: Typsicherheit
+        download_dir=str(output_path), 
+        max_concurrent_downloads=parallel or config.max_concurrent_downloads,
+        config=config  # Füge die Konfiguration hinzu
     )
     
     # Wenn eine benutzerdefinierte Vorlage angegeben wurde, füge sie hinzu
@@ -198,57 +222,23 @@ def download(ctx, group: str, limit: Optional[int], output: Optional[str], paral
 
             async def run_download():
                 logger = ctx.obj.get("LOGGER", get_logger())
-                # Entferne den fehlerhaften Import
-                # error_tracker = get_error_tracker()
+                
+                # Hole die letzte verarbeitete Nachrichten-ID für diese Gruppe
+                last_message_id = await downloader.get_last_message_id(group)
+                if last_message_id:
+                    console.print(f"[blue]Fortsetzen ab Nachrichten-ID:[/blue] {last_message_id}")
+                
+                # Herunterladen starten
+                downloaded_count = await downloader.download_audio_files(
+                    group, limit=limit, last_message_id=last_message_id
+                )
+                
+                console.print(f"[green]Download abgeschlossen![/green] {downloaded_count} Dateien heruntergeladen.")
+                
+                # Zeige eine Zusammenfassung der Downloads an
+                await show_download_summary(downloaded_count)
 
-                try:
-                    await downloader.initialize_client()
-                    progress.update(
-                        task,
-                        description=f"Lade Audiodateien aus Gruppe '{group}' herunter...",
-                    )
-
-                    start_time = time.time()
-                    await downloader.download_audio_files(group, limit=limit)
-                    duration = time.time() - start_time
-
-                    progress.update(task, description="[green]Fertig![/green]")
-                    logger.info(f"Download abgeschlossen in {duration:.2f}s")
-
-                    # Entferne den fehlerhaften Code
-                    # Error-Summary anzeigen
-                    # error_summary = error_tracker.get_error_summary()
-                    # if error_summary["total"] > 0:
-                    #     console.print(
-                    #         f"\n[yellow]Warnung: {error_summary['total']} Fehler aufgetreten[/yellow]"
-                    #     )
-                    #     if ctx.obj.get("DEBUG"):
-                    #         console.print("Letzte Fehler:")
-                    #         for error in error_summary["recent"]:
-                    #             console.print(
-                    #                 f"  - {error['type']} in {error['context']} ({error['time']})"
-                    #             )
-
-                except Exception as e:
-                    # error_tracker.track_error(e, "cli_download", "ERROR")
-                    logger.error(
-                        f"Download-Fehler: {e}", exc_info=ctx.obj.get("DEBUG", False)
-                    )
-                    
-                    # Spezifische Fehlerbehandlung
-                    if "API_ID" in str(e) or "API_HASH" in str(e):
-                        error = ConfigurationError("Ungültige oder fehlende API-Zugangsdaten")
-                        handle_error(error, "download_auth", exit_on_error=True)
-                    elif "FloodWaitError" in str(type(e)):
-                        error = TelegramAPIError(f"Telegram API Rate-Limit erreicht: {e}")
-                        handle_error(error, "download_flood_wait")
-                    elif "ConnectionError" in str(type(e)) or "Timeout" in str(type(e)):
-                        error = NetworkError(f"Netzwerkverbindungsfehler: {e}")
-                        handle_error(error, "download_network")
-                    else:
-                        error = DownloadError(f"Download fehlgeschlagen: {e}")
-                        handle_error(error, "download_general", exit_on_error=True)
-
+            # Run the async download
             asyncio.run(run_download())
 
     except KeyboardInterrupt:
@@ -648,6 +638,96 @@ def show_downloads(ctx, output: Optional[str]):
     except Exception as e:
         error = ConfigurationError(f"Fehler beim Öffnen des Download-Verzeichnisses: {e}")
         handle_error(error, "show_downloads", exit_on_error=True)
+
+
+@cli.command()
+@click.option("--group", "-g", required=True, help="Name der Telegram-Gruppe")
+@click.option("--limit", "-l", type=int, help="Maximale Anzahl an Dateien zum Herunterladen")
+@click.option("--output", "-o", type=click.Path(), help="Ausgabeverzeichnis")
+@click.option("--parallel", "-p", type=int, default=1, help="Anzahl paralleler Downloads (im Lite-Modus begrenzt)")
+@click.option("--no-db", is_flag=True, help="Deaktiviert die Datenbank (speichert keine Download-Historie)")
+@click.option("--no-metadata", is_flag=True, help="Deaktiviert die Metadaten-Extraktion")
+@click.pass_context
+@log_function_call
+def download_lite(ctx, group: str, limit: Optional[int], output: Optional[str], parallel: int, no_db: bool, no_metadata: bool):
+    """Lädt Audiodateien im Lite-Modus herunter (vereinfachte Version ohne fortgeschrittene Funktionen)."""
+    config = ctx.obj.get("CONFIG")
+    
+    # Verwende Konfigurationswerte falls nicht über CLI angegeben
+    if output is None:
+        output = config.download_dir
+    
+    if not check_env():
+        sys.exit(1)
+    
+    # Validierung der Gruppenparameter
+    if not group or not group.strip():
+        error = ConfigurationError("Gruppenname darf nicht leer sein")
+        handle_error(error, "download_lite_group_validation", exit_on_error=True)
+        return
+    
+    # Validierung des Limit-Parameters
+    if limit is not None and limit <= 0:
+        error = ConfigurationError("Limit muss eine positive Zahl sein")
+        handle_error(error, "download_lite_limit_validation", exit_on_error=True)
+        return
+
+    # Ausgabeverzeichnis erstellen
+    try:
+        output_path = Path(output) if output else Path(config.download_dir)
+        output_path.mkdir(parents=True, exist_ok=True)
+    except Exception as e:
+        error = ConfigurationError(f"Fehler beim Erstellen des Ausgabeverzeichnisses: {e}")
+        handle_error(error, "download_lite_output_dir", exit_on_error=True)
+        return
+
+    # Downloader initialisieren mit reduzierten Funktionen
+    downloader = AudioDownloader(
+        download_dir=str(output_path), 
+        max_concurrent_downloads=min(parallel, 1),  # Im Lite-Modus max. 1 paralleler Download
+        config=config
+    )
+    
+    console.print(f"[blue]Lite-Modus aktiviert[/blue]")
+    console.print(f"[blue]Parallele Downloads:[/blue] {min(parallel, 1)}")
+    if no_db:
+        console.print(f"[yellow]Datenbank deaktiviert[/yellow]")
+    if no_metadata:
+        console.print(f"[yellow]Metadaten-Extraktion deaktiviert[/yellow]")
+
+    try:
+        # Herunterladen starten
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            transient=True,
+        ) as progress:
+            task = progress.add_task("Verbinde mit Telegram...", total=None)
+
+            async def run_download():
+                logger = ctx.obj.get("LOGGER", get_logger())
+                
+                # Hole die letzte verarbeitete Nachrichten-ID für diese Gruppe
+                last_message_id = await downloader.get_last_message_id(group) if not no_db else None
+                if last_message_id and not no_db:
+                    console.print(f"[blue]Fortsetzen ab Nachrichten-ID:[/blue] {last_message_id}")
+                
+                # Herunterladen starten
+                downloaded_count = await downloader.download_audio_files_lite(
+                    group, limit=limit, last_message_id=last_message_id, 
+                    no_db=no_db, no_metadata=no_metadata
+                )
+                
+                console.print(f"[green]Download abgeschlossen![/green] {downloaded_count} Dateien heruntergeladen.")
+                
+                # Zeige eine Zusammenfassung der Downloads an
+                await show_download_summary(downloaded_count)
+
+            # Run the async download
+            asyncio.run(run_download())
+    except Exception as e:
+        error = DownloadError(f"Unerwarteter Fehler beim Herunterladen: {e}")
+        handle_error(error, "download_lite", exit_on_error=True)
 
 
 def check_env() -> bool:

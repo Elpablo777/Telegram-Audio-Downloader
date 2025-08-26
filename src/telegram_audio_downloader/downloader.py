@@ -21,7 +21,7 @@ from telethon.tl.types import (
 )
 from tqdm import tqdm
 
-from .models import AudioFile, TelegramGroup, DownloadStatus
+from .models import AudioFile, TelegramGroup, DownloadStatus, GroupProgress
 from .config import Config
 from .logging_config import get_logger, get_error_tracker
 from .error_handling import handle_error, SecurityError
@@ -113,7 +113,7 @@ class AudioDownloader:
     """Hauptklasse zum Herunterladen von Audiodateien aus Telegram-Gruppen."""
 
     def __init__(
-        self, download_dir: str = "downloads", max_concurrent_downloads: int = 3
+        self, download_dir: str = "downloads", max_concurrent_downloads: int = 3, config: Config = None
     ):
         """
         Initialisiert den AudioDownloader.
@@ -121,11 +121,13 @@ class AudioDownloader:
         Args:
             download_dir: Verzeichnis, in das die Audiodateien heruntergeladen werden sollen
             max_concurrent_downloads: Maximale Anzahl paralleler Downloads
+            config: Konfigurationsobjekt
         """
         self.client: Optional[TelegramClient] = None
         self.download_dir = Path(download_dir)
         self.download_dir.mkdir(parents=True, exist_ok=True)
         self.max_concurrent_downloads = max_concurrent_downloads
+        self.config = config or Config()  # Verwende die übergebene Konfiguration oder eine Standardkonfiguration
         
         # Initialisiere die intelligente Warteschlange
         self.download_queue = IntelligentQueue(max_concurrent_downloads)
@@ -203,7 +205,23 @@ class AudioDownloader:
             raise error
 
         try:
-            self.client = TelegramClient(session_name, int(api_id), api_hash)
+            # Erstelle die Proxy-Konfiguration, falls vorhanden
+            proxy_config = None
+            if self.config.proxy_type and self.config.proxy_host and self.config.proxy_port:
+                proxy_config = {
+                    'proxy_type': self.config.proxy_type,
+                    'addr': self.config.proxy_host,
+                    'port': self.config.proxy_port,
+                    'username': self.config.proxy_username or None,
+                    'password': self.config.proxy_password or None,
+                }
+            
+            self.client = TelegramClient(
+                session_name, 
+                int(api_id), 
+                api_hash,
+                proxy=proxy_config
+            )
             await self.client.start()
             logger.info("Telegram-Client erfolgreich initialisiert")
         except Exception as e:
@@ -305,14 +323,18 @@ class AudioDownloader:
             raise error
 
     async def download_audio_files(
-        self, group_name: str, limit: Optional[int] = None
-    ) -> None:
+        self, group_name: str, limit: Optional[int] = None, last_message_id: Optional[int] = None
+    ) -> int:
         """
         Lädt alle Audiodateien aus der angegebenen Gruppe herunter (parallel).
 
         Args:
             group_name: Name oder ID der Telegram-Gruppe
             limit: Maximale Anzahl der zu verarbeitenden Nachrichten (optional)
+            last_message_id: Letzte verarbeitete Nachrichten-ID (optional)
+            
+        Returns:
+            Anzahl der heruntergeladenen Dateien
         """
         if not self.client:
             await self.initialize_client()
@@ -337,7 +359,13 @@ class AudioDownloader:
             logger.info("Sammle Audiodateien...")
             audio_messages = []
 
-            async for message in self.client.iter_messages(group_entity, limit=limit):
+            # Erstelle die Iterationsparameter
+            iter_params = {"limit": limit}
+            if last_message_id:
+                # Verwende min_id, um nur Nachrichten nach der letzten ID zu verarbeiten
+                iter_params["min_id"] = last_message_id
+
+            async for message in self.client.iter_messages(group_entity, **iter_params):
                 if not hasattr(message, "media") or not isinstance(
                     message.media, MessageMediaDocument
                 ):
@@ -356,6 +384,9 @@ class AudioDownloader:
                     continue
 
                 audio_messages.append((message, document, group))
+                
+                # Speichere die aktuelle Nachrichten-ID für die Fortsetzung
+                await self.save_last_message_id(group_entity.id, message.id)
 
             logger.info(f"{len(audio_messages)} neue Audiodateien gefunden")
             self.total_downloads = len(audio_messages)
@@ -365,7 +396,7 @@ class AudioDownloader:
 
             if not audio_messages:
                 logger.info("Keine neuen Audiodateien zum Herunterladen gefunden")
-                return
+                return 0
 
             # Parallele Downloads starten
             download_tasks = [
@@ -381,37 +412,34 @@ class AudioDownloader:
                 asyncio.create_task(self.prefetch_manager.start_prefetching(self))
 
             # Ergebnisse auswerten
+            successful_downloads = 0
+            failed_downloads = 0
             for result in results:
                 if isinstance(result, Exception):
                     logger.error(f"Download-Fehler: {result}")
-                    self.failed_downloads += 1
+                    failed_downloads += 1
                 else:
-                    self.successful_downloads += 1
+                    successful_downloads += 1
 
             logger.info(
-                f"Downloads abgeschlossen: {self.successful_downloads} erfolgreich, "
-                f"{self.failed_downloads} fehlgeschlagen"
+                f"Downloads abgeschlossen: {successful_downloads} erfolgreich, "
+                f"{failed_downloads} fehlgeschlagen"
             )
 
             # Sende Systembenachrichtigung über abgeschlossene Downloads
-            if self.successful_downloads > 0 or self.failed_downloads > 0:
+            if successful_downloads > 0 or failed_downloads > 0:
                 send_system_notification(
                     title="Telegram Audio Downloader",
-                    message=f"Downloads abgeschlossen: {self.successful_downloads} erfolgreich, {self.failed_downloads} fehlgeschlagen",
-                    timeout=5000
+                    message=f"Downloads abgeschlossen: {successful_downloads} erfolgreich, {failed_downloads} fehlgeschlagen",
+                    notification_type="info"
                 )
 
+            return successful_downloads
+
         except Exception as e:
-            logger.error(
-                f"Fehler beim Herunterladen der Audiodateien: {e}", exc_info=True
-            )
-            # Sende Fehlerbenachrichtigung
-            send_system_notification(
-                title="Download-Fehler",
-                message=f"Fehler beim Herunterladen: {str(e)}",
-                timeout=5000
-            )
-            raise
+            error = DownloadError(f"Fehler beim Herunterladen von Audiodateien: {e}")
+            handle_error(error, "download_audio_files")
+            raise error
 
     async def _download_audio_concurrent(
         self, message: Message, document: Document, group: TelegramGroup
@@ -1400,3 +1428,186 @@ class AudioDownloader:
                 f"Download von {file_name} beendet",
                 "low"
             )
+
+    async def get_last_message_id(self, group_id: int) -> Optional[int]:
+        """
+        Gibt die letzte verarbeitete Nachrichten-ID für eine Gruppe zurück.
+        
+        Args:
+            group_id: ID der Telegram-Gruppe
+            
+        Returns:
+            Letzte verarbeitete Nachrichten-ID oder None
+        """
+        try:
+            progress = GroupProgress.get_or_none(GroupProgress.group == group_id)
+            return progress.last_message_id if progress else None
+        except Exception as e:
+            logger.warning(f"Fehler beim Abrufen der letzten Nachrichten-ID für Gruppe {group_id}: {e}")
+            return None
+    
+    async def save_last_message_id(self, group_id: int, message_id: int) -> None:
+        """
+        Speichert die letzte verarbeitete Nachrichten-ID für eine Gruppe.
+        
+        Args:
+            group_id: ID der Telegram-Gruppe
+            message_id: Letzte verarbeitete Nachrichten-ID
+        """
+        try:
+            # Gruppe erstellen oder abrufen
+            group, _ = TelegramGroup.get_or_create(
+                group_id=group_id,
+                defaults={'title': f'Group {group_id}'}
+            )
+            
+            # Fortschritt aktualisieren
+            GroupProgress.insert(
+                group=group,
+                last_message_id=message_id
+            ).on_conflict(
+                conflict_target=[GroupProgress.group],
+                update={GroupProgress.last_message_id: message_id}
+            ).execute()
+            
+            logger.debug(f"Letzte Nachrichten-ID {message_id} für Gruppe {group_id} gespeichert")
+        except Exception as e:
+            logger.error(f"Fehler beim Speichern der letzten Nachrichten-ID für Gruppe {group_id}: {e}")
+
+    async def download_audio_files_lite(
+        self, group_name: str, limit: Optional[int] = None, last_message_id: Optional[int] = None,
+        no_db: bool = False, no_metadata: bool = False
+    ) -> int:
+        """
+        Lädt Audiodateien im Lite-Modus herunter (vereinfachte Version ohne fortgeschrittene Funktionen).
+
+        Args:
+            group_name: Name oder ID der Telegram-Gruppe
+            limit: Maximale Anzahl der zu verarbeitenden Nachrichten (optional)
+            last_message_id: Letzte verarbeitete Nachrichten-ID (optional)
+            no_db: Deaktiviert die Datenbank (speichert keine Download-Historie)
+            no_metadata: Deaktiviert die Metadaten-Extraktion
+            
+        Returns:
+            Anzahl der heruntergeladenen Dateien
+        """
+        if not self.client:
+            await self.initialize_client()
+
+        try:
+            # Gruppe abrufen
+            group_entity = await self.client.get_entity(group_name)
+            logger.info(
+                f"Gruppe gefunden: {group_entity.title} (ID: {group_entity.id})"
+            )
+
+            # Nachrichten abrufen
+            logger.info("Sammle Audiodateien...")
+            audio_messages = []
+
+            # Erstelle die Iterationsparameter
+            iter_params = {"limit": limit}
+            if last_message_id:
+                # Verwende min_id, um nur Nachrichten nach der letzten ID zu verarbeiten
+                iter_params["min_id"] = last_message_id
+
+            async for message in self.client.iter_messages(group_entity, **iter_params):
+                if not hasattr(message, "media") or not isinstance(
+                    message.media, MessageMediaDocument
+                ):
+                    continue
+
+                document = message.media.document
+                if not document:
+                    continue
+
+                # Im Lite-Modus überprüfen wir nur die Dateiendung
+                file_ext = Path(document.mime_type or "").suffix.lower()
+                if file_ext not in [".mp3", ".m4a", ".flac", ".ogg", ".wav"]:
+                    continue
+
+                # Im Lite-Modus überspringen wir keine bereits heruntergeladenen Dateien
+                # (es sei denn, die Datenbank ist aktiv)
+                if not no_db:
+                    file_id = str(document.id)
+                    if file_id in self._downloaded_files_cache:
+                        logger.debug(
+                            f"Überspringe bereits heruntergeladene Datei: {file_id}"
+                        )
+                        continue
+
+                audio_messages.append((message, document, group_entity))
+                
+                # Speichere die aktuelle Nachrichten-ID für die Fortsetzung
+                if not no_db:
+                    await self.save_last_message_id(group_entity.id, message.id)
+
+            logger.info(f"{len(audio_messages)} Audiodateien gefunden")
+            self.total_downloads = len(audio_messages)
+
+            if not audio_messages:
+                logger.info("Keine Audiodateien zum Herunterladen gefunden")
+                return 0
+
+            # Einfache Downloads starten (nur 1 paralleler Download im Lite-Modus)
+            successful_downloads = 0
+            failed_downloads = 0
+            
+            for message, document, group_entity in audio_messages:
+                try:
+                    # Einfache Datei-Informationen extrahieren
+                    if no_metadata:
+                        # Minimaler Dateiname
+                        file_name = f"audio_{document.id}{Path(document.mime_type or '.mp3').suffix}"
+                    else:
+                        # Einfache Metadaten-Extraktion
+                        file_name = self._extract_simple_filename(document)
+                    
+                    # Einfacher Download
+                    file_path = self.download_dir / file_name
+                    await self.client.download_media(message, file_path)
+                    
+                    # In den Cache aufnehmen, falls die Datenbank aktiv ist
+                    if not no_db:
+                        self._downloaded_files_cache.put(str(document.id), True)
+                    
+                    successful_downloads += 1
+                    logger.info(f"Heruntergeladen: {file_name}")
+                    
+                except Exception as e:
+                    failed_downloads += 1
+                    logger.error(f"Fehler beim Herunterladen von Nachricht {message.id}: {e}")
+
+            logger.info(
+                f"Lite-Downloads abgeschlossen: {successful_downloads} erfolgreich, "
+                f"{failed_downloads} fehlgeschlagen"
+            )
+
+            return successful_downloads
+
+        except Exception as e:
+            error = DownloadError(f"Fehler beim Herunterladen von Audiodateien im Lite-Modus: {e}")
+            handle_error(error, "download_audio_files_lite")
+            raise error
+    
+    def _extract_simple_filename(self, document: Document) -> str:
+        """
+        Extrahiert einen einfachen Dateinamen aus einem Dokument.
+        
+        Args:
+            document: Telegram-Dokument
+            
+        Returns:
+            Einfacher Dateiname
+        """
+        try:
+            # Verwende die Dateiendung aus dem MIME-Type
+            file_ext = Path(document.mime_type or ".mp3").suffix.lower()
+            if not file_ext or file_ext not in [".mp3", ".m4a", ".flac", ".ogg", ".wav"]:
+                file_ext = ".mp3"
+            
+            # Einfacher Dateiname
+            return f"audio_{document.id}{file_ext}"
+        except Exception:
+            # Fallback-Dateiname
+            return f"audio_{int(time.time())}.mp3"
