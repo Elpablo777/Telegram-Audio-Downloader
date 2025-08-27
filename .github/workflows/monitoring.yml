@@ -319,7 +319,8 @@ jobs:
     needs: health-check
     if: always()
     outputs:
-      quality_degraded: ${{ steps.analyze.outputs.quality_degraded }}
+      degraded: ${{ steps.analyze.outputs.degraded }}
+      score_trend: ${{ steps.analyze.outputs.score_trend }}
     
     steps:
     - name: 📥 Checkout Code
@@ -374,12 +375,13 @@ jobs:
         # Check for degradation
         quality_degraded = score_trend < -5
         print(f'Quality Degraded: {quality_degraded}')
-        print(f'::set-output name=quality_degraded::{str(quality_degraded).lower()}')
+        print(f'::set-output name=degraded::{str(quality_degraded).lower()}')
+        print(f'::set-output name=score_trend::{score_trend}')
         print(f'quality_degraded={str(quality_degraded).lower()}')
         "
         
     - name: 🚨 Alert on Quality Degradation
-      if: needs.quality-trends.outputs.quality_degraded == 'true' && github.event_name != 'pull_request'
+      if: needs.quality-trends.outputs.degraded == 'true' && github.event_name != 'pull_request'
       uses: actions/github-script@v7
       with:
         script: |
@@ -413,9 +415,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: [health-check, quality-trends]
     if: always()
-    # Ensure quality-trends job completes successfully
     env:
-      QUALITY_DEGRADED: ${{ needs['quality-trends'].outputs.quality_degraded || 'false' }}
+      # Access job outputs safely
+      QUALITY_DEGRADED: ${{ needs['quality-trends'].outputs.degraded || 'false' }}
+      SCORE_TREND: ${{ needs['quality-trends'].outputs.score_trend || '0' }}
     
     steps:
     - name: 📊 Determine Notification Status  
@@ -457,7 +460,7 @@ jobs:
         fi
         
     - name: 📧 Send Notification
-      if: (steps.check_health.outputs.HEALTH_STATUS == 'CRITICAL' || steps.check_health.outputs.HEALTH_STATUS == 'WARNING') || (needs['quality-trends'].result == 'success' && needs['quality-trends'].outputs.quality_degraded == 'true')
+      if: (steps.check_health.outputs.HEALTH_STATUS == 'CRITICAL' || steps.check_health.outputs.HEALTH_STATUS == 'WARNING') || env.QUALITY_DEGRADED == 'true'
       env:
         NOTIFICATION_LEVEL: ${{ steps.check_health.outputs.HEALTH_STATUS == 'CRITICAL' && 'critical' || 'warning' }}
       run: |
