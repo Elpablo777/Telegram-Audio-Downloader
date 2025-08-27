@@ -4,6 +4,7 @@ Kommandozeilenschnittstelle für den Telegram Audio Downloader.
 
 import asyncio
 import os
+import subprocess
 import sys
 import time
 from datetime import datetime
@@ -223,10 +224,24 @@ def download(ctx, group: str, limit: Optional[int], output: Optional[str], paral
             async def run_download():
                 logger = ctx.obj.get("LOGGER", get_logger())
                 
+                # Sicherstellen, dass der Client initialisiert wurde
+                if not downloader.client:
+                    await downloader.initialize_client()
+                
                 # Hole die letzte verarbeitete Nachrichten-ID für diese Gruppe
-                last_message_id = await downloader.get_last_message_id(group)
-                if last_message_id:
-                    console.print(f"[blue]Fortsetzen ab Nachrichten-ID:[/blue] {last_message_id}")
+                last_message_id = None
+                try:
+                    # Prüfe, ob der Client initialisiert wurde
+                    if downloader.client:
+                        group_entity = await downloader.client.get_entity(group)
+                        group_id = getattr(group_entity, 'id', 0)
+                        # Konvertiere group_id zu int falls es ein String ist
+                        group_id_int = int(group_id) if not isinstance(group_id, int) else group_id
+                        last_message_id = await downloader.get_last_message_id(group_id_int)
+                        if last_message_id:
+                            console.print(f"[blue]Fortsetzen ab Nachrichten-ID:[/blue] {last_message_id}")
+                except Exception:
+                    last_message_id = None
                 
                 # Herunterladen starten
                 downloaded_count = await downloader.download_audio_files(
@@ -236,7 +251,15 @@ def download(ctx, group: str, limit: Optional[int], output: Optional[str], paral
                 console.print(f"[green]Download abgeschlossen![/green] {downloaded_count} Dateien heruntergeladen.")
                 
                 # Zeige eine Zusammenfassung der Downloads an
-                await show_download_summary(downloaded_count)
+                stats = {
+                    "total_files": downloaded_count,
+                    "successful_downloads": downloaded_count,
+                    "failed_downloads": 0,
+                    "total_size": "Unbekannt",
+                    "duration": "Unbekannt",
+                    "avg_speed": "Unbekannt"
+                }
+                show_download_summary(stats)
 
             # Run the async download
             asyncio.run(run_download())
@@ -259,9 +282,6 @@ def download(ctx, group: str, limit: Optional[int], output: Optional[str], paral
 def search(ctx, query: str, group: Optional[str], limit: int):
     """Durchsucht heruntergeladene Audiodateien."""
     try:
-        config = ctx.obj["CONFIG"]
-        console_obj = ctx.obj["console"]
-        
         # Durchsuche die Datenbank
         # Verwende die richtige Funktion
         from .search import search_downloaded_files
@@ -272,7 +292,7 @@ def search(ctx, query: str, group: Optional[str], limit: int):
             results = results[:limit]
         
         if not results:
-            console_obj.print("[yellow]Keine Dateien gefunden.[/yellow]")
+            console.print("[yellow]Keine Dateien gefunden.[/yellow]")
             return
         
         # Erstelle eine Tabelle zur Anzeige der Ergebnisse
@@ -324,8 +344,8 @@ def search(ctx, query: str, group: Optional[str], limit: int):
             
             table.add_row(*row_data)
         
-        console_obj.print(table)
-        console_obj.print(f"[dim]{len(results)} Dateien gefunden[/dim]")
+        console.print(table)
+        console.print(f"[dim]{len(results)} Dateien gefunden[/dim]")
         
     except Exception as e:
         handle_error(e, "search", exit_on_error=True)
@@ -337,15 +357,20 @@ def search(ctx, query: str, group: Optional[str], limit: int):
 def history(ctx):
     """Zeigt die Download-Historie an."""
     try:
-        config = ctx.obj["CONFIG"]
-        console_obj = ctx.obj["console"]
-        
         # Hole die Download-Historie aus der Datenbank
         from .models import DownloadStatus
-        history = AudioFile.select().order_by(AudioFile.downloaded_at.desc()).limit(20)
+        # Verwende eine einfache Abfrage ohne komplexe Sortierung
+        history = AudioFile.select()
         
-        if not history:
-            console_obj.print("[yellow]Keine Downloads in der Historie.[/yellow]")
+        # Filtere die Ergebnisse manuell, um nur Dateien mit downloaded_at zu berücksichtigen
+        history_list = [file for file in history if file.downloaded_at is not None]
+        # Sortiere manuell nach downloaded_at
+        history_list.sort(key=lambda x: x.downloaded_at or datetime.min, reverse=True)
+        # Begrenze auf 20 Einträge
+        history_list = history_list[:20]
+        
+        if not history_list:
+            console.print("[yellow]Keine Downloads in der Historie.[/yellow]")
             return
         
         # Erstelle eine Tabelle zur Anzeige der Historie
@@ -360,7 +385,7 @@ def history(ctx):
         table.add_column("Gruppe", style="blue")
         table.add_column("Heruntergeladen am", style="dim")
         
-        for file in history:
+        for file in history_list:
             # Dateigröße formatieren
             size_mb = file.file_size / (1024 * 1024)
             size_str = f"{size_mb:.1f} MB"
@@ -388,13 +413,13 @@ def history(ctx):
                 file.file_extension[1:].upper() if file.file_extension else "-",
                 file.checksum_md5[:8] + "..." if file.checksum_md5 else "-",
                 status_style,
-                file.group.title if file.group else "-",
+                file.group.title if file.group and file.group.title else "-",
                 downloaded_at_str
             ]
             
             table.add_row(*row_data)
         
-        console_obj.print(table)
+        console.print(table)
         
     except Exception as e:
         handle_error(e, "history", exit_on_error=True)
@@ -405,7 +430,6 @@ def history(ctx):
 def config(ctx):
     """Verwaltet die Konfiguration."""
     try:
-        config = ctx.obj["CONFIG"]
         ctx.obj["console"] = console
         
     except Exception as e:
@@ -419,12 +443,11 @@ def show(ctx):
     """Zeigt die aktuelle Konfiguration an."""
     try:
         config = ctx.obj["CONFIG"]
-        console_obj = ctx.obj["console"]
         
         config_data = config.to_dict()
-        console_obj.print("Aktuelle Konfiguration:")
+        console.print("Aktuelle Konfiguration:")
         for key, value in config_data.items():
-            console_obj.print(f"{key}: {value}")
+            console.print(f"{key}: {value}")
         
     except Exception as e:
         handle_error(e, "config_show", exit_on_error=True)
@@ -439,11 +462,10 @@ def set(ctx, key: str, value: str):
     """Setzt einen Konfigurationswert."""
     try:
         config = ctx.obj["CONFIG"]
-        console_obj = ctx.obj["console"]
         
         config.set(key, value)
         config.save()
-        console_obj.print(f"[green]Konfigurationswert '{key}' auf '{value}' gesetzt[/green]")
+        console.print(f"[green]Konfigurationswert '{key}' auf '{value}' gesetzt[/green]")
         
     except Exception as e:
         handle_error(e, "config_set", exit_on_error=True)
@@ -461,7 +483,6 @@ def batch_add(ctx, group: str, limit: Optional[int], output: Optional[str], para
     """Fügt einen Download-Auftrag zur Batch-Verarbeitung hinzu."""
     try:
         config = ctx.obj["CONFIG"]
-        console_obj = ctx.obj["console"]
         
         # Erstelle einen Batch-Item
         batch_item = BatchItem(
@@ -479,15 +500,15 @@ def batch_add(ctx, group: str, limit: Optional[int], output: Optional[str], para
             ctx.obj["batch_queue"] = []
         ctx.obj["batch_queue"].append(batch_item)
         
-        console_obj.print(f"[green]Batch-Auftrag {batch_item.id} zur Warteschlange hinzugefügt[/green]")
-        console_obj.print(f"  Gruppe: {group}")
-        console_obj.print(f"  Priorität: {priority}")
+        console.print(f"[green]Batch-Auftrag {batch_item.id} zur Warteschlange hinzugefügt[/green]")
+        console.print(f"  Gruppe: {group}")
+        console.print(f"  Priorität: {priority}")
         if limit:
-            console_obj.print(f"  Limit: {limit}")
+            console.print(f"  Limit: {limit}")
         if output:
-            console_obj.print(f"  Ausgabeverzeichnis: {output}")
+            console.print(f"  Ausgabeverzeichnis: {output}")
         if parallel:
-            console_obj.print(f"  Parallele Downloads: {parallel}")
+            console.print(f"  Parallele Downloads: {parallel}")
             
     except Exception as e:
         error = ConfigurationError(f"Fehler beim Hinzufügen des Batch-Auftrags: {e}")
@@ -502,12 +523,11 @@ def batch_process(ctx, max_concurrent: int):
     """Verarbeitet alle Batch-Aufträge in der Warteschlange."""
     try:
         config = ctx.obj["CONFIG"]
-        console_obj = ctx.obj["console"]
         logger = ctx.obj["LOGGER"]
         
         # Prüfe, ob Batch-Aufträge vorhanden sind
         if "batch_queue" not in ctx.obj or not ctx.obj["batch_queue"]:
-            console_obj.print("[yellow]Keine Batch-Aufträge in der Warteschlange[/yellow]")
+            console.print("[yellow]Keine Batch-Aufträge in der Warteschlange[/yellow]")
             return
         
         # Erstelle den Batch-Prozessor
@@ -526,16 +546,16 @@ def batch_process(ctx, max_concurrent: int):
             await downloader.download_audio_files(group, limit)
         
         # Verarbeite die Batch-Aufträge
-        console_obj.print(f"[blue]Starte Batch-Verarbeitung mit {len(ctx.obj['batch_queue'])} Aufträgen[/blue]")
+        console.print(f"[blue]Starte Batch-Verarbeitung mit {len(ctx.obj['batch_queue'])} Aufträgen[/blue]")
         asyncio.run(batch_processor.process_batches(download_function))
         
         # Zeige eine Zusammenfassung
         progress = batch_processor.get_progress()
-        console_obj.print("[bold blue]Batch-Verarbeitung abgeschlossen[/bold blue]")
-        console_obj.print(f"  Gesamt: {progress['total_items']}")
-        console_obj.print(f"  Abgeschlossen: {progress['completed_items']}")
-        console_obj.print(f"  Fehlgeschlagen: {progress['failed_items']}")
-        console_obj.print(f"  Gesamtfortschritt: {progress['overall_progress']:.2%}")
+        console.print("[bold blue]Batch-Verarbeitung abgeschlossen[/bold blue]")
+        console.print(f"  Gesamt: {progress['total_items']}")
+        console.print(f"  Abgeschlossen: {progress['completed_items']}")
+        console.print(f"  Fehlgeschlagen: {progress['failed_items']}")
+        console.print(f"  Gesamtfortschritt: {progress['overall_progress']:.2%}")
         
         # Sende Benachrichtigung über abgeschlossene Batch-Verarbeitung
         try:
@@ -562,12 +582,9 @@ def batch_process(ctx, max_concurrent: int):
 def batch_list(ctx):
     """Listet alle Batch-Aufträge in der Warteschlange auf."""
     try:
-        console_obj = ctx.obj["console"]
-        logger = ctx.obj["LOGGER"]
-        
         # Prüfe, ob Batch-Aufträge vorhanden sind
         if "batch_queue" not in ctx.obj or not ctx.obj["batch_queue"]:
-            console_obj.print("[yellow]Keine Batch-Aufträge in der Warteschlange[/yellow]")
+            console.print("[yellow]Keine Batch-Aufträge in der Warteschlange[/yellow]")
             return
         
         # Erstelle eine Tabelle zur Anzeige der Batch-Aufträge
@@ -589,7 +606,7 @@ def batch_list(ctx):
                 str(item.parallel_downloads) if item.parallel_downloads else "Standard"
             )
         
-        console_obj.print(table)
+        console.print(table)
         
     except Exception as e:
         error = ConfigurationError(f"Fehler beim Auflisten der Batch-Aufträge: {e}")
@@ -604,7 +621,6 @@ def show_downloads(ctx, output: Optional[str]):
     """Zeigt das Download-Verzeichnis im Dateimanager an."""
     try:
         config = ctx.obj["CONFIG"]
-        console_obj = ctx.obj["console"]
         logger = ctx.obj["LOGGER"]
         
         # Bestimme das Download-Verzeichnis
@@ -615,11 +631,11 @@ def show_downloads(ctx, output: Optional[str]):
         
         # Prüfe, ob das Verzeichnis existiert
         if not download_dir.exists():
-            console_obj.print(f"[yellow]Download-Verzeichnis {download_dir} existiert nicht[/yellow]")
+            console.print(f"[yellow]Download-Verzeichnis {download_dir} existiert nicht[/yellow]")
             # Frage den Benutzer, ob er das Verzeichnis erstellen möchte
             if click.confirm("Soll das Verzeichnis erstellt werden?"):
                 download_dir.mkdir(parents=True, exist_ok=True)
-                console_obj.print(f"[green]Download-Verzeichnis {download_dir} erstellt[/green]")
+                console.print(f"[green]Download-Verzeichnis {download_dir} erstellt[/green]")
             else:
                 return
         
@@ -628,12 +644,18 @@ def show_downloads(ctx, output: Optional[str]):
         
         # Erstelle einen temporären Downloader, um die Funktion zu verwenden
         downloader = AudioDownloader(download_dir=str(download_dir))
-        result = downloader.show_downloads_in_file_manager()
         
-        if result:
-            console_obj.print(f"[green]Download-Verzeichnis {download_dir} im Dateimanager geöffnet[/green]")
-        else:
-            console_obj.print(f"[red]Fehler beim Öffnen des Download-Verzeichnisses {download_dir}[/red]")
+        # Zeige das Verzeichnis im Dateimanager an
+        try:
+            if sys.platform == "win32":
+                os.startfile(download_dir)
+            elif sys.platform == "darwin":
+                subprocess.run(["open", download_dir])
+            else:
+                subprocess.run(["xdg-open", download_dir])
+            console.print(f"[green]Download-Verzeichnis {download_dir} im Dateimanager geöffnet[/green]")
+        except Exception as e:
+            console.print(f"[red]Fehler beim Öffnen des Download-Verzeichnisses {download_dir}: {e}[/red]")
             
     except Exception as e:
         error = ConfigurationError(f"Fehler beim Öffnen des Download-Verzeichnisses: {e}")
@@ -645,11 +667,9 @@ def show_downloads(ctx, output: Optional[str]):
 @click.option("--limit", "-l", type=int, help="Maximale Anzahl an Dateien zum Herunterladen")
 @click.option("--output", "-o", type=click.Path(), help="Ausgabeverzeichnis")
 @click.option("--parallel", "-p", type=int, default=1, help="Anzahl paralleler Downloads (im Lite-Modus begrenzt)")
-@click.option("--no-db", is_flag=True, help="Deaktiviert die Datenbank (speichert keine Download-Historie)")
-@click.option("--no-metadata", is_flag=True, help="Deaktiviert die Metadaten-Extraktion")
 @click.pass_context
 @log_function_call
-def download_lite(ctx, group: str, limit: Optional[int], output: Optional[str], parallel: int, no_db: bool, no_metadata: bool):
+def download_lite(ctx, group: str, limit: Optional[int], output: Optional[str], parallel: int):
     """Lädt Audiodateien im Lite-Modus herunter (vereinfachte Version ohne fortgeschrittene Funktionen)."""
     config = ctx.obj.get("CONFIG")
     
@@ -690,10 +710,6 @@ def download_lite(ctx, group: str, limit: Optional[int], output: Optional[str], 
     
     console.print(f"[blue]Lite-Modus aktiviert[/blue]")
     console.print(f"[blue]Parallele Downloads:[/blue] {min(parallel, 1)}")
-    if no_db:
-        console.print(f"[yellow]Datenbank deaktiviert[/yellow]")
-    if no_metadata:
-        console.print(f"[yellow]Metadaten-Extraktion deaktiviert[/yellow]")
 
     try:
         # Herunterladen starten
@@ -708,20 +724,37 @@ def download_lite(ctx, group: str, limit: Optional[int], output: Optional[str], 
                 logger = ctx.obj.get("LOGGER", get_logger())
                 
                 # Hole die letzte verarbeitete Nachrichten-ID für diese Gruppe
-                last_message_id = await downloader.get_last_message_id(group) if not no_db else None
-                if last_message_id and not no_db:
-                    console.print(f"[blue]Fortsetzen ab Nachrichten-ID:[/blue] {last_message_id}")
+                last_message_id = None
+                try:
+                    # Prüfe, ob der Client initialisiert wurde
+                    if downloader.client:
+                        group_entity = await downloader.client.get_entity(group)
+                        group_id = getattr(group_entity, 'id', 0)
+                        # Konvertiere group_id zu int falls es ein String ist
+                        group_id_int = int(group_id) if not isinstance(group_id, int) else group_id
+                        last_message_id = await downloader.get_last_message_id(group_id_int)
+                        if last_message_id:
+                            console.print(f"[blue]Fortsetzen ab Nachrichten-ID:[/blue] {last_message_id}")
+                except Exception:
+                    last_message_id = None
                 
                 # Herunterladen starten
                 downloaded_count = await downloader.download_audio_files_lite(
-                    group, limit=limit, last_message_id=last_message_id, 
-                    no_db=no_db, no_metadata=no_metadata
+                    group, limit=limit
                 )
                 
                 console.print(f"[green]Download abgeschlossen![/green] {downloaded_count} Dateien heruntergeladen.")
                 
                 # Zeige eine Zusammenfassung der Downloads an
-                await show_download_summary(downloaded_count)
+                stats = {
+                    "total_files": downloaded_count,
+                    "successful_downloads": downloaded_count,
+                    "failed_downloads": 0,
+                    "total_size": "Unbekannt",
+                    "duration": "Unbekannt",
+                    "avg_speed": "Unbekannt"
+                }
+                show_download_summary(stats)
 
             # Run the async download
             asyncio.run(run_download())

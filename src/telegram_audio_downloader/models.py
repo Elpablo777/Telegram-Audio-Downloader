@@ -27,15 +27,12 @@ db = SqliteDatabase(None)  # Wird später initialisiert
 class BaseModel(Model):
     """Basisklasse für alle Modelle mit gemeinsamen Feldern."""
 
-    created_at: DateTimeField = DateTimeField(default=datetime.now)
-    updated_at: DateTimeField = DateTimeField(default=datetime.now)
+    created_at = DateTimeField(default=datetime.now)
+    updated_at = DateTimeField(default=datetime.now)
 
     def save(self, *args: Any, **kwargs: Any) -> Any:
         self.updated_at = datetime.now()
         return super().save(*args, **kwargs)
-
-    class Meta:
-        database = db
 
 
 class DownloadStatus(Enum):
@@ -51,98 +48,154 @@ class DownloadStatus(Enum):
 class TelegramGroup(BaseModel):
     """Modell für eine Telegram-Gruppe."""
 
-    group_id: IntegerField = IntegerField(unique=True)
-    title: CharField = CharField(max_length=255)
-    username: Optional[CharField] = CharField(max_length=255, null=True)
-    last_checked: Optional[DateTimeField] = DateTimeField(null=True)
+    group_id = IntegerField(unique=True)
+    title = CharField(max_length=255)
+    username = CharField(max_length=255, null=True)
+    last_checked = DateTimeField(null=True)
 
     class Meta:
         table_name = "telegram_groups"
+        database = db
 
 
 class GroupProgress(BaseModel):
     """Modell für den Fortschritt einer Gruppe (letzte verarbeitete Nachrichten-ID)."""
 
-    group: ForeignKeyField = ForeignKeyField(TelegramGroup, backref='progress', on_delete='CASCADE')
-    last_message_id: IntegerField = IntegerField()
-    updated_at: DateTimeField = DateTimeField(default=datetime.now)
+    group_id = IntegerField(unique=True)  # Direktes Feld statt ForeignKey
+    group_title = CharField(max_length=255, null=True)
+    group_username = CharField(max_length=255, null=True)
+    last_message_id = IntegerField()
+    last_updated = DateTimeField(default=datetime.now)
 
     class Meta:
         table_name = "group_progress"
+        database = db
         indexes = (
-            (('group',), True),  # Eindeutiger Index für group
+            (('group_id',), True),  # Eindeutiger Index für group_id
         )
 
 
 class AudioFile(BaseModel):
     """Modell für eine Audiodatei mit speichereffizienten Methoden."""
 
-    file_id: CharField = CharField(max_length=255, unique=True)
-    file_unique_id: CharField = CharField(max_length=255, null=True)  # Hinzugefügtes Feld
-    file_name: CharField = CharField(max_length=510)  # Vergrößert auf 510
-    file_size: IntegerField = IntegerField()
-    mime_type: CharField = CharField(max_length=100, null=True)
-    duration: IntegerField = IntegerField(null=True)
-    title: CharField = CharField(max_length=255, null=True)
-    performer: CharField = CharField(max_length=255, null=True)
-    album: CharField = CharField(max_length=255, null=True)
-    date: CharField = CharField(max_length=50, null=True)
-    genre: CharField = CharField(max_length=100, null=True)
-    composer: CharField = CharField(max_length=255, null=True)
-    track_number: CharField = CharField(max_length=10, null=True)
-    local_path: TextField = TextField(null=True)  # Hinzugefügtes Feld
-    status: CharField = CharField(max_length=20, default=DownloadStatus.PENDING.value)
-    error_message: TextField = TextField(null=True)
-    downloaded_at: DateTimeField = DateTimeField(null=True)
-    partial_file_path: TextField = TextField(null=True)  # Hinzugefügtes Feld
-    downloaded_bytes: IntegerField = IntegerField(default=0)
-    checksum_md5: CharField = CharField(max_length=32, null=True)  # Hinzugefügtes Feld
-    checksum_verified: BooleanField = BooleanField(default=False)  # Hinzugefügtes Feld
-    download_attempts: IntegerField = IntegerField(default=0)
-    last_attempt_at: DateTimeField = DateTimeField(null=True)
-    group: ForeignKeyField = ForeignKeyField(TelegramGroup, backref='audio_files', on_delete='CASCADE', null=True)  # null=True hinzugefügt
-    resume_offset: IntegerField = IntegerField(default=0)
-    resume_checksum: CharField = CharField(max_length=255, null=True)
-    message_id: IntegerField = IntegerField(null=True)
+    file_id = CharField(max_length=255, unique=True)
+    file_unique_id = CharField(max_length=255, null=True)  # Hinzugefügtes Feld
+    file_name = CharField(max_length=510)  # Vergrößert auf 510
+    file_size = IntegerField()
+    mime_type = CharField(max_length=100, null=True)
+    duration = IntegerField(null=True)
+    title = CharField(max_length=255, null=True)
+    performer = CharField(max_length=255, null=True)
+    album = CharField(max_length=255, null=True)
+    date = CharField(max_length=50, null=True)
+    genre = CharField(max_length=100, null=True)
+    composer = CharField(max_length=255, null=True)
+    track_number = CharField(max_length=10, null=True)
+    local_path = TextField(null=True)  # Hinzugefügtes Feld
+    status = CharField(max_length=20, default=DownloadStatus.PENDING.value)
+    error_message = TextField(null=True)
+    downloaded_at = DateTimeField(null=True)
+    partial_file_path = TextField(null=True)  # Hinzugefügtes Feld
+    downloaded_bytes = IntegerField(default=0)
+    checksum_md5 = CharField(max_length=32, null=True)  # Hinzugefügtes Feld
+    checksum_verified = BooleanField(default=False)  # Hinzugefügtes Feld
+    download_attempts = IntegerField(default=0)
+    last_attempt_at = DateTimeField(null=True)
+    group = ForeignKeyField(TelegramGroup, backref='audio_files', on_delete='CASCADE', null=True)  # null=True hinzugefügt
+    resume_offset = IntegerField(default=0)
+    resume_checksum = CharField(max_length=255, null=True)
+    message_id = IntegerField(null=True)
 
     class Meta:
         table_name = "audio_files"
+        database = db
 
     @property
     def file_extension(self) -> str:
         """Gibt die Dateiendung zurück."""
-        return Path(self.file_name).suffix.lower()
+        try:
+            # Verwende getattr für sicheren Zugriff
+            file_name = getattr(self, 'file_name', '')
+            return Path(str(file_name)).suffix.lower()
+        except Exception:
+            return ""
 
     @property
     def is_downloaded(self) -> bool:
         """Überprüft, ob die Datei heruntergeladen wurde."""
-        return self.status == DownloadStatus.COMPLETED.value and bool(self.local_path)
+        try:
+            status = getattr(self, 'status', '')
+            local_path = getattr(self, 'local_path', None)
+            return str(status) == DownloadStatus.COMPLETED.value and bool(local_path)
+        except Exception:
+            return False
 
     @property
     def is_partially_downloaded(self) -> bool:
         """Überprüft, ob die Datei teilweise heruntergeladen wurde."""
-        return (
-            self.downloaded_bytes > 0
-            and self.downloaded_bytes < self.file_size
-            and self.partial_file_path is not None
-        )
+        try:
+            downloaded_bytes = getattr(self, 'downloaded_bytes', 0)
+            file_size = getattr(self, 'file_size', 0)
+            partial_file_path = getattr(self, 'partial_file_path', None)
+            
+            # Konvertiere in Integer, falls notwendig
+            if hasattr(downloaded_bytes, '__int__'):
+                downloaded_bytes = downloaded_bytes.__int__()
+            if hasattr(file_size, '__int__'):
+                file_size = file_size.__int__()
+                
+            downloaded_bytes_int = int(downloaded_bytes)
+            file_size_int = int(file_size)
+            
+            return (
+                downloaded_bytes_int > 0
+                and downloaded_bytes_int < file_size_int
+                and partial_file_path is not None
+            )
+        except (ValueError, TypeError):
+            return False
 
     @property
     def download_progress(self) -> float:
         """Gibt den Download-Fortschritt als Prozentsatz zurück."""
-        if self.file_size <= 0:
+        try:
+            file_size = getattr(self, 'file_size', 0)
+            downloaded_bytes = getattr(self, 'downloaded_bytes', 0)
+            
+            # Konvertiere in Integer, falls notwendig
+            if hasattr(file_size, '__int__'):
+                file_size = file_size.__int__()
+            if hasattr(downloaded_bytes, '__int__'):
+                downloaded_bytes = downloaded_bytes.__int__()
+                
+            file_size_int = int(file_size)
+            downloaded_bytes_int = int(downloaded_bytes)
+            
+            if file_size_int <= 0:
+                return 0.0
+            progress = (float(downloaded_bytes_int) / float(file_size_int)) * 100
+            return min(100.0, progress)
+        except (ValueError, TypeError):
             return 0.0
-        return min(100.0, (self.downloaded_bytes / self.file_size) * 100)
 
     def can_resume_download(self) -> bool:
         """Überprüft, ob der Download fortgesetzt werden kann."""
-        return (
-            self.status
-            in [DownloadStatus.FAILED.value, DownloadStatus.DOWNLOADING.value]
-            and self.is_partially_downloaded
-            and self.partial_file_path
-            and Path(self.partial_file_path).exists()
-        )
+        try:
+            status = getattr(self, 'status', '')
+            partial_file_path = getattr(self, 'partial_file_path', None)
+            
+            is_partial = self.is_partially_downloaded
+            
+            # Stelle sicher, dass alle Bedingungen erfüllt sind und gib einen expliziten Boolean zurück
+            can_resume = (
+                str(status) in [DownloadStatus.FAILED.value, DownloadStatus.DOWNLOADING.value]
+                and is_partial
+                and partial_file_path is not None
+                and Path(str(partial_file_path)).exists()
+            )
+            return bool(can_resume)
+        except Exception:
+            return False
 
     @classmethod
     def get_completed_files_cache(cls, max_cache_size: int = 50000) -> Set[str]:
@@ -192,18 +245,41 @@ class AudioFile(BaseModel):
         Returns:
             Dictionary-Repräsentation des Objekts
         """
-        result = {
-            "file_id": self.file_id,
-            "file_name": self.file_name,
-            "file_size": self.file_size,
-            "status": self.status,
-        }
-        
-        if include_metadata and self.title:
-            result["title"] = self.title
-        if include_metadata and self.performer:
-            result["performer"] = self.performer
-        if self.local_path:
-            result["local_path"] = self.local_path
+        try:
+            file_id = getattr(self, 'file_id', '')
+            file_name = getattr(self, 'file_name', '')
+            file_size = getattr(self, 'file_size', 0)
+            status = getattr(self, 'status', '')
             
-        return result
+            # Konvertiere in Integer, falls notwendig
+            if hasattr(file_size, '__int__'):
+                file_size = file_size.__int__()
+            
+            result = {
+                "file_id": str(file_id),
+                "file_name": str(file_name),
+                "file_size": int(file_size),
+                "status": str(status),
+            }
+            
+            if include_metadata:
+                title = getattr(self, 'title', None)
+                performer = getattr(self, 'performer', None)
+                if title:
+                    result["title"] = str(title)
+                if performer:
+                    result["performer"] = str(performer)
+                    
+            local_path = getattr(self, 'local_path', None)
+            if local_path:
+                result["local_path"] = str(local_path)
+                
+            return result
+        except Exception:
+            # Fallback-Werte im Fehlerfall
+            return {
+                "file_id": "",
+                "file_name": "",
+                "file_size": 0,
+                "status": "",
+            }
