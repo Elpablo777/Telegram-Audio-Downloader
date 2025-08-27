@@ -42,6 +42,15 @@ class Config:
             'phone_number': ''
         }
         
+        # Proxy-Einstellungen
+        self.config['proxy'] = {
+            'type': '',  # socks5, http, etc.
+            'host': '',
+            'port': '',
+            'username': '',
+            'password': ''
+        }
+        
         # Download-Einstellungen
         self.config['download'] = {
             'download_dir': 'downloads',
@@ -109,6 +118,31 @@ class Config:
         return self.config.get('download', 'checksum_algorithm', fallback='sha256')
     
     @property
+    def proxy_type(self) -> str:
+        """Typ des Proxys (socks5, http, etc.)."""
+        return self.config.get('proxy', 'type', fallback='')
+    
+    @property
+    def proxy_host(self) -> str:
+        """Host des Proxys."""
+        return self.config.get('proxy', 'host', fallback='')
+    
+    @property
+    def proxy_port(self) -> int:
+        """Port des Proxys."""
+        return self.config.getint('proxy', 'port', fallback=0)
+    
+    @property
+    def proxy_username(self) -> str:
+        """Benutzername für den Proxy."""
+        return self.config.get('proxy', 'username', fallback='')
+    
+    @property
+    def proxy_password(self) -> str:
+        """Passwort für den Proxy."""
+        return self.config.get('proxy', 'password', fallback='')
+    
+    @property
     def chunk_size(self) -> int:
         """Größe der Download-Chunks in Bytes."""
         return self.config.getint('performance', 'chunk_size', fallback=8192)
@@ -138,3 +172,21 @@ class Config:
                 f"Fehlende erforderliche Configurationsfelder: {', '.join(missing_fields)}. "
                 "Bitte setzen Sie diese über Umgebungsvariablen oder Konfigurationsdatei."
             )
+    
+    def export_to_yaml(self, output_path: str) -> None:
+        """
+        Exportiert die Konfiguration in eine YAML-Datei.
+        
+        Args:
+            output_path: Pfad zur Ausgabedatei
+        """
+        # Konvertiere die ConfigParser-Daten in ein Dictionary
+        config_dict = {}
+        for section_name in self.config.sections():
+            config_dict[section_name] = {}
+            for key, value in self.config.items(section_name):
+                config_dict[section_name][key] = value
+        
+        # Schreibe das Dictionary in eine YAML-Datei
+        with open(output_path, 'w', encoding='utf-8') as f:
+            yaml.dump(config_dict, f, default_flow_style=False, allow_unicode=True, indent=2)

@@ -8,7 +8,7 @@ import time
 import weakref
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Union, cast
+from typing import Any, Dict, List, Optional, Set, Union
 from collections import OrderedDict
 
 from telethon import TelegramClient
@@ -71,12 +71,11 @@ import src.telegram_audio_downloader.utils as utils
 
 # Importiere vorhandene Klassen
 try:
-    from .adaptive_parallelism import AdaptiveParallelismController as ImportedAdaptiveParallelismController
-    # Verwende die importierte Klasse direkt
-    RealAdaptiveParallelismController = ImportedAdaptiveParallelismController
+    from .adaptive_parallelism import AdaptiveParallelismController
+    RealAdaptiveParallelismController = AdaptiveParallelismController
 except ImportError:
     # Mock-Klasse für AdaptiveParallelismController falls nicht verfügbar
-    class AdaptiveParallelismController:
+    class RealAdaptiveParallelismController:
         def __init__(self, *args, **kwargs):
             pass
         
@@ -88,8 +87,6 @@ except ImportError:
             
         def record_download_speed(self, speed_mbps):
             pass
-
-    RealAdaptiveParallelismController = AdaptiveParallelismController
 
 # Mock-Klassen für fehlende Module
 class PrefetchManager:
@@ -206,7 +203,7 @@ class AudioDownloader:
         
         # Adaptive Parallelism Controller
         self.adaptive_parallelism = RealAdaptiveParallelismController(
-            download_dir=self.download_dir,  # Verwende Path-Objekt direkt
+            download_dir=str(self.download_dir),
             initial_concurrent_downloads=max_concurrent_downloads,
             min_concurrent_downloads=1,
             max_concurrent_downloads=10
@@ -274,7 +271,7 @@ class AudioDownloader:
                     }
                 except (ValueError, TypeError):
                     # Falls die Proxy-Parameter ungültig sind, verwenden wir kein Proxy
-                    proxy_config = {}
+                    proxy_config = None
             
             # Sicherstellen, dass api_id und api_hash nicht None sind
             api_id_int = int(api_id) if api_id and api_id.isdigit() else 0
@@ -285,18 +282,16 @@ class AudioDownloader:
                 session_name, 
                 api_id_int, 
                 api_hash_str,
-                proxy=proxy_config if proxy_config else {}  # Verwende leeres Dict statt None
+                proxy=proxy_config if proxy_config else None
             )
             
             # Starte den Client nur wenn er erfolgreich erstellt wurde
             if self.client:
-                # Prüfe, ob start() existiert und aufrufbar ist
-                if hasattr(self.client, 'start') and callable(getattr(self.client, 'start', None)):
+                # Prüfe, ob start() awaitable ist
+                if callable(getattr(self.client, 'start', None)):
                     start_result = self.client.start()
-                    # Prüfe, ob start_result awaitable ist und warte darauf falls ja
-                    if asyncio.iscoroutine(start_result):
+                    if hasattr(start_result, '__await__'):
                         await start_result
-                    # Falls es ein normales Ergebnis ist, ignorieren wir es
             logger.info("Telegram-Client erfolgreich initialisiert")
         except Exception as e:
             error = AuthenticationError(f"Fehler bei der Authentifizierung: {e}")
@@ -469,10 +464,7 @@ class AudioDownloader:
             if not group_entity:
                 raise DownloadError("Gruppe konnte nicht gefunden werden")
                 
-            # Konvertiere group_entity in eine Liste, falls es keine ist
-            entity_list = group_entity if isinstance(group_entity, list) else [group_entity]
-                
-            async for message in self.client.iter_messages(entity_list[0], **iter_params):
+            async for message in self.client.iter_messages(group_entity, **iter_params):
                 if not hasattr(message, "media") or not isinstance(
                     message.media, MessageMediaDocument
                 ):
@@ -493,8 +485,8 @@ class AudioDownloader:
                 audio_messages.append((message, document, group))
                 
                 # Speichere die aktuelle Nachrichten-ID für die Fortsetzung
-                if hasattr(entity_list[0], 'id') and hasattr(message, 'id'):
-                    await self.save_last_message_id(int(getattr(entity_list[0], 'id', 0)), message.id)
+                if hasattr(group_entity, 'id') and hasattr(message, 'id'):
+                    await self.save_last_message_id(group_entity.id, message.id)
 
             logger.info(f"{len(audio_messages)} neue Audiodateien gefunden")
             self.total_downloads = len(audio_messages)
@@ -598,10 +590,7 @@ class AudioDownloader:
             if not group_entity:
                 raise DownloadError("Gruppe konnte nicht gefunden werden")
                 
-            # Konvertiere group_entity in eine Liste, falls es keine ist
-            entity_list = group_entity if isinstance(group_entity, list) else [group_entity]
-                
-            async for message in self.client.iter_messages(entity_list[0], **iter_params):
+            async for message in self.client.iter_messages(group_entity, **iter_params):
                 if not hasattr(message, "media") or not isinstance(
                     message.media, MessageMediaDocument
                 ):
@@ -622,8 +611,8 @@ class AudioDownloader:
                 audio_messages.append((message, document, group))
                 
                 # Speichere die aktuelle Nachrichten-ID für die Fortsetzung
-                if hasattr(entity_list[0], 'id') and hasattr(message, 'id'):
-                    await self.save_last_message_id(int(getattr(entity_list[0], 'id', 0)), message.id)
+                if hasattr(group_entity, 'id') and hasattr(message, 'id'):
+                    await self.save_last_message_id(group_entity.id, message.id)
 
             logger.info(f"{len(audio_messages)} neue Audiodateien gefunden")
             self.total_downloads = len(audio_messages)
@@ -677,11 +666,7 @@ class AudioDownloader:
         # Aktualisiere die adaptive Parallelisierung
         if hasattr(self.adaptive_parallelism, 'update_parallelism'):
             try:
-                update_result = self.adaptive_parallelism.update_parallelism()
-                # Prüfe, ob update_result awaitable ist und warte darauf falls ja
-                if asyncio.iscoroutine(update_result):
-                    await update_result
-                # Falls es ein normales Ergebnis ist, ignorieren wir es
+                await self.adaptive_parallelism.update_parallelism()
             except Exception:
                 pass
         
@@ -755,11 +740,7 @@ class AudioDownloader:
             # Speicherwartung durchführen
             if hasattr(self, 'advanced_memory_manager') and self.advanced_memory_manager:
                 try:
-                    maintenance_result = self.advanced_memory_manager.perform_memory_maintenance()
-                    # Prüfe, ob maintenance_result awaitable ist und warte darauf falls ja
-                    if asyncio.iscoroutine(maintenance_result):
-                        await maintenance_result
-                    # Falls es ein normales Ergebnis ist, ignorieren wir es
+                    await self.advanced_memory_manager.perform_memory_maintenance()
                 except Exception:
                     pass
 
@@ -1079,10 +1060,7 @@ class AudioDownloader:
             recovery_success = False
             if hasattr(self, 'automatic_error_recovery') and self.automatic_error_recovery:
                 try:
-                    recovery_success = self.automatic_error_recovery.attempt_recovery(e, f"download_{file_id}", recovery_data)
-                    # Prüfe, ob recovery_success awaitable ist und warte darauf falls ja
-                    if asyncio.iscoroutine(recovery_success):
-                        recovery_success = await recovery_success
+                    recovery_success = await self.automatic_error_recovery.attempt_recovery(e, f"download_{file_id}", recovery_data)
                 except Exception:
                     recovery_success = False
             
@@ -1115,41 +1093,113 @@ class AudioDownloader:
             # Automatische Fehlerbehebung versuchen
             recovery_data = {
                 "file_id": file_id,
+                "file_name": file_name,
+                "download_attempts": getattr(audio_file, 'download_attempts', 0) if 'audio_file' in locals() else 0
+            }
+            recovery_success = False
+            if hasattr(self, 'automatic_error_recovery') and self.automatic_error_recovery:
+                try:
+                    recovery_success = await self.automatic_error_recovery.attempt_recovery(e, f"network_{file_id}", recovery_data)
+                except Exception:
+                    recovery_success = False
+
+            if recovery_success or error_tracker.should_retry(e, f"network_{file_id}"):
+                download_attempts = getattr(audio_file, 'download_attempts', 1) if 'audio_file' in locals() else 1
+                retry_delay = min(
+                    60, 2**download_attempts
+                )  # Exponentielles Backoff, max 60s
+                logger.warning(
+                    f"Netzwerk-Fehler bei {file_name}, Retry in {retry_delay}s: {e}"
+                )
+                await asyncio.sleep(retry_delay)
+                await self._download_audio(message, document, group)
+            else:
+                logger.error(f"Zu viele Netzwerk-Fehler für {file_id}, überspringe")
+                if "audio_file" in locals() and hasattr(audio_file, 'status'):
+                    audio_file.status = DownloadStatus.FAILED.value
+                    if hasattr(audio_file, 'error_message'):
+                        audio_file.error_message = f"Netzwerk-Fehler: {str(e)}"
+                    if hasattr(audio_file, 'save'):
+                        try:
+                            audio_file.save()
+                        except Exception:
+                            pass
+                
+                # Fehler in der Performance-Analyse aufzeichnen
+                duration = time.time() - start_time
+                if hasattr(self, 'performance_monitor') and self.performance_monitor:
+                    try:
+                        self.performance_monitor.after_download(False, file_size_mb, duration)
+                    except Exception:
+                        pass
+                if hasattr(self, 'realtime_performance_analyzer') and self.realtime_performance_analyzer:
+                    try:
+                        self.realtime_performance_analyzer.record_error(type(e).__name__, f"network_{file_id}")
+                    except Exception:
+                        pass
+
+        except Exception as e:
+            # Sicherstellen, dass audio_info definiert ist
+            file_name = audio_info.get('file_name', 'Unknown') if 'audio_info' in locals() else 'unknown'
+            
+            # Audit-Logging für unerwartete Fehler
+            log_security_event(
+                "unexpected_error",
+                f"Unerwarteter Fehler beim Download von {file_name}: {type(e).__name__}: {e}",
+                "high"
+            )
+
+            error_tracker.track_error(e, f"download_{file_id}", "ERROR")
+            logger.error(
+                f"Unerwarteter Fehler beim Herunterladen der Datei {file_id}: {e}",
+                exc_info=True,
+            )
+
+            # Automatische Fehlerbehebung versuchen
+            recovery_data = {
+                "file_id": file_id,
                 "file_name": file_name
             }
             recovery_success = False
             if hasattr(self, 'automatic_error_recovery') and self.automatic_error_recovery:
                 try:
-                    recovery_func = getattr(self.automatic_error_recovery, 'attempt_recovery', None)
-                    if recovery_func and callable(recovery_func):
-                        recovery_result = recovery_func(e, f"download_{file_id}", recovery_data)
-                        # Prüfe, ob recovery_result awaitable ist und warte darauf falls ja
-                        if asyncio.iscoroutine(recovery_result):
-                            recovery_success = await recovery_result
-                        else:
-                            recovery_success = recovery_result if isinstance(recovery_result, bool) else False
-                    else:
-                        recovery_success = False
+                    recovery_success = await self.automatic_error_recovery.attempt_recovery(e, f"download_{file_id}", recovery_data)
                 except Exception:
                     recovery_success = False
 
             # Fehler in der Datenbank speichern
-            audio_file_local = locals().get('audio_file')
-            if audio_file_local is not None:
-                if hasattr(audio_file_local, 'status'):
-                    audio_file_local.status = DownloadStatus.FAILED.value
-                if hasattr(audio_file_local, 'error_message'):
-                    audio_file_local.error_message = str(e)
-                if hasattr(audio_file_local, 'save'):
+            if "audio_file" in locals():
+                if hasattr(audio_file, 'status'):
+                    audio_file.status = DownloadStatus.FAILED.value
+                if hasattr(audio_file, 'error_message'):
+                    audio_file.error_message = str(e)
+                if hasattr(audio_file, 'save'):
                     try:
-                        audio_file_local.save()
+                        audio_file.save()
                     except Exception:
                         pass
-
-    def _progress_callback(self, current_bytes: int, total_bytes: int) -> None:
-        """Fortschrittsrückmeldung für den Download."""
-        # Hier könnte eine Fortschrittsanzeige aktualisiert werden
-        pass
+            
+            # Sende Benachrichtigung über fehlgeschlagenen Download
+            try:
+                send_download_failed_notification(
+                    file_name=file_name,
+                    error_message=str(e)
+                )
+            except Exception as notification_error:
+                logger.warning(f"Fehler beim Senden der Fehlerbenachrichtigung: {notification_error}")
+            
+            # Fehler in der Performance-Analyse aufzeichnen
+            duration = time.time() - start_time
+            if hasattr(self, 'performance_monitor') and self.performance_monitor:
+                try:
+                    self.performance_monitor.after_download(False, file_size_mb, duration)
+                except Exception:
+                    pass
+            if hasattr(self, 'realtime_performance_analyzer') and self.realtime_performance_analyzer:
+                try:
+                    self.realtime_performance_analyzer.record_error(type(e).__name__, f"download_{file_id}")
+                except Exception:
+                    pass
 
     async def _download_with_resume(
         self, message: Message, file_path: Path, start_byte: int, audio_file: AudioFile
@@ -1188,34 +1238,16 @@ class AudioDownloader:
                     
                 downloaded_bytes = 0
                 try:
-                    # Prüfe, ob download_media awaitable ist
-                    download_result = self.client.download_media(
+                    downloaded_bytes = await self.client.download_media(
                         message, 
                         file=str(file_path),  # Telethon erwartet einen String oder File-Objekt
                         progress_callback=self._progress_callback
                     )
-                    if asyncio.iscoroutine(download_result):
-                        downloaded_bytes = await download_result
-                    else:
-                        # Konvertiere das Ergebnis zu einem Integer
-                        if download_result is not None:
-                            if isinstance(download_result, (str, bytes)):
-                                # Wenn es ein String oder Bytes ist, versuche es zu konvertieren
-                                try:
-                                    downloaded_bytes = int(download_result)
-                                except (ValueError, TypeError):
-                                    downloaded_bytes = 0
-                            elif isinstance(download_result, (int, float)):
-                                downloaded_bytes = int(download_result)
-                            else:
-                                downloaded_bytes = 0
-                        else:
-                            downloaded_bytes = 0
                 except Exception as e:
                     logger.error(f"Fehler beim Herunterladen der Mediendatei: {e}")
                     raise DownloadError(f"Fehler beim Herunterladen der Mediendatei: {e}")
 
-                return int(downloaded_bytes) if downloaded_bytes is not None else 0
+                return downloaded_bytes or 0
 
             except Exception as e:
                 retry_count += 1
@@ -1228,45 +1260,69 @@ class AudioDownloader:
 
         return 0  # Dieser Punkt sollte nie erreicht werden
 
-    async def close(self) -> None:
-        """Schließt die Verbindung zum Telegram-Client."""
-        if self.client:
-            try:
-                disconnect_result = self.client.disconnect()
-                # Prüfe, ob disconnect_result awaitable ist und warte darauf falls ja
-                if asyncio.iscoroutine(disconnect_result):
-                    await disconnect_result
-                # Falls es ein normales Ergebnis ist, ignorieren wir es
-                logger.info("Telegram-Client-Verbindung geschlossen")
-            except Exception as e:
-                logger.error(f"Fehler beim Schließen des Telegram-Clients: {e}")
-        else:
-            logger.info("Kein aktiver Telegram-Client zum Schließen")
+    def _progress_callback(self, current_bytes: int, total_bytes: int) -> None:
+        """Fortschrittsrückmeldung für den Download."""
+        # Hier könnte eine Fortschrittsanzeige aktualisiert werden
+        pass
 
     async def save_last_message_id(self, group_id: int, message_id: int) -> None:
-        """Speichert die letzte Nachrichten-ID für eine Gruppe."""
+        """
+        Speichert die letzte verarbeitete Nachrichten-ID für eine Gruppe.
+
+        Args:
+            group_id: Die ID der Telegram-Gruppe
+            message_id: Die ID der letzten verarbeiteten Nachricht
+        """
         try:
-            try:
-                group_progress = GroupProgress.get(GroupProgress.group_id == group_id)
+            # Gruppenfortschritt abrufen oder erstellen
+            group_progress, created = GroupProgress.get_or_create(
+                group_id=group_id,
+                defaults={"last_message_id": message_id}
+            )
+            
+            # Letzte Nachrichten-ID aktualisieren
+            if not created and group_progress.last_message_id < message_id:
                 group_progress.last_message_id = message_id
                 group_progress.save()
-            except Exception:  # Verwende eine allgemeine Exception
-                GroupProgress.create(group_id=group_id, last_message_id=message_id)
+            elif created:
+                group_progress.last_message_id = message_id
+                group_progress.save()
+                
+            logger.debug(f"Letzte Nachrichten-ID für Gruppe {group_id} aktualisiert: {message_id}")
         except Exception as e:
-            error = DatabaseError(f"Fehler beim Speichern der letzten Nachrichten-ID: {e}")
-            handle_error(error, "save_last_message_id")
+            logger.warning(f"Warnung beim Speichern der letzten Nachrichten-ID: {e}")
+            # Wir werfen den Fehler nicht weiter, um den Download nicht zu unterbrechen
 
     async def get_last_message_id(self, group_id: int) -> int:
-        """Abrufen der letzten gespeicherten Nachrichten-ID für eine Gruppe."""
+        """
+        Ruft die letzte verarbeitete Nachrichten-ID für eine Gruppe ab.
+
+        Args:
+            group_id: Die ID der Telegram-Gruppe
+
+        Returns:
+            Die ID der letzten verarbeiteten Nachricht oder 0, wenn keine gefunden wurde
+        """
         try:
             try:
                 group_progress = GroupProgress.get(GroupProgress.group_id == group_id)
                 # Stelle sicher, dass der Rückgabewert ein Integer ist
                 last_message_id = getattr(group_progress, 'last_message_id', 0)
                 return int(last_message_id) if last_message_id is not None else 0
-            except Exception:  # Verwende eine allgemeine Exception
+            except Exception:
                 return 0
         except Exception as e:
             error = DatabaseError(f"Fehler beim Abrufen der letzten Nachrichten-ID: {e}")
             handle_error(error, "get_last_message_id")
             return 0
+
+    async def close(self) -> None:
+        """Schließt die Verbindung zum Telegram-Client."""
+        if self.client:
+            try:
+                await self.client.disconnect()
+                logger.info("Telegram-Client-Verbindung geschlossen")
+            except Exception as e:
+                logger.error(f"Fehler beim Schließen des Telegram-Clients: {e}")
+        else:
+            logger.info("Kein aktiver Telegram-Client zum Schließen")

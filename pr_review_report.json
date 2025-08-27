@@ -1,0 +1,221 @@
+{
+  "review_timestamp": "2025-08-27 16:20:48.523564",
+  "project_path": "C:\\Users\\Pablo\\Desktop\\Telegram Musik Tool\\Telegram-Audio-Downloader",
+  "total_findings": 20,
+  "critical_count": 12,
+  "high_count": 7,
+  "medium_count": 1,
+  "low_count": 0,
+  "info_count": 0,
+  "findings": [
+    {
+      "severity": "critical",
+      "category": "security",
+      "title": "M\u00f6gliche Exposition von API ID",
+      "description": "Potenzielles Geheimnis (API ID) in C:\\Users\\Pablo\\Desktop\\Telegram Musik Tool\\Telegram-Audio-Downloader\\tests\\test_config_comprehensive.py in Zeile 63 gefunden",
+      "file_path": "tests\\test_config_comprehensive.py",
+      "line_number": 63,
+      "remediation": "Entferne hartkodierte Geheimnisse und verwende Umgebungsvariablen oder sichere Konfigurationsmanagement-Systeme",
+      "confidence": "medium"
+    },
+    {
+      "severity": "critical",
+      "category": "security",
+      "title": "M\u00f6gliche Exposition von API ID",
+      "description": "Potenzielles Geheimnis (API ID) in C:\\Users\\Pablo\\Desktop\\Telegram Musik Tool\\Telegram-Audio-Downloader\\tests\\test_config_comprehensive.py in Zeile 320 gefunden",
+      "file_path": "tests\\test_config_comprehensive.py",
+      "line_number": 320,
+      "remediation": "Entferne hartkodierte Geheimnisse und verwende Umgebungsvariablen oder sichere Konfigurationsmanagement-Systeme",
+      "confidence": "medium"
+    },
+    {
+      "severity": "critical",
+      "category": "security",
+      "title": "M\u00f6gliche Exposition von API ID",
+      "description": "Potenzielles Geheimnis (API ID) in C:\\Users\\Pablo\\Desktop\\Telegram Musik Tool\\Telegram-Audio-Downloader\\tests\\test_config_comprehensive.py in Zeile 329 gefunden",
+      "file_path": "tests\\test_config_comprehensive.py",
+      "line_number": 329,
+      "remediation": "Entferne hartkodierte Geheimnisse und verwende Umgebungsvariablen oder sichere Konfigurationsmanagement-Systeme",
+      "confidence": "medium"
+    },
+    {
+      "severity": "critical",
+      "category": "security",
+      "title": "M\u00f6gliche Exposition von API ID",
+      "description": "Potenzielles Geheimnis (API ID) in C:\\Users\\Pablo\\Desktop\\Telegram Musik Tool\\Telegram-Audio-Downloader\\tests\\test_config_comprehensive.py in Zeile 348 gefunden",
+      "file_path": "tests\\test_config_comprehensive.py",
+      "line_number": 348,
+      "remediation": "Entferne hartkodierte Geheimnisse und verwende Umgebungsvariablen oder sichere Konfigurationsmanagement-Systeme",
+      "confidence": "medium"
+    },
+    {
+      "severity": "critical",
+      "category": "security",
+      "title": "M\u00f6gliche Exposition von API ID",
+      "description": "Potenzielles Geheimnis (API ID) in C:\\Users\\Pablo\\Desktop\\Telegram Musik Tool\\Telegram-Audio-Downloader\\tests\\test_config_dynamic.py in Zeile 113 gefunden",
+      "file_path": "tests\\test_config_dynamic.py",
+      "line_number": 113,
+      "remediation": "Entferne hartkodierte Geheimnisse und verwende Umgebungsvariablen oder sichere Konfigurationsmanagement-Systeme",
+      "confidence": "medium"
+    },
+    {
+      "severity": "critical",
+      "category": "security",
+      "title": "M\u00f6gliche Exposition von API ID",
+      "description": "Potenzielles Geheimnis (API ID) in C:\\Users\\Pablo\\Desktop\\Telegram Musik Tool\\Telegram-Audio-Downloader\\tests\\test_config_dynamic.py in Zeile 118 gefunden",
+      "file_path": "tests\\test_config_dynamic.py",
+      "line_number": 118,
+      "remediation": "Entferne hartkodierte Geheimnisse und verwende Umgebungsvariablen oder sichere Konfigurationsmanagement-Systeme",
+      "confidence": "medium"
+    },
+    {
+      "severity": "critical",
+      "category": "security",
+      "title": "M\u00f6gliche Exposition von API ID",
+      "description": "Potenzielles Geheimnis (API ID) in C:\\Users\\Pablo\\Desktop\\Telegram Musik Tool\\Telegram-Audio-Downloader\\tests\\test_config_security.py in Zeile 57 gefunden",
+      "file_path": "tests\\test_config_security.py",
+      "line_number": 57,
+      "remediation": "Entferne hartkodierte Geheimnisse und verwende Umgebungsvariablen oder sichere Konfigurationsmanagement-Systeme",
+      "confidence": "medium"
+    },
+    {
+      "severity": "critical",
+      "category": "security",
+      "title": "M\u00f6gliche Exposition von API ID",
+      "description": "Potenzielles Geheimnis (API ID) in C:\\Users\\Pablo\\Desktop\\Telegram Musik Tool\\Telegram-Audio-Downloader\\tests\\test_config_security.py in Zeile 82 gefunden",
+      "file_path": "tests\\test_config_security.py",
+      "line_number": 82,
+      "remediation": "Entferne hartkodierte Geheimnisse und verwende Umgebungsvariablen oder sichere Konfigurationsmanagement-Systeme",
+      "confidence": "medium"
+    },
+    {
+      "severity": "critical",
+      "category": "security",
+      "title": "M\u00f6gliche Exposition von API ID",
+      "description": "Potenzielles Geheimnis (API ID) in C:\\Users\\Pablo\\Desktop\\Telegram Musik Tool\\Telegram-Audio-Downloader\\tests\\test_config_security.py in Zeile 147 gefunden",
+      "file_path": "tests\\test_config_security.py",
+      "line_number": 147,
+      "remediation": "Entferne hartkodierte Geheimnisse und verwende Umgebungsvariablen oder sichere Konfigurationsmanagement-Systeme",
+      "confidence": "medium"
+    },
+    {
+      "severity": "critical",
+      "category": "security",
+      "title": "M\u00f6gliche Exposition von API ID",
+      "description": "Potenzielles Geheimnis (API ID) in C:\\Users\\Pablo\\Desktop\\Telegram Musik Tool\\Telegram-Audio-Downloader\\tests\\test_config_security.py in Zeile 166 gefunden",
+      "file_path": "tests\\test_config_security.py",
+      "line_number": 166,
+      "remediation": "Entferne hartkodierte Geheimnisse und verwende Umgebungsvariablen oder sichere Konfigurationsmanagement-Systeme",
+      "confidence": "medium"
+    },
+    {
+      "severity": "critical",
+      "category": "security",
+      "title": "M\u00f6gliche Exposition von API ID",
+      "description": "Potenzielles Geheimnis (API ID) in C:\\Users\\Pablo\\Desktop\\Telegram Musik Tool\\Telegram-Audio-Downloader\\tests\\test_config_security.py in Zeile 184 gefunden",
+      "file_path": "tests\\test_config_security.py",
+      "line_number": 184,
+      "remediation": "Entferne hartkodierte Geheimnisse und verwende Umgebungsvariablen oder sichere Konfigurationsmanagement-Systeme",
+      "confidence": "medium"
+    },
+    {
+      "severity": "critical",
+      "category": "security",
+      "title": "M\u00f6gliche Exposition von API ID",
+      "description": "Potenzielles Geheimnis (API ID) in C:\\Users\\Pablo\\Desktop\\Telegram Musik Tool\\Telegram-Audio-Downloader\\tests\\test_config_security.py in Zeile 201 gefunden",
+      "file_path": "tests\\test_config_security.py",
+      "line_number": 201,
+      "remediation": "Entferne hartkodierte Geheimnisse und verwende Umgebungsvariablen oder sichere Konfigurationsmanagement-Systeme",
+      "confidence": "medium"
+    },
+    {
+      "severity": "high",
+      "category": "security",
+      "title": "Unsichere Code-Praxis",
+      "description": "Verwendung von eval() in C:\\Users\\Pablo\\Desktop\\Telegram Musik Tool\\Telegram-Audio-Downloader\\security_audit.py in Zeile 371 gefunden",
+      "file_path": "security_audit.py",
+      "line_number": 371,
+      "remediation": "Verwende sicherere Alternativen zu eval/exec/pickle und vermeide shell=True in subprocess",
+      "confidence": "medium"
+    },
+    {
+      "severity": "high",
+      "category": "security",
+      "title": "Unsichere Code-Praxis",
+      "description": "Verwendung von eval() in C:\\Users\\Pablo\\Desktop\\Telegram Musik Tool\\Telegram-Audio-Downloader\\security_audit.py in Zeile 371 gefunden",
+      "file_path": "security_audit.py",
+      "line_number": 371,
+      "remediation": "Verwende sicherere Alternativen zu eval/exec/pickle und vermeide shell=True in subprocess",
+      "confidence": "medium"
+    },
+    {
+      "severity": "high",
+      "category": "security",
+      "title": "Unsichere Code-Praxis",
+      "description": "Verwendung von exec() in C:\\Users\\Pablo\\Desktop\\Telegram Musik Tool\\Telegram-Audio-Downloader\\security_audit.py in Zeile 372 gefunden",
+      "file_path": "security_audit.py",
+      "line_number": 372,
+      "remediation": "Verwende sicherere Alternativen zu eval/exec/pickle und vermeide shell=True in subprocess",
+      "confidence": "medium"
+    },
+    {
+      "severity": "high",
+      "category": "security",
+      "title": "Unsichere Code-Praxis",
+      "description": "Verwendung von eval() in C:\\Users\\Pablo\\Desktop\\Telegram Musik Tool\\Telegram-Audio-Downloader\\scripts\\pr_cleanup.py in Zeile 154 gefunden",
+      "file_path": "scripts\\pr_cleanup.py",
+      "line_number": 154,
+      "remediation": "Verwende sicherere Alternativen zu eval/exec/pickle und vermeide shell=True in subprocess",
+      "confidence": "medium"
+    },
+    {
+      "severity": "high",
+      "category": "security",
+      "title": "Unsichere Code-Praxis",
+      "description": "Verwendung von exec() in C:\\Users\\Pablo\\Desktop\\Telegram Musik Tool\\Telegram-Audio-Downloader\\scripts\\pr_cleanup.py in Zeile 155 gefunden",
+      "file_path": "scripts\\pr_cleanup.py",
+      "line_number": 155,
+      "remediation": "Verwende sicherere Alternativen zu eval/exec/pickle und vermeide shell=True in subprocess",
+      "confidence": "medium"
+    },
+    {
+      "severity": "high",
+      "category": "security",
+      "title": "Unsichere Code-Praxis",
+      "description": "Verwendung von exec() in C:\\Users\\Pablo\\Desktop\\Telegram Musik Tool\\Telegram-Audio-Downloader\\scripts\\monitoring\\continuous_monitor.py in Zeile 446 gefunden",
+      "file_path": "scripts\\monitoring\\continuous_monitor.py",
+      "line_number": 446,
+      "remediation": "Verwende sicherere Alternativen zu eval/exec/pickle und vermeide shell=True in subprocess",
+      "confidence": "medium"
+    },
+    {
+      "severity": "high",
+      "category": "security",
+      "title": "Unsichere Code-Praxis",
+      "description": "Verwendung von exec() in C:\\Users\\Pablo\\Desktop\\Telegram Musik Tool\\Telegram-Audio-Downloader\\src\\telegram_audio_downloader\\secure_subprocess.py in Zeile 130 gefunden",
+      "file_path": "src\\telegram_audio_downloader\\secure_subprocess.py",
+      "line_number": 130,
+      "remediation": "Verwende sicherere Alternativen zu eval/exec/pickle und vermeide shell=True in subprocess",
+      "confidence": "medium"
+    },
+    {
+      "severity": "medium",
+      "category": "code_quality",
+      "title": "Offene Aufgabe gefunden",
+      "description": "Offene Aufgabe in C:\\Users\\Pablo\\Desktop\\Telegram Musik Tool\\Telegram-Audio-Downloader\\docs\\sphinx\\conf.py in Zeile 110 gefunden",
+      "file_path": "docs\\sphinx\\conf.py",
+      "line_number": 110,
+      "remediation": "Bearbeite offene Aufgaben oder entferne sie, wenn sie erledigt sind",
+      "confidence": "medium"
+    }
+  ],
+  "merge_ready": false,
+  "summary": {
+    "security_issues": 19,
+    "code_quality_issues": 1,
+    "documentation_issues": 0,
+    "total_issues": 20,
+    "critical_issues": 12,
+    "high_priority_issues": 7
+  }
+}
