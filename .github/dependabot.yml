@@ -15,6 +15,17 @@ updates:
       prefix: "⬆️"
       prefix-development: "⬆️ dev"
       include: "scope"
+    # Specific configurations for security-critical packages
+    groups:
+      security-updates:
+        patterns:
+          - "cryptography"
+          - "aiohttp"
+          - "tqdm"
+        update-types:
+          - "patch"
+          - "minor"
+          - "major"
 
   # GitHub Actions
   - package-ecosystem: "github-actions"

@@ -11,7 +11,7 @@ python-dotenv>=1.0.1  # Pinned: >=1.0.1 (latest stable)
 # Environment variable management from .env files
 
 # ===== Progress & User Interface =====
-tqdm>=4.66.1  # Pinned: >=4.66.1 (with security fixes)
+tqdm>=4.66.3  # Pinned: >=4.66.3 (with security fixes)
 # Progress bars for command line
 rich>=13.7.0  # Pinned: >=13.7.0 (latest stable)
 # Rich text and beautiful formatting in terminal
@@ -35,7 +35,7 @@ peewee>=3.17.1  # Pinned: >=3.17.1 (with security fixes)
 # Lightweight ORM for SQLite
 
 # ===== Security Updates =====
-cryptography>=42.0.5  # Pinned: >=42.0.5 (security updates)
+cryptography>=44.0.1  # Pinned: >=44.0.1 (security updates)
 pydantic>=2.11.7  # Pinned: >=2.11.7 (security updates)
 requests>=2.32.5  # Pinned: >=2.32.5 (security updates)
 urllib3>=2.5.0  # Pinned: >=2.5.0 (security updates)
@@ -45,11 +45,11 @@ click==8.1.7  # Pinned: 8.1.7 (latest stable with security fixes)
 # CLI framework for command creation
 
 # ===== HTTP Client =====
-aiohttp==3.9.1  # Pinned: 3.9.1 (latest stable with security fixes)
+aiohttp>=3.10.11  # Pinned: >=3.10.11 (latest stable with security fixes)
 # Async HTTP client for API calls
 
 # ===== Cryptography =====
-cryptography==42.0.5  # Pinned: 42.0.5 (latest stable with security fixes)
+cryptography>=44.0.1  # Pinned: >=44.0.1 (latest stable with security fixes)
 # Encryption and security utilities
 
 # ===== Data Validation =====

@@ -7,16 +7,26 @@ und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/spec/v
 
 ## [Unreleased]
 
+### Sicherheit
+- Behebung mehrerer Sicherheitsanfälligkeiten in kryptografischen Abhängigkeiten (cryptography)
+- Behebung von HTTP-Sicherheitsanfälligkeiten in aiohttp (Request Smuggling, Directory Traversal, XSS)
+- Behebung von Sicherheitsanfälligkeiten in tqdm CLI-Argumenten
+
 ### Hinzugefügt
 - Professionelle PR-Cleanup- und Review-Automatisierung
 - Automatisierte Sicherheitsbehebungsskripte
 - Changelog-Update-Automatisierung
 - Umfassende Wartungsskripte-Dokumentation
+- Sicherheitsrichtliniendatei (SECURITY.md)
 
 ### Geändert
 - Verbesserte Sicherheitsüberprüfungen in der CI/CD-Pipeline
 - Aktualisierte Abhängigkeitsverwaltung
 - Verfeinerte Docker-Sicherheitskonfiguration
+- Aktualisierte Abhängigkeiten auf sichere Versionen:
+  - cryptography >=44.0.1
+  - aiohttp >=3.10.11
+  - tqdm >=4.66.3
 
 ### Veraltet
 - Veraltete `safety check` Kommandos durch neue `safety scan` Kommandos ersetzt
