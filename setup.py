@@ -24,24 +24,45 @@ def read_readme():
     return "A powerful Python tool for downloading audio files from Telegram channels and groups."
 
 # Read requirements
-def read_requirements():
-    """Read requirements from requirements.txt."""
-    requirements_path = os.path.join(os.path.dirname(__file__), 'requirements.txt')
+def read_requirements(fname='requirements.txt'):
+    """
+    Read requirements from requirements.txt and return a list of package requirements.
+    
+    Args:
+        fname (str): Path to the requirements file (default: 'requirements.txt')
+        
+    Returns:
+        list: List of package requirements
+    """
+    requirements_path = os.path.join(os.path.dirname(__file__), fname)
     requirements = []
     
-    if os.path.exists(requirements_path):
-        with open(requirements_path, 'r', encoding='utf-8') as f:
-            for line in f:
-                line = line.strip()
-                # Skip comments, empty lines, and development dependencies
-                if (line and not line.startswith('#') and 
-                    not line.startswith('pytest') and 
-                    not line.startswith('black') and
-                    not line.startswith('isort') and
-                    not line.startswith('flake8') and
-                    not line.startswith('mypy') and
-                    not line.startswith('docker')):
-                    requirements.append(line)
+    if not os.path.exists(requirements_path):
+        return requirements
+        
+    with open(requirements_path, 'r', encoding='utf-8') as f:
+        for line in f:
+            line = line.strip()
+            
+            # Skip empty lines and comments
+            if not line or line.startswith('#'):
+                continue
+                
+            # Skip pip options (lines starting with '-') and VCS/URL requirements
+            if line.startswith('-') or line.startswith('git+') or '://' in line:
+                continue
+                
+            # Skip development dependencies
+            if any(line.startswith(dev_pkg) for dev_pkg in ['pytest', 'black', 'isort', 
+                                                          'flake8', 'mypy', 'docker']):
+                continue
+                
+            # Clean up the line (remove comments and whitespace)
+            if '#' in line:
+                line = line.split('#')[0].strip()
+                
+            if line:  # Only add non-empty lines
+                requirements.append(line)
     
     return requirements
 
