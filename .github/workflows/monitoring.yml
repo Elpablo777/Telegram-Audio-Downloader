@@ -376,7 +376,7 @@ jobs:
         "
         
     - name: 🚨 Alert on Quality Degradation
-      if: env.QUALITY_DEGRADATION == 'true'
+      if: env.QUALITY_DEGRADATION == 'true' && github.event_name != 'pull_request'
       uses: actions/github-script@v7
       with:
         script: |
@@ -413,8 +413,29 @@ jobs:
     
     steps:
     - name: 📊 Determine Notification Status  
+      id: check_health
       run: |
-        HEALTH_STATUS="${{ needs.health-check.outputs.health_status || 'UNKNOWN' }}"
+        # Default values
+        HEALTH_STATUS="UNKNOWN"
+        
+        # Check if health-check job completed successfully
+        if [[ "${{ needs.health-check.result }}" == "success" ]]; then
+          # Try to get the health status from the job outputs
+          if [[ -n "${{ fromJson(needs.health-check.outputs).health_status }}" ]]; then
+            HEALTH_STATUS="${{ fromJson(needs.health-check.outputs).health_status }}"
+          # Fallback to a default value if the output is not accessible
+          else
+            echo "Warning: Could not read health status from job outputs"
+            HEALTH_STATUS="UNKNOWN"
+          fi
+        else
+          echo "Warning: health-check job did not complete successfully"
+          HEALTH_STATUS="UNKNOWN"
+        fi
+        
+        # Set the output for subsequent steps
+        echo "HEALTH_STATUS=$HEALTH_STATUS" >> $GITHUB_OUTPUT
+        echo "Using health status: $HEALTH_STATUS"
         
         if [ "$HEALTH_STATUS" = "CRITICAL" ]; then
           echo "🚨 Critical health status detected"
@@ -430,7 +451,10 @@ jobs:
         fi
         
     - name: 📧 Send Notification
-      if: env.SEND_NOTIFICATION == 'true'
+      if: steps.check_health.outputs.HEALTH_STATUS == 'CRITICAL' || steps.check_health.outputs.HEALTH_STATUS == 'WARNING'
+      env:
+        NOTIFICATION_LEVEL: ${{ steps.check_health.outputs.HEALTH_STATUS == 'CRITICAL' && 'critical' || 'warning' }}
       run: |
-        echo "Would send ${{ env.NOTIFICATION_LEVEL }} notification"
+        echo "Sending $NOTIFICATION_LEVEL notification..."
         # TODO: Implement actual notification system (email, Slack, etc.)
+        echo "Would send $NOTIFICATION_LEVEL notification"
