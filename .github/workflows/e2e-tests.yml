@@ -2,11 +2,11 @@ name: 🧪 End-to-End Tests
 
 # Minimal required permissions for the workflow
 permissions:
-  contents: read  # For checking out code
-  packages: read  # For downloading dependencies
-  actions: read   # For reading workflow data
+  contents: read        # For checking out code and reading repository contents
+  packages: read        # For downloading dependencies
+  actions: read         # For reading workflow data
   security-events: write  # For security scanning
-  checks: write   # For creating check runs
+  checks: write         # For creating check runs
   pull-requests: write  # For PR comments
 
 on:
@@ -36,10 +36,6 @@ on:
         required: false
         default: false
         type: boolean
-
-permissions:
-  contents: read
-  actions: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

@@ -318,6 +318,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: health-check
     if: always()
+    outputs:
+      degraded: ${{ steps.analyze.outputs.degraded }}
+      score_trend: ${{ steps.analyze.outputs.score_trend }}
     
     steps:
     - name: 📥 Checkout Code
@@ -331,6 +334,7 @@ jobs:
         path: historical-metrics/
         
     - name: 📈 Analyze Quality Trends
+      id: analyze
       run: |
         python -c "
         import json
@@ -369,14 +373,15 @@ jobs:
         print(f'Previous Score: {previous[\"score\"]:.1f}/100')
         
         # Check for degradation
-        if score_trend < -5:
-            print('⚠️ Significant quality degradation detected!')
-            with open(os.environ['GITHUB_ENV'], 'a') as f:
-                f.write('QUALITY_DEGRADATION=true\n')
+        quality_degraded = score_trend < -5
+        print(f'Quality Degraded: {quality_degraded}')
+        print(f'::set-output name=degraded::{str(quality_degraded).lower()}')
+        print(f'::set-output name=score_trend::{score_trend}')
+        print(f'quality_degraded={str(quality_degraded).lower()}')
         "
         
     - name: 🚨 Alert on Quality Degradation
-      if: env.QUALITY_DEGRADATION == 'true'
+      if: needs.quality-trends.outputs.degraded == 'true' && github.event_name != 'pull_request'
       uses: actions/github-script@v7
       with:
         script: |
@@ -410,11 +415,36 @@ jobs:
     runs-on: ubuntu-latest
     needs: [health-check, quality-trends]
     if: always()
+    env:
+      # Access job outputs safely
+      QUALITY_DEGRADED: ${{ needs['quality-trends'].outputs.degraded || 'false' }}
+      SCORE_TREND: ${{ needs['quality-trends'].outputs.score_trend || '0' }}
     
     steps:
     - name: 📊 Determine Notification Status  
+      id: check_health
       run: |
-        HEALTH_STATUS="${{ needs.health-check.outputs.health_status || 'UNKNOWN' }}"
+        # Default values
+        HEALTH_STATUS="UNKNOWN"
+        
+        # Check if health-check job completed successfully
+        if [[ "${{ needs.health-check.result }}" == "success" ]]; then
+          # Try to get the health status from the job outputs
+          if [[ -n "${{ fromJson(needs.health-check.outputs).health_status }}" ]]; then
+            HEALTH_STATUS="${{ fromJson(needs.health-check.outputs).health_status }}"
+          # Fallback to a default value if the output is not accessible
+          else
+            echo "Warning: Could not read health status from job outputs"
+            HEALTH_STATUS="UNKNOWN"
+          fi
+        else
+          echo "Warning: health-check job did not complete successfully"
+          HEALTH_STATUS="UNKNOWN"
+        fi
+        
+        # Set the output for subsequent steps
+        echo "HEALTH_STATUS=$HEALTH_STATUS" >> $GITHUB_OUTPUT
+        echo "Using health status: $HEALTH_STATUS"
         
         if [ "$HEALTH_STATUS" = "CRITICAL" ]; then
           echo "🚨 Critical health status detected"
@@ -430,7 +460,10 @@ jobs:
         fi
         
     - name: 📧 Send Notification
-      if: env.SEND_NOTIFICATION == 'true'
+      if: (steps.check_health.outputs.HEALTH_STATUS == 'CRITICAL' || steps.check_health.outputs.HEALTH_STATUS == 'WARNING') || env.QUALITY_DEGRADED == 'true'
+      env:
+        NOTIFICATION_LEVEL: ${{ steps.check_health.outputs.HEALTH_STATUS == 'CRITICAL' && 'critical' || 'warning' }}
       run: |
-        echo "Would send ${{ env.NOTIFICATION_LEVEL }} notification"
+        echo "Sending $NOTIFICATION_LEVEL notification..."
         # TODO: Implement actual notification system (email, Slack, etc.)
+        echo "Would send $NOTIFICATION_LEVEL notification"

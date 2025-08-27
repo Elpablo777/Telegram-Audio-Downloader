@@ -1,5 +1,14 @@
 name: ✅ Simple CI
 
+# Minimal required permissions for the workflow
+permissions:
+  contents: read       # Required for checking out code and read operations
+  security-events: write  # Required for security scanning
+  actions: read        # Required for using actions
+  packages: read       # For downloading dependencies
+  checks: write        # For creating check runs
+  pull-requests: write # For PR comments
+
 on:
   push:
     branches: [ main, develop ]
@@ -16,14 +25,6 @@ on:
       - '.gitignore'
       - 'LICENSE'
 
-# Minimal required permissions for the workflow
-permissions:
-  contents: read  # For checking out code
-  packages: read  # For downloading dependencies
-  actions: read   # For reading workflow data
-  security-events: write  # For security scanning
-  checks: write   # For creating check runs
-  pull-requests: write  # For PR comments
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

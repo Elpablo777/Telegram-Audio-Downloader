@@ -37,7 +37,7 @@ jobs:
         python scripts/pr_cleanup.py
     
     - name: Upload PR Review Report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: pr-review-report
         path: pr_review_report.json
@@ -59,7 +59,12 @@ jobs:
     
     - name: Run Security Fix Script
       run: |
-        python scripts/security_fix.py
+        if [ -f "scripts/security_fix.py" ]; then
+          python scripts/security_fix.py
+        else
+          echo "Warning: scripts/security_fix.py not found. Using placeholder behavior."
+          echo "No security fixes applied."
+        fi
     
     - name: Run Safety Check
       run: |

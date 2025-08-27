@@ -54,17 +54,19 @@ def check_secrets():
     print("\n🔍 Suche nach exponierten Geheimnissen...")
     
     # Führe gitleaks aus, falls installiert
-    if run_command(["which", "gitleaks"]):
-        try:
-            leaks = run_command(["gitleaks", "detect", "--source=".", "-v"])
-            if "No leaks found" in leaks:
+    try:
+        # Check if gitleaks is installed
+        which_gitleaks = run_command(["which", "gitleaks"])
+        if which_gitleaks and which_gitleaks.get('exit_code') == 0:
+            leaks = run_command(["gitleaks", "detect", "--source=.", "-v"])
+            if leaks and "No leaks found" in str(leaks):
                 return {"status": "✅", "details": ["Keine exponierten Geheimnisse gefunden."]}
             else:
                 return {"status": "⚠️", "details": ["Mögliche Geheimnisse gefunden. Bitte überprüfen Sie die Ausgabe von 'gitleaks detect'."]}
-        except Exception as e:
-            return {"status": "❌", "details": [f"Fehler bei der Überprüfung: {str(e)}"]}
-    else:
-        return {"status": "ℹ️", "details": ["Gitleaks nicht installiert. Installieren Sie es mit 'brew install gitleaks'."]}
+        else:
+            return {"status": "ℹ️", "details": ["Gitleaks nicht installiert. Installieren Sie es mit 'brew install gitleaks'."]}
+    except Exception as e:
+        return {"status": "❌", "details": [f"Fehler bei der Überprüfung: {str(e)}"]}
 
 def check_permissions():
     """Überprüft die Berechtigungen der Workflow-Dateien."""
