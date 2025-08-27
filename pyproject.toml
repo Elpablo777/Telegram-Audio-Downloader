@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "telegram-audio-downloader"
-version = "1.0.0"
+version = "1.1.0"
 description = "A powerful tool to download and manage audio files from Telegram groups"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -20,11 +20,14 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
 ]
 dependencies = [
+    "aiohttp>=3.12.14",
+    "cryptography>=44.0.1",
     "telethon>=1.29.2",
     "python-dotenv>=1.0.0",
-    "tqdm>=4.66.1",
+    "tqdm>=4.66.3",
     "mutagen>=1.47.0",
     "pydub>=0.25.1",
     "peewee>=3.16.2",
@@ -180,7 +183,11 @@ markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "integration: marks tests as integration tests",
     "network: marks tests as requiring network access",
-    "unit: marks tests as unit tests"
+    "unit: marks tests as unit tests",
+    "performance: marks tests as performance tests",
+    "security: marks tests as security tests",
+    "error_injection: marks tests as error injection tests",
+    "data_setup: marks tests as data setup tests"
 ]
 filterwarnings = [
     "error",

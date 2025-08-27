@@ -7,10 +7,14 @@ on:
     branches: [ main, develop ]
   workflow_dispatch:
 
+# Minimal required permissions for the workflow
 permissions:
-  contents: read
-  checks: write
-  pull-requests: write
+  contents: read  # For checking out code
+  packages: read  # For downloading dependencies
+  actions: read   # For reading workflow data
+  security-events: write  # For security scanning
+  checks: write   # For creating check runs
+  pull-requests: write  # For PR comments
 
 jobs:
   code-quality:
@@ -25,7 +29,7 @@ jobs:
     
     steps:
       - name: 📥 Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
       
@@ -83,14 +87,50 @@ jobs:
       
       - name: 🛡️ Check dependencies with Safety
         run: |
+          pip install safety
+          safety check --full-report --output safety-report.txt
           safety check --json --output safety-report.json
-          safety check
-        continue-on-error: true
+          # Fail the build if critical vulnerabilities are found
+          if grep -q 'CRITICAL' safety-report.txt; then
+            echo "Critical security vulnerabilities found!"
+            cat safety-report.txt
+            exit 1
+          fi
+        continue-on-error: false
       
       - name: 🔍 Type checking with MyPy
         run: |
           mypy src --html-report mypy-report --txt-report mypy-report
-        continue-on-error: true
+          # Check for any type errors in the report
+          if [ -f "mypy-report/index.txt" ] && [ -s "mypy-report/index.txt" ]; then
+            echo "Type checking errors found:"
+            cat mypy-report/index.txt
+            exit 1
+          fi
+        continue-on-error: false
+        
+      - name: 🔒 Check for secrets in code
+        uses: gitleaks/gitleaks-action@v2
+        with:
+          config-path: .gitleaks.toml
+          report-format: sarif
+          report-path: gitleaks-report.sarif
+          no-git: false
+          verbose: true
+        continue-on-error: false
+        
+      - name: 🛡️ Run Bandit security scanner
+        run: |
+          pip install bandit
+          bandit -r src -f json -o bandit-report.json
+          bandit -r src -f txt -o bandit-report.txt
+          # Fail on high severity issues
+          if grep -q 'High' bandit-report.txt; then
+            echo "High severity security issues found!"
+            cat bandit-report.txt
+            exit 1
+          fi
+        continue-on-error: false
       
       - name: 📊 Code complexity analysis
         run: |
@@ -178,7 +218,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 📥 Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       
       - name: 🐍 Set up Python
         uses: actions/setup-python@v4
@@ -208,7 +248,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 📥 Checkout repository  
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       
       - name: 🐍 Set up Python
         uses: actions/setup-python@v4

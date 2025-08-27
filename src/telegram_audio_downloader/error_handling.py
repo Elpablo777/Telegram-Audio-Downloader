@@ -52,6 +52,18 @@ class FileOperationError(TelegramAudioError):
     """Fehler bei Dateioperationen."""
     pass
 
+class SecurityError(TelegramAudioError):
+    """Sicherheits-bezogene Fehler."""
+    pass
+
+class SearchError(TelegramAudioError):
+    """Fehler bei Suchoperationen."""
+    pass
+
+class SystemIntegrationError(TelegramAudioError):
+    """Fehler bei der Systemintegration."""
+    pass
+
 class TelegramAPIError(TelegramAudioError):
     """Fehler bei der Interaktion mit der Telegram-API."""
     def __init__(self, message: str, telegram_error: Optional[Exception] = None):
@@ -88,6 +100,8 @@ class ErrorHandler:
             self._handle_database_error(error, context)
         elif isinstance(error, FileOperationError):
             self._handle_file_operation_error(error, context)
+        elif isinstance(error, SecurityError):
+            self._handle_security_error(error, context)
         elif isinstance(error, TelegramAPIError):
             self._handle_telegram_api_error(error, context)
         else:
@@ -132,6 +146,11 @@ class ErrorHandler:
         """Behandelt Dateioperations-Fehler."""
         console.print(f"[red]Dateioperations-Fehler[/red] in {context}: {error.message}")
         self.logger.error(f"Dateioperations-Fehler in {context}: {error.message}")
+        
+    def _handle_security_error(self, error: SecurityError, context: str) -> None:
+        """Behandelt Sicherheitsfehler."""
+        console.print(f"[red]Sicherheitsfehler[/red] in {context}: {error.message}")
+        self.logger.error(f"Sicherheitsfehler in {context}: {error.message}")
         
     def _handle_telegram_api_error(self, error: TelegramAPIError, context: str) -> None:
         """Behandelt Telegram-API-Fehler."""
@@ -200,7 +219,12 @@ class ErrorHandler:
 _error_handler: Optional[ErrorHandler] = None
 
 def get_error_handler() -> ErrorHandler:
-    """Gibt die globale ErrorHandler-Instanz zurück."""
+    """
+    Gibt die globale Instanz des ErrorHandlers zurück.
+    
+    Returns:
+        ErrorHandler: Globale Instanz des ErrorHandlers
+    """
     global _error_handler
     if _error_handler is None:
         _error_handler = ErrorHandler()
@@ -208,24 +232,12 @@ def get_error_handler() -> ErrorHandler:
 
 def handle_error(error: Exception, context: str = "", exit_on_error: bool = False) -> None:
     """
-    Behandelt einen Fehler zentral.
+    Behandelt einen Fehler zentral und gibt eine formatierte Meldung aus.
     
     Args:
         error: Der aufgetretene Fehler
         context: Kontext, in dem der Fehler aufgetreten ist
         exit_on_error: Ob das Programm bei diesem Fehler beendet werden soll
     """
-    handler = get_error_handler()
-    handler.handle_error(error, context, exit_on_error)
-    
-async def handle_async_error(error: Exception, context: str = "", exit_on_error: bool = False) -> None:
-    """
-    Behandelt einen Fehler asynchron.
-    
-    Args:
-        error: Der aufgetretene Fehler
-        context: Kontext, in dem der Fehler aufgetreten ist
-        exit_on_error: Ob das Programm bei diesem Fehler beendet werden soll
-    """
-    handler = get_error_handler()
-    await handler.handle_async_error(error, context, exit_on_error)
+    error_handler = get_error_handler()
+    error_handler.handle_error(error, context, exit_on_error)

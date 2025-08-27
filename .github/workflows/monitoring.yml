@@ -10,6 +10,16 @@ on:
   pull_request:
     branches: [ main ]
 
+# Minimal required permissions for the workflow
+permissions:
+  contents: read  # For checking out code
+  packages: read  # For downloading dependencies
+  actions: read   # For reading workflow data
+  security-events: write  # For security scanning
+  checks: write   # For creating check runs
+  pull-requests: write  # For PR comments
+  issues: write   # For creating issues
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -28,7 +38,7 @@ jobs:
     
     steps:
     - name: 📥 Checkout Code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       
     - name: 🐍 Setup Python
       uses: actions/setup-python@v5
@@ -311,10 +321,10 @@ jobs:
     
     steps:
     - name: 📥 Checkout Code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       
     - name: 📊 Download Previous Health Metrics
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v5
       continue-on-error: true
       with:
         pattern: health-metrics-*

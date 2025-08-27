@@ -18,9 +18,7 @@ from unittest.mock import AsyncMock, Mock, patch
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from telegram_audio_downloader.core.downloader import AudioDownloader
-from telegram_audio_downloader.utils.rate_limiter import RateLimiter
-from telegram_audio_downloader.utils.memory_manager import MemoryManager
-from telegram_audio_downloader.monitoring.performance_monitor import PerformanceMonitor
+from telegram_audio_downloader.performance import RateLimiter, MemoryManager, PerformanceMonitor
 
 
 class TestPerformanceMonitor:

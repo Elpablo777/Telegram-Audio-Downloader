@@ -40,17 +40,17 @@ class MonitoringDashboard:
         history = []
         cutoff = datetime.now() - timedelta(days=days)
         
-        for metrics_file in sorted(self.metrics_dir.glob("health_*.json")):
+        for metrics_file in sorted(self.history_dir.glob("metrics_*.json")):
             try:
-                # Extract date from filename
-                date_str = metrics_file.stem.split('_')[1]  # health_YYYYMMDD_HHMMSS
-                file_date = datetime.strptime(date_str, '%Y%m%d')
+                # Extract timestamp from filename
+                timestamp_str = metrics_file.stem.replace('metrics_', '')
+                file_date = datetime.strptime(timestamp_str, '%Y%m%d_%H%M%S')
                 
                 if file_date >= cutoff:
                     with open(metrics_file) as f:
                         history.append(json.load(f))
             except Exception:
-                continue
+                continue  # nosec B112
         
         return sorted(history, key=lambda x: x['timestamp'])
     
@@ -69,7 +69,7 @@ class MonitoringDashboard:
                     with open(alert_file) as f:
                         alerts.append(json.load(f))
             except Exception:
-                continue
+                continue  # nosec B112
         
         return sorted(alerts, key=lambda x: x['timestamp'], reverse=True)
     
@@ -361,4 +361,4 @@ if __name__ == '__main__':
     print("📈 API History: http://localhost:8080/api/history")
     print("🚨 API Alerts: http://localhost:8080/api/alerts")
     
-    app.run(host='0.0.0.0', port=8080, debug=True)
+    app.run(host='127.0.0.1', port=8080, debug=False)

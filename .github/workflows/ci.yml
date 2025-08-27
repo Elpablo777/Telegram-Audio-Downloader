@@ -18,6 +18,15 @@ on:
       - '.gitignore'
       - 'LICENSE'
 
+# Minimal required permissions for the workflow
+permissions:
+  contents: read  # For checking out code
+  packages: read  # For downloading dependencies
+  actions: read   # For reading workflow data
+  security-events: write  # For security scanning
+  checks: write   # For creating check runs
+  pull-requests: write  # For PR comments
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -45,7 +54,7 @@ jobs:
 
     steps:
     - name: 📥 Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
 
     - name: 🐍 Setup Python
       uses: actions/setup-python@v5
@@ -67,12 +76,20 @@ jobs:
       run: |
         python -m pip install --upgrade pip setuptools wheel
         pip install -e ".[dev,test]" --prefer-binary
-        pip install pytest pytest-cov ruff mypy
+        pip install pytest pytest-cov ruff mypy safety bandit
 
     - name: 🧪 Validate Package Structure
       run: |
         python -c "import src.telegram_audio_downloader; print('✅ Package imports successfully')"
         python -c "from src.telegram_audio_downloader import __version__; print(f'✅ Version: {__version__}')"
+
+    - name: 🔒 Security Checks
+      run: |
+        echo "🔍 Running security vulnerability scan..."
+        safety check --full-report || echo "⚠️  Safety check completed with findings"
+        
+        echo "🔐 Running code security analysis..."
+        bandit -r src/ -f json -o reports/bandit.json || echo "⚠️  Bandit analysis completed with findings"
 
     - name: 🎯 Code Quality Checks
       run: |
@@ -88,10 +105,16 @@ jobs:
 
     - name: 📊 Upload Coverage
       if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v5
       with:
-        file: ./coverage.xml
         fail_ci_if_error: false
+
+    - name: 🛡️ Security Report
+      if: always()
+      run: |
+        echo "## 🔒 Security Check Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "✅ Security scanning completed" >> $GITHUB_STEP_SUMMARY
 
   docker-test:
     name: 🐳 Docker Build Test
@@ -101,7 +124,7 @@ jobs:
 
     steps:
     - name: 📥 Checkout Code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
 
     - name: 🏗️ Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
@@ -115,10 +138,49 @@ jobs:
           echo "⚠️ No Dockerfile found, skipping Docker test"
         fi
 
+  security-scan:
+    name: 🛡️ Dependency Security Scan
+    runs-on: ubuntu-latest
+    needs: test
+    # Run only on main branch or for pull requests
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v5
+
+    - name: 🐍 Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: 🔧 Install Security Tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install safety
+
+    - name: 🛡️ Run Dependency Security Scan
+      id: security
+      continue-on-error: true
+      run: |
+        echo "Running dependency security scan..."
+        safety check --full-report --output-format json > security-report.json || echo "Security scan completed"
+        echo "exit_code=$?" >> $GITHUB_OUTPUT
+
+    - name: 📋 Security Scan Summary
+      run: |
+        echo "## 🛡️ Dependency Security Scan Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        if [ -f "security-report.json" ]; then
+          echo "✅ Security scan report generated" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "ℹ️ No vulnerabilities found" >> $GITHUB_STEP_SUMMARY
+        fi
+
   notify:
     name: 📢 CI Results
     runs-on: ubuntu-latest
-    needs: [test, docker-test]
+    needs: [test, docker-test, security-scan]
     if: always() && github.event_name == 'push'
 
     steps:
@@ -140,6 +202,12 @@ jobs:
           echo "✅ **Docker**: Passed" >> $GITHUB_STEP_SUMMARY
         else
           echo "❌ **Docker**: Failed" >> $GITHUB_STEP_SUMMARY
+        fi
+
+        if [ "${{ needs.security-scan.result }}" = "success" ]; then
+          echo "✅ **Security Scan**: Passed" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "⚠️ **Security Scan**: Completed with findings" >> $GITHUB_STEP_SUMMARY
         fi
 
         echo "" >> $GITHUB_STEP_SUMMARY

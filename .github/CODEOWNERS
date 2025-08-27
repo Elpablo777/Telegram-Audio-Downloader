@@ -1,0 +1,27 @@
+# CODEOWNERS für Telegram Audio Downloader
+
+# Standardmäßig gehören alle Dateien Elpablo777
+* @Elpablo777
+
+# Core-Module
+src/telegram_audio_downloader/downloader.py @Elpablo777
+src/telegram_audio_downloader/cli.py @Elpablo777
+src/telegram_audio_downloader/database.py @Elpablo777
+src/telegram_audio_downloader/models.py @Elpablo777
+
+# Tests
+tests/ @Elpablo777
+
+# Dokumentation
+README.md @Elpablo777
+docs/ @Elpablo777
+wiki/ @Elpablo777
+
+# CI/CD
+.github/workflows/ @Elpablo777
+.github/dependabot.yml @Elpablo777
+
+# Konfiguration
+config/ @Elpablo777
+Dockerfile @Elpablo777
+docker-compose.yml @Elpablo777

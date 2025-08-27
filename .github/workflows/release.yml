@@ -1,5 +1,15 @@
 name: 🚀 Simple Release
 
+# Minimal required permissions for the workflow
+permissions:
+  contents: write  # For creating releases and tags
+  packages: read   # For downloading dependencies
+  actions: read    # For reading workflow data
+  security-events: write  # For security scanning
+  checks: write    # For creating check runs
+  pull-requests: write  # For PR comments
+  issues: write    # For creating issues
+
 on:
   push:
     tags:
@@ -16,11 +26,11 @@ jobs:
     name: 📦 Create Release
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: write  # Required for creating releases
     
     steps:
     - name: 📥 Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       
     - name: 🏷️ Get Version
       id: version

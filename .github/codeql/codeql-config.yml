@@ -1,0 +1,104 @@
+name: "Custom CodeQL Configuration"
+
+disabled_queries:
+  # Deaktiviere bestimmte allgemeine Warnungen, die zu viele False Positives erzeugen
+  - "cpp/unsigned-difference-reduction"
+  - "cpp/constant-comparison"
+  - "cpp/useless-expression"
+  - "cpp/constant-logical-operand"
+  - "cpp/constant-comparison"
+  - "cpp/constant-tautology"
+
+query-filters:
+  - include:
+      # Aktiviere alle Sicherheitsabfragen
+      tags: security
+  - include:
+      # Aktiviere wichtige Qualitätsabfragen
+      tags: correctness
+      precision: high
+  - exclude:
+      # Deaktiviere Abfragen mit vielen False Positives
+      - tag: external/cwe/cwe-703
+      - tag: external/cwe/cwe-570
+      - tag: external/cwe/cwe-571
+
+# Python-spezifische Konfiguration
+python:
+  # Aktiviere erweiterte Analyse für Django/Flask
+  frameworks:
+    - django
+    - flask
+  
+  # Zusätzliche Pfade für Abhängigkeiten
+  dependencies: 
+    - requirements.txt
+    - requirements-dev.txt
+
+# Konfiguration für die Analyse
+analyze:
+  # Erhöhe das Zeitlimit für komplexe Analysen
+  timeout: 1800  # 30 Minuten
+  
+  # Aktiviere erweiterte Analyse für Sicherheitsprobleme
+  security:
+    precision: high
+    recall: high
+    
+  # Spezifische Einstellungen für Python
+  python:
+    # Aktiviere Typinferenz für bessere Genauigkeit
+    type-inference: true
+    
+    # Ignoriere Testverzeichnisse
+    exclude:
+      - "**/tests/**"
+      - "**/test_*.py"
+      - "**/*_test.py"
+      - "**/test/**"
+      - "**/venv/**"
+      - "**/.venv/**"
+      - "**/env/**"
+      - "**/build/**"
+      - "**/dist/**"
+
+# Erweiterte Analyse für Sicherheitsprobleme
+security:
+  # Aktiviere zusätzliche Sicherheitsüberprüfungen
+  extended:
+    - "injection"
+    - "xss"
+    - "deserialization"
+    - "cryptography"
+    - "auth"
+    - "file-io"
+    - "network"
+    - "process"
+    - "database"
+
+# Spezifische Pfade für die Analyse
+paths:
+  include:
+    - "src/**"
+    - "telegram_audio_downloader/**"
+  exclude:
+    - "**/__pycache__"
+    - "**/*.pyc"
+    - "**/*.pyo"
+    - "**/*.pyd"
+    - "**/setup.py"
+    - "**/build"
+    - "**/dist"
+    - "**/venv"
+    - "**/env"
+    - "**/.venv"
+    - "**/node_modules"
+
+# Erweiterte Einstellungen für die SARIF-Ausgabe
+output:
+  # Erstelle detaillierte SARIF-Berichte
+  sarif:
+    include-severity: true
+    include-cwe: true
+    include-owasp: true
+    include-security-severity: true
