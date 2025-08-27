@@ -415,7 +415,7 @@ jobs:
     if: always()
     # Ensure quality-trends job completes successfully
     env:
-      QUALITY_DEGRADED: ${{ needs.quality-trends.outputs.quality_degraded || 'false' }}
+      QUALITY_DEGRADED: ${{ needs['quality-trends'].outputs.quality_degraded || 'false' }}
     
     steps:
     - name: 📊 Determine Notification Status  
@@ -457,7 +457,7 @@ jobs:
         fi
         
     - name: 📧 Send Notification
-      if: (steps.check_health.outputs.HEALTH_STATUS == 'CRITICAL' || steps.check_health.outputs.HEALTH_STATUS == 'WARNING') || env.QUALITY_DEGRADED == 'true'
+      if: (steps.check_health.outputs.HEALTH_STATUS == 'CRITICAL' || steps.check_health.outputs.HEALTH_STATUS == 'WARNING') || (needs['quality-trends'].result == 'success' && needs['quality-trends'].outputs.quality_degraded == 'true')
       env:
         NOTIFICATION_LEVEL: ${{ steps.check_health.outputs.HEALTH_STATUS == 'CRITICAL' && 'critical' || 'warning' }}
       run: |
