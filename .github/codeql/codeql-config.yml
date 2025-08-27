@@ -1,0 +1,19 @@
+name: 'Repository CodeQL Config'
+
+queries:
+  - uses: security-extended
+  - uses: security-and-quality
+
+paths:
+  - src
+  - telegram_audio_downloader.py
+
+paths-ignore:
+  - tests
+  - docs
+  - .venv
+  - venv
+  - build
+  - dist
+
+
