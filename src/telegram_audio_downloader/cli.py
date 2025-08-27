@@ -39,10 +39,11 @@ def print_banner():
     console.print(banner, highlight=False)
 
 
-def load_config(config_path: Optional[str] = None) -> Config:
+def load_config(ctx, config_path: Optional[str] = None) -> Config:
     """Lädt die Konfiguration mit Priorisierung.
     
     Args:
+        ctx: Click-Kontext
         config_path: Optionaler Pfad zur Konfigurationsdatei
         
     Returns:
@@ -71,7 +72,7 @@ def load_config(config_path: Optional[str] = None) -> Config:
 def cli(ctx, debug: bool, config: str, interactive: bool):
     """Telegram Audio Downloader - Ein Tool zum Herunterladen von Audiodateien aus Telegram-Gruppen."""
     # Konfiguration laden
-    config_obj = load_config(config_path=config)
+    config_obj = load_config(ctx, config_path=config)
     
     # Logging-System initialisieren
     logger = get_logger(debug=debug)
@@ -111,24 +112,23 @@ def cli(ctx, debug: bool, config: str, interactive: bool):
 @log_function_call
 def download(ctx, group: str, limit: Optional[int], output: Optional[str], parallel: Optional[int], filename_template: Optional[str], interactive: bool):
     """Lädt Audiodateien aus einer Telegram-Gruppe herunter."""
-    # Note: filename_template parameter is currently unused but kept for future implementation
     config = ctx.obj.get("CONFIG")
-
+    
     # Verwende Konfigurationswerte falls nicht über CLI angegeben
     if output is None:
         output = config.download_dir
     if parallel is None:
         parallel = config.max_concurrent_downloads
-
+    
     if not check_env():
         sys.exit(1)
-
+    
     # Validierung der Gruppenparameter
     if not group or not group.strip():
         error = ConfigurationError("Gruppenname darf nicht leer sein")
         handle_error(error, "download_group_validation", exit_on_error=True)
         return
-
+    
     # Validierung des Limit-Parameters
     if limit is not None and limit <= 0:
         error = ConfigurationError("Limit muss eine positive Zahl sein")
@@ -325,7 +325,7 @@ def lite(ctx, group: str, limit: Optional[int], output: Optional[str], parallel:
                 progress.update(task, total=len(audio_files), description="Lade Dateien herunter...")
                 
                 # Dateien herunterladen
-                for file in audio_files:
+                for i, file in enumerate(audio_files):
                     try:
                         await downloader.download_file(file)
                         downloaded_count += 1
