@@ -1,19 +1,27 @@
 version: 2
 updates:
-  # Python dependencies
+  # Python dependencies configuration
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
-      interval: "weekly"
-      day: "monday"
+      interval: "daily"  # Häufigere Überprüfungen für Sicherheitsupdates
       time: "06:00"
+      timezone: "Europe/Berlin"
+    # Allow all dependency types for security updates
+    allow:
+      - dependency-type: "all"  # Erlaubt Sicherheitsupdates für alle Abhängigkeitstypen
+    # Ignore major version updates by default
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
     open-pull-requests-limit: 5
     labels:
       - "dependencies"
       - "python"
+      - "security"
     commit-message:
-      prefix: "⬆️"
-      prefix-development: "⬆️ dev"
+      prefix: "🔒 SECURITY"
+      prefix-development: "🔒 SECURITY (dev)"
       include: "scope"
     # Specific configurations for security-critical packages
     groups:
@@ -22,37 +30,53 @@ updates:
           - "cryptography"
           - "aiohttp"
           - "tqdm"
+          - "telethon"
+          - "python-dotenv"
+          - "pydub"
+          - "peewee"
         update-types:
           - "patch"
           - "minor"
-          - "major"
+        # Automatisches Merging erfolgt über GitHub Actions Workflows
 
-  # GitHub Actions
+  # GitHub Actions Updates
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
       day: "monday"
-      time: "06:00"
+      time: "07:00"
+      timezone: "Europe/Berlin"
     open-pull-requests-limit: 3
     labels:
       - "dependencies"
       - "github-actions"
+      - "security"
     commit-message:
-      prefix: "⬆️"
+      prefix: "🔄 GITHUB-ACTIONS"
       include: "scope"
+    # Ignore major version updates by default
+    ignore:
+      - dependency-name: "actions/*"
+        update-types: ["version-update:semver-major"]
 
-  # Docker
+  # Docker Images
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
       interval: "weekly"
-      day: "monday"
+      day: "tuesday"
       time: "06:00"
+      timezone: "Europe/Berlin"
     open-pull-requests-limit: 3
     labels:
       - "dependencies"
       - "docker"
+      - "security"
     commit-message:
-      prefix: "⬆️"
+      prefix: "🐳 DOCKER"
       include: "scope"
+    # Ignore major version updates by default
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]

@@ -1,5 +1,15 @@
 name: PR Review and Security Check
 
+# Minimal required permissions for the workflow
+permissions:
+  contents: read  # For checking out code
+  packages: read  # For downloading dependencies
+  actions: read   # For reading workflow data
+  security-events: write  # For security scanning
+  checks: write   # For creating check runs
+  pull-requests: write  # For PR comments
+  issues: write   # For creating issues
+
 on:
   pull_request:
     branches: [ main, master ]

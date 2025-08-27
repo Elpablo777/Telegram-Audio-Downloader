@@ -1,5 +1,15 @@
 name: Python Package Security Scan
 
+# Minimal required permissions for the workflow
+permissions:
+  contents: read  # For checking out code
+  packages: read  # For downloading dependencies
+  actions: read   # For reading workflow data
+  security-events: write  # For security scanning
+  checks: write   # For creating check runs
+  pull-requests: write  # For PR comments
+  issues: write   # For creating issues
+
 on:
   schedule:
     # Führe wöchentlich am Montag um 3 Uhr morgens aus
@@ -17,10 +27,11 @@ jobs:
     name: Run Security Checks
     runs-on: ubuntu-latest
     
-    # Minimale Berechtigungen für Sicherheit
+    # Job-spezifische Berechtigungen
     permissions:
-      contents: read
-      security-events: write
+      contents: read  # For checking out code
+      security-events: write  # For reporting security issues
+      checks: write   # For creating check runs
     
     steps:
       - name: Checkout code
