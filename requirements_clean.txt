@@ -1,5 +1,5 @@
 -i https://pkgs.safetycli.com/repository/privat-0beef/project/telegram-audio-downloader/pypi/simple/
-telethon==1.34.0
+telethon==1.40.0
 python-dotenv>=1.0.1
 tqdm>=4.66.1
 rich>=13.7.0
