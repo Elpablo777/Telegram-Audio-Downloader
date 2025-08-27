@@ -1,14 +1,18 @@
 ---
-name: CodeQL (Legacy)
-on:
+name: "CodeQL (Legacy)"
+"on":
   push:
-    branches: [ main ]
+    branches:
+      - main
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
   workflow_dispatch:
+
 permissions:
   contents: read
   security-events: write
+
 jobs:
   analyze:
     name: CodeQL Analyze

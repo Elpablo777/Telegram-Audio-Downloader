@@ -1,6 +1,6 @@
 ---
 name: "Security - Upload SARIF from tools"
-on:
+"on":
   push:
     branches:
       - main
@@ -9,9 +9,11 @@ on:
     branches:
       - main
   workflow_dispatch:
+
 permissions:
   contents: read
   security-events: write
+
 jobs:
   sarif-tools:
     runs-on: ubuntu-latest
@@ -29,7 +31,7 @@ jobs:
       - name: Run Bandit (SARIF)
         run: |
           mkdir -p reports
-          bandit -r src -f sarif -o reports/bandit.sarif || true
+          bandit -r . -f sarif -o reports/bandit.sarif || true
       - name: Upload SARIF (Bandit)
         uses: github/codeql-action/upload-sarif@v3
         with:

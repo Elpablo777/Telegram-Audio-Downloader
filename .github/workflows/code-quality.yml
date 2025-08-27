@@ -1,3 +1,4 @@
+
 name: 🔍 Code Quality
 on:
   push:
@@ -9,10 +10,12 @@ on:
       - main
       - develop
   workflow_dispatch:
+
 permissions:
   contents: read
   checks: write
   pull-requests: write
+
 jobs:
   code-quality:
     name: 🔍 Code Quality Checks
@@ -49,24 +52,24 @@ jobs:
         continue-on-error: true
       - name: 🐍 Lint with Ruff
         run: |
-          ruff check src tests --output-format=github
+          ruff check . --output-format=github
         continue-on-error: true
       - name: 🖤 Check code formatting with Black
         run: |
-          black --check --diff src tests
+          black --check --diff .
         continue-on-error: true
       - name: 📋 Check import sorting with isort
         run: |
-          isort --check-only --diff src tests
+          isort --check-only --diff .
         continue-on-error: true
       - name: 🔍 Lint with flake8
         run: |
-          flake8 src tests --statistics --tee --output-file=flake8-report.txt
+          flake8 . --statistics --tee --output-file=flake8-report.txt
         continue-on-error: true
       - name: 🔒 Security check with Bandit
         run: |
-          bandit -r src -f json -o bandit-report.json
-          bandit -r src -f txt || true
+          bandit -r . -f json -o bandit-report.json || true
+          bandit -r . -f txt || true
         continue-on-error: true
       - name: 🛡️ Check dependencies with Safety
         run: |
@@ -75,7 +78,7 @@ jobs:
         continue-on-error: true
       - name: 🔍 Type checking with MyPy
         run: |
-          mypy src --html-report mypy-report --txt-report mypy-report || true
+          mypy . --html-report mypy-report --txt-report mypy-report || true
         continue-on-error: true
       - name: 📄 Upload Code Quality Reports
         uses: actions/upload-artifact@v4
