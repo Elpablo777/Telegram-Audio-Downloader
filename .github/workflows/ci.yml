@@ -1,5 +1,13 @@
 name: ✅ Simple CI
 
+# Minimale erforderliche Berechtigungen für den Workflow
+permissions:
+  contents: read  # Erforderlich für Checkout und Lesevorgänge
+  security-events: write  # Erforderlich für Sicherheitsscans
+  actions: read  # Erforderlich für die Verwendung von Aktionen
+  packages: read  # Für den Download von Abhängigkeiten
+  checks: write  # Für Check-Status-Updates
+
 on:
   push:
     branches: [ main, develop ]

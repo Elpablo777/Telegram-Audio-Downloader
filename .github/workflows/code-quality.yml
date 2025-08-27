@@ -9,12 +9,13 @@ on:
 
 # Minimal required permissions for the workflow
 permissions:
-  contents: read  # For checking out code
-  packages: read  # For downloading dependencies
-  actions: read   # For reading workflow data
-  security-events: write  # For security scanning
-  checks: write   # For creating check runs
-  pull-requests: write  # For PR comments
+  contents: read  # Erforderlich für Checkout und Lesevorgänge
+  security-events: write  # Erforderlich für Sicherheitsscans
+  actions: read  # Erforderlich für die Verwendung von Aktionen
+  pull-requests: write  # Erforderlich für PR-Kommentare
+  statuses: write  # Erforderlich für Status-Updates
+  packages: read  # Für den Download von Abhängigkeiten
+  checks: write  # Für Check-Status-Updates
 
 jobs:
   code-quality:
