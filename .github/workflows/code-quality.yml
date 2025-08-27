@@ -11,10 +11,14 @@ on:
       - develop
   workflow_dispatch:
 
+# Minimal required permissions for the workflow
 permissions:
-  contents: read
-  checks: write
-  pull-requests: write
+  contents: read  # For checking out code
+  packages: read  # For downloading dependencies
+  actions: read   # For reading workflow data
+  security-events: write  # For security scanning
+  checks: write   # For creating check runs
+  pull-requests: write  # For PR comments
 
 jobs:
   code-quality:

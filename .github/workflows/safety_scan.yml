@@ -1,5 +1,20 @@
+<<<<<<< HEAD
 ---
 name: 🔒 Safety Scan
+=======
+name: Python Package Security Scan
+
+# Minimal required permissions for the workflow
+permissions:
+  contents: read  # For checking out code
+  packages: read  # For downloading dependencies
+  actions: read   # For reading workflow data
+  security-events: write  # For security scanning
+  checks: write   # For creating check runs
+  pull-requests: write  # For PR comments
+  issues: write   # For creating issues
+
+>>>>>>> origin/main
 on:
   pull_request:
     branches:
@@ -13,6 +28,16 @@ permissions:
 jobs:
   safety:
     runs-on: ubuntu-latest
+<<<<<<< HEAD
+=======
+    
+    # Job-spezifische Berechtigungen
+    permissions:
+      contents: read  # For checking out code
+      security-events: write  # For reporting security issues
+      checks: write   # For creating check runs
+    
+>>>>>>> origin/main
     steps:
       - name: Checkout
         uses: actions/checkout@v4

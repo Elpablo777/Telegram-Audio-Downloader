@@ -16,12 +16,14 @@ on:
       - '.gitignore'
       - 'LICENSE'
 
+# Minimal required permissions for the workflow
 permissions:
-  contents: read
-  # Required for creating check runs
-  checks: write
-  # Required for security events
-  security-events: write
+  contents: read  # For checking out code
+  packages: read  # For downloading dependencies
+  actions: read   # For reading workflow data
+  security-events: write  # For security scanning
+  checks: write   # For creating check runs
+  pull-requests: write  # For PR comments
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

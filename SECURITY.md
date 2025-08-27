@@ -1,47 +1,79 @@
-# Security Policy
+# Sicherheitsrichtlinie
 
-## Supported Versions
+## Unterstützte Versionen
 
-We release security patches for the latest version of the Telegram Audio Downloader.
+Wir veröffentlichen Sicherheitsupdates für die neueste Version des Telegram Audio Downloaders.
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 1.1.x   | :white_check_mark: |
-| < 1.0   | :x:                |
+| Version | Unterstützt          |
+| ------- | -------------------- |
+| 1.1.x   | :white_check_mark:   |
+| < 1.0   | :x:                  |
 
-## Reporting a Vulnerability
+## Sicherheitslücke melden
 
-If you discover a security vulnerability in this project, please report it by emailing hannover84@msn.com.
+Wenn Sie eine Sicherheitslücke in diesem Projekt entdecken, melden Sie diese bitte per E-Mail an hannover84@msn.com.
 
-Please include the following information in your report:
-- Description of the vulnerability
-- Steps to reproduce the vulnerability
-- Potential impact of the vulnerability
-- Any possible mitigations you've identified
+Bitte fügen Sie folgende Informationen in Ihren Bericht ein:
+- Beschreibung der Sicherheitslücke
+- Schritte zum Reproduzieren der Sicherheitslücke
+- Mögliche Auswirkungen der Sicherheitslücke
+- Eventuell identifizierte Gegenmaßnahmen
 
-We will acknowledge your report within 48 hours and will strive to provide a fix within 7 days.
+Wir bestätigen den Eingang Ihres Berichts innerhalb von 48 Stunden und bemühen uns, innerhalb von 7 Tagen einen Fix bereitzustellen.
 
-## Security Updates
+## Automatisierte Sicherheitsmaßnahmen
 
-This project uses Dependabot to automatically update dependencies. Security-critical packages including:
-- cryptography
-- aiohttp
-- tqdm
+### CodeQL Statische Analyse
+- Tägliche statische Codeanalyse auf Sicherheitsprobleme
+- Erweiterte Analyse für Python-spezifische Schwachstellen
+- Automatische Berichterstattung an GitHub Security Advisories
 
-Are monitored more closely and updated with higher priority.
+### Abhängigkeitsmanagement
+- **Dependabot** für automatische Sicherheitsupdates
+- Tägliche Überprüfung auf Sicherheitslücken
+- Automatische Erstellung von Pull-Requests für Sicherheitsupdates
 
-## Vulnerability Disclosure Policy
+### Überwachte Sicherheitspakete
+- `cryptography`
+- `aiohttp`
+- `telethon`
+- `python-dotenv`
+- `pydub`
+- `peewee`
 
-We follow a coordinated disclosure policy:
-1. Vulnerabilities are confirmed and validated
-2. Patches are developed and tested
-3. A new release is published with the fix
-4. The vulnerability is publicly disclosed after the fix is available
+## Offenlegungsrichtlinie für Sicherheitslücken
 
-## Security Best Practices
+Wir befolgen eine koordinierte Offenlegungsrichtlinie:
+1. Bestätigung und Validierung der Sicherheitslücke
+2. Entwicklung und Test von Patches
+3. Veröffentlichung einer neuen Version mit dem Fix
+4. Öffentliche Bekanntgabe der Sicherheitslücke nach Verfügbarkeit des Fixes
 
-This project follows these security practices:
-- Regular dependency updates
-- Automated security scanning
-- Code review for security implications
-- Secure handling of credentials and secrets
+## Sicherheitspraktiken
+
+### Entwicklungsprozess
+- Automatisierte Sicherheitstests in der CI/CD-Pipeline
+- Regelmäßige Sicherheitsaudits
+- Code-Review mit Fokus auf Sicherheitsaspekte
+
+### Infrastruktur
+- Minimale Berechtigungen für Workflows
+- Sichere Geheimnisverwaltung mit GitHub Secrets
+- Regelmäßige Sicherheitsupdates der Build-Umgebung
+
+### Datenschutz
+- Sichere Verarbeitung von Benutzerdaten
+- Verschlüsselung sensibler Informationen
+- Regelmäßige Überprüfung der Datenschutzmaßnahmen
+
+## Sicherheitshinweise für Entwickler
+
+### Empfohlene Entwicklungsumgebung
+- Aktuelle Python-Version (mindestens 3.11)
+- Verwendung von virtuellen Umgebungen
+- Regelmäßige Aktualisierung der Entwicklungstools
+
+### Sicherheitsrelevante Einstellungen
+- Aktivierte Sicherheitsfeatures in der Konfiguration
+- Regelmäßige Überprüfung der Sicherheitseinstellungen
+- Dokumentation aller sicherheitsrelevanten Konfigurationen

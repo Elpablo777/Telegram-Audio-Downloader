@@ -9,6 +9,7 @@ on:
       - main
       - develop
   pull_request:
+<<<<<<< HEAD
     branches:
       - main
 # Minimal required permissions
@@ -16,6 +17,20 @@ permissions:
   contents: read
   issues: write  # Für das Erstellen von Issues bei kritischen Problemen
   pull-requests: write  # Für das Aktualisieren von PRs mit Metriken
+=======
+    branches: [ main ]
+
+# Minimal required permissions for the workflow
+permissions:
+  contents: read  # For checking out code
+  packages: read  # For downloading dependencies
+  actions: read   # For reading workflow data
+  security-events: write  # For security scanning
+  checks: write   # For creating check runs
+  pull-requests: write  # For PR comments
+  issues: write   # For creating issues
+
+>>>>>>> origin/main
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true

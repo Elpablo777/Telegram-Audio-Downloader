@@ -23,6 +23,8 @@ classifiers = [
     "Programming Language :: Python :: 3.14",
 ]
 dependencies = [
+    "aiohttp>=3.12.14",
+    "cryptography>=44.0.1",
     "telethon>=1.29.2",
     "python-dotenv>=1.0.0",
     "tqdm>=4.66.3",
