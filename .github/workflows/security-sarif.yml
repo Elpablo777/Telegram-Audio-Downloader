@@ -1,9 +1,13 @@
-name: Security - Upload SARIF from tools
+---
+name: "Security - Upload SARIF from tools"
 on:
   push:
-    branches: [ main, develop ]
+    branches:
+      - main
+      - develop
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
   workflow_dispatch:
 permissions:
   contents: read
@@ -15,7 +19,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v4
         with:
           python-version: '3.11'
       - name: Install tools

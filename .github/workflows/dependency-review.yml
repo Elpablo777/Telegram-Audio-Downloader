@@ -1,7 +1,10 @@
-name: Dependency Review
+---
+name: 'Dependency Review'
 on:
   pull_request:
-    branches: [ main, develop ]
+    branches:
+      - main
+      - develop
 permissions:
   contents: read
 jobs:
