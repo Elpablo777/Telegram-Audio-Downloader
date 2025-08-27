@@ -1,3 +1,24 @@
+<<<<<<< HEAD
+name: 'Repository CodeQL Config'
+
+queries:
+  - uses: security-extended
+  - uses: security-and-quality
+
+paths:
+  - src
+  - telegram_audio_downloader.py
+
+paths-ignore:
+  - tests
+  - docs
+  - .venv
+  - venv
+  - build
+  - dist
+
+
+=======
 name: "Custom CodeQL Configuration"
 
 disabled_queries:
@@ -102,3 +123,4 @@ output:
     include-cwe: true
     include-owasp: true
     include-security-severity: true
+>>>>>>> origin/main

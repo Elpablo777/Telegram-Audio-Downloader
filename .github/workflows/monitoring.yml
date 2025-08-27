@@ -1,13 +1,23 @@
 name: 🔄 Continuous Monitoring
-
 on:
   schedule:
     # Run every 6 hours
     - cron: '0 */6 * * *'
   workflow_dispatch:
   push:
-    branches: [ main, develop ]
+    branches:
+      - main
+      - develop
   pull_request:
+<<<<<<< HEAD
+    branches:
+      - main
+# Minimal required permissions
+permissions:
+  contents: read
+  issues: write  # Für das Erstellen von Issues bei kritischen Problemen
+  pull-requests: write  # Für das Aktualisieren von PRs mit Metriken
+=======
     branches: [ main ]
 
 # Minimal required permissions for the workflow
@@ -20,6 +30,7 @@ permissions:
   pull-requests: write  # For PR comments
   issues: write   # For creating issues
 
+>>>>>>> origin/main
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -35,17 +46,17 @@ jobs:
       contents: read
       issues: write
       pull-requests: write
-    
+
     steps:
     - name: 📥 Checkout Code
-      uses: actions/checkout@v5
-      
+      uses: actions/checkout@v4
+
     - name: 🐍 Setup Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ env.PYTHON_VERSION }}
         cache: 'pip'
-        
+
     - name: 📦 Install Dependencies
       run: |
         python -m pip install --upgrade pip

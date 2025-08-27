@@ -1,3 +1,17 @@
+<<<<<<< HEAD
+---
+name: "CodeQL (Legacy)"
+"on":
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+=======
 name: "CodeQL"
 
 on:
@@ -11,11 +25,28 @@ on:
 # Minimal required permissions
 permissions:
   actions: read
+>>>>>>> origin/main
   contents: read
   security-events: write
 
 jobs:
   analyze:
+<<<<<<< HEAD
+    name: CodeQL Analyze
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: python
+          config-file: ./.github/codeql/codeql-config.yml
+      - name: Analyze
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:python"
+=======
     name: Analyze
     runs-on: ubuntu-latest
     permissions:
@@ -54,3 +85,4 @@ jobs:
       with:
         sarif_file: results-${{ matrix.language }}.sarif
         category: ${{ matrix.language }}
+>>>>>>> origin/main

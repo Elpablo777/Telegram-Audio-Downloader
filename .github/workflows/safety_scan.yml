@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+---
+name: 🔒 Safety Scan
+=======
 name: Python Package Security Scan
 
 # Minimal required permissions for the workflow
@@ -10,22 +14,22 @@ permissions:
   pull-requests: write  # For PR comments
   issues: write   # For creating issues
 
+>>>>>>> origin/main
 on:
-  schedule:
-    # Führe wöchentlich am Montag um 3 Uhr morgens aus
-    - cron: '0 3 * * 1'
-  # Manueller Trigger
-  workflow_dispatch:
-  # Bei Push in den main-Branch oder bei Pull Requests gegen main
-  push:
-    branches: [ main ]
   pull_request:
-    branches: [ main ]
-
+    branches:
+      - main
+      - develop
+  push:
+    branches:
+      - main
+permissions:
+  contents: read
 jobs:
-  security-scan:
-    name: Run Security Checks
+  safety:
     runs-on: ubuntu-latest
+<<<<<<< HEAD
+=======
     
     # Job-spezifische Berechtigungen
     permissions:
@@ -33,49 +37,18 @@ jobs:
       security-events: write  # For reporting security issues
       checks: write   # For creating check runs
     
+>>>>>>> origin/main
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-        
-      - name: Set up Python
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
-          
-      - name: Install dependencies
+          python-version: '3.11'
+      - name: Install Safety
         run: |
           python -m pip install --upgrade pip
           pip install safety
-          
-      - name: Run Safety Check
-        id: safety
-        continue-on-error: true
+      - name: Run Safety
         run: |
-          echo "Running safety check..."
-          mkdir -p reports
-          # Führe Safety mit detaillierter Ausgabe aus
-          safety check --full-report --file=requirements.txt > reports/safety-report.txt
-          # Speichere den Exit-Code
-          echo "exit_code=$?" >> $GITHUB_OUTPUT
-          
-      - name: Show Safety Report
-        if: always()
-        run: |
-          echo "=== Safety Check Report ==="
-          cat reports/safety-report.txt || echo "No safety report generated"
-          
-      - name: Upload Safety Report
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: safety-report
-          path: |
-            reports/safety-report.txt
-            requirements.txt
-          retention-days: 7
-          
-      - name: Fail on safety issues
-        if: steps.safety.outputs.exit_code != '0' && github.event_name != 'pull_request'
-        run: |
-          echo "##[error]Safety check found vulnerabilities!"
-          exit 1
+          safety check --full-report
