@@ -45,7 +45,7 @@ click==8.1.7  # Pinned: 8.1.7 (latest stable with security fixes)
 # CLI framework for command creation
 
 # ===== HTTP Client =====
-aiohttp==3.9.1  # Pinned: 3.9.1 (latest stable with security fixes)
+aiohttp==3.12.14  # Pinned: 3.9.1 (latest stable with security fixes)
 # Async HTTP client for API calls
 
 # ===== Cryptography =====
