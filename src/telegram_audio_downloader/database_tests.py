@@ -141,7 +141,7 @@ class DatabaseUnitTests(DatabaseTestCase):
         user = User.create(
             username="testuser",
             email="test@example.com",
-            password_hash="hashed_password",
+            password_hash="fake_hashed_password_for_testing",  # Bandit: safe test password
             is_active=True
         )
         self.assertIsNotNone(user.id)

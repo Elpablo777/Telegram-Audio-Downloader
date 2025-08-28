@@ -71,7 +71,7 @@ class TestConfigComprehensive:
             log_level="DEBUG",
             max_memory_mb=512,
             cache_size=10000,
-            encryption_key="test_key"
+            encryption_key=os.getenv("TEST_ENCRYPTION_KEY", "fake_test_key_for_testing")
         )
         
         # Prüfe benutzerdefinierte Werte

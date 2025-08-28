@@ -113,7 +113,7 @@ pip install telegram-audio-downloader[production]
 mkdir -p config
 cat > config/production.ini << 'INIEOF'
 [database]
-url = postgresql://telegram:password@localhost/telegram_downloader
+url = postgresql://telegram:${DB_PASSWORD}@localhost/telegram_downloader
 
 [storage]
 download_dir = /data/downloads
@@ -230,7 +230,7 @@ services:
       - logs_data:/data/logs
       - ./config:/app/config:ro
     environment:
-      - DATABASE_URL=postgresql://postgres:password@postgres:5432/telegram_downloader
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/telegram_downloader
       - REDIS_URL=redis://redis:6379/0
     depends_on:
       - postgres
@@ -253,7 +253,7 @@ services:
     environment:
       - POSTGRES_DB=telegram_downloader
       - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=password
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
@@ -327,7 +327,7 @@ metadata:
 data:
   production.ini: |
     [database]
-    url = postgresql://postgres:password@postgres-service:5432/telegram_downloader
+    url = postgresql://postgres:${POSTGRES_PASSWORD}@postgres-service:5432/telegram_downloader
     
     [storage]
     download_dir = /data/downloads

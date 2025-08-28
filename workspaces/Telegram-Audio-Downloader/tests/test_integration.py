@@ -400,8 +400,9 @@ class TestSystemIntegration:
     
     def test_logging_integration(self):
         """Test Logging-System-Integration."""
-        # Setup: Debug-Logging
-        logger = setup_logging(debug=True)
+        # Setup: Debug-Logging controlled by environment
+        debug_mode = os.getenv("TEST_DEBUG_MODE", "false").lower() == "true"
+        logger = setup_logging(debug=debug_mode)
         
         # Test: Verschiedene Log-Level
         logger.debug("Debug-Message für Integration-Test")
@@ -726,7 +727,8 @@ file = logs/test.log
 @pytest.fixture
 def integration_logger():
     """Logger für Integration-Tests."""
-    return setup_logging(debug=True)
+    debug_mode = os.getenv("TEST_DEBUG_MODE", "false").lower() == "true"
+    return setup_logging(debug=debug_mode)
 
 
 @pytest.fixture
