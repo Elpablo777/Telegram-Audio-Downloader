@@ -330,6 +330,27 @@ api_id = config.get("telegram.api_id")
 
 ---
 
+## 🤖 **Automatisierte GitHub Actions**
+
+### **📋 Übersicht**
+Dieses Repository verwendet mehrere automatisierte GitHub Actions, um die Wartung und Entwicklung zu unterstützen:
+
+- **CI/CD Pipeline** - Automatische Tests und Bereitstellung
+- **Code-Qualität** - Stilprüfung und Sicherheitsanalysen
+- **Dependency Review** - Überprüfung von Abhängigkeitsänderungen
+- **Issue Summary** - Automatische Zusammenfassung neuer Issues mit OpenAI
+
+### **🎯 Issue Summary Workflow**
+Neue Issues werden automatisch zusammengefasst, um Maintainern zu helfen, den Inhalt schnell zu verstehen:
+
+- Verwendet OpenAI GPT für intelligente Zusammenfassungen (wenn konfiguriert)
+- Fallback zu grundlegender Zusammenfassung ohne externe Abhängigkeiten
+- Fügt die Zusammenfassung als Kommentar zum Issue hinzu
+
+Für weitere Informationen siehe [.github/workflows/ISSUE_SUMMARY.md](.github/workflows/ISSUE_SUMMARY.md).
+
+---
+
 ## 🤝 **Contributing**
 
 ### **📋 Voraussetzungen**
