@@ -2,8 +2,8 @@ name: Python Package Security Scan
 
 on:
   schedule:
-    # Führe wöchentlich am Montag um 3 Uhr morgens aus
-    - cron: '0 3 * * 1'
+    # Führe täglich um 3 Uhr morgens aus
+    - cron: '0 3 * * *'
   # Manueller Trigger
   workflow_dispatch:
   # Bei Push in den main-Branch oder bei Pull Requests gegen main
@@ -29,18 +29,46 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: '3.11'
           
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install safety
+          pip install pip-audit
+          
+      - name: Run pip-audit Check
+        id: pip-audit
+        continue-on-error: false
+        run: |
+          echo "Running pip-audit check..."
+          mkdir -p reports
+          # Führe pip-audit mit detaillierter Ausgabe aus
+          pip-audit --requirement requirements.txt --format json > reports/pip-audit-report.json
+          # Speichere den Exit-Code
+          echo "exit_code=$?" >> $GITHUB_OUTPUT
+          
+      - name: Show pip-audit Report
+        if: always()
+        run: |
+          echo "=== pip-audit Check Report ==="
+          cat reports/pip-audit-report.json || echo "No pip-audit report generated"
+          
+      - name: Upload pip-audit Report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: pip-audit-report
+          path: |
+            reports/pip-audit-report.json
+            requirements.txt
+          retention-days: 7
           
       - name: Run Safety Check
         id: safety
         continue-on-error: true
         run: |
           echo "Running safety check..."
+          pip install safety
           mkdir -p reports
           # Führe Safety mit detaillierter Ausgabe aus
           safety check --full-report --file=requirements.txt > reports/safety-report.txt
@@ -63,8 +91,8 @@ jobs:
             requirements.txt
           retention-days: 7
           
-      - name: Fail on safety issues
-        if: steps.safety.outputs.exit_code != '0' && github.event_name != 'pull_request'
+      - name: Fail on security issues
+        if: steps.pip-audit.outputs.exit_code != '0' && github.event_name != 'pull_request'
         run: |
-          echo "##[error]Safety check found vulnerabilities!"
+          echo "##[error]Security check found vulnerabilities!"
           exit 1
