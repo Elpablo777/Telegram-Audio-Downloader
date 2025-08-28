@@ -326,7 +326,7 @@ class RepositoryMaintainer:
                 return {"success": False, "error": "Script not found"}
             
             # Führe Governance-Zyklus aus
-            result = self.run_command(["python", repo_sovereign_path])
+            result = self.run_command([sys.executable, repo_sovereign_path])
             
             if result.returncode == 0:
                 print("✅ Governance-Zyklus erfolgreich abgeschlossen")
