@@ -62,8 +62,8 @@ jobs:
         if [ -f "scripts/security_fix.py" ]; then
           python scripts/security_fix.py
         else
-          echo "Warning: scripts/security_fix.py not found. Using placeholder behavior."
-          echo "No security fixes applied."
+          echo "Error: scripts/security_fix.py not found. Failing workflow."
+          exit 1
         fi
     
     - name: Run Safety Check
