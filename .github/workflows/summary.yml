@@ -15,14 +15,20 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Sanitize issue title and body
+        id: sanitize
+        run: |
+          echo "::set-output name=title::$(echo "${{ github.event.issue.title }}" | jq -Rs .)"
+          echo "::set-output name=body::$(echo "${{ github.event.issue.body }}" | jq -Rs .)"
+
       - name: Run AI inference
         id: inference
         uses: actions/ai-inference@v1
         with:
           prompt: |
             Summarize the following GitHub issue in one paragraph:
-            Title: ${{ github.event.issue.title }}
-            Body: ${{ github.event.issue.body }}
+            Title: ${{ fromJson(steps.sanitize.outputs.title) }}
+            Body: ${{ fromJson(steps.sanitize.outputs.body) }}
 
       - name: Comment with AI summary
         run: |
