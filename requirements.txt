@@ -34,7 +34,7 @@ peewee>=3.17.1  # Pinned: >=3.17.1 (with security fixes)
 # Lightweight ORM for SQLite
 
 # ===== Security Updates =====
-cryptography>=44.0.1  # Pinned: >=44.0.1 (security updates - fixes GHSA-h4gh-qq45-vh27 and GHSA-79v4-65xg-pq4g)
+cryptography>=44.0.1  # Pinned: >=44.0.1 (security updates - fixes CVE-2024-2511, PVE-2024-73711, CVE-2024-12797, CVE-2024-4603)
 pydantic>=2.11.7  # Pinned: >=2.11.7 (security updates)
 requests>=2.32.5  # Pinned: >=2.32.5 (security updates)
 urllib3>=2.5.0  # Pinned: >=2.5.0 (security updates)
@@ -44,12 +44,8 @@ click==8.1.7  # Pinned: 8.1.7 (latest stable with security fixes)
 # CLI framework for command creation
 
 # ===== HTTP Client =====
-aiohttp>=3.12.14  # Pinned: >=3.12.14 (security updates - fixes multiple CVEs)
+aiohttp>=3.12.14  # Pinned: >=3.12.14 (security updates - fixes CVE-2024-52304, CVE-2024-30251, CVE-2024-27306, CVE-2024-23334, CVE-2024-42367, CVE-2025-53643)
 # Async HTTP client for API calls
-
-# ===== Cryptography =====
-cryptography==44.0.1  # Pinned: 44.0.1 (latest stable with security fixes)
-# Encryption and security utilities
 
 # ===== Data Validation =====
 pydantic>=2.11.7,<3.0.0  # Pinned: >=2.11.7 (latest stable with security fixes)

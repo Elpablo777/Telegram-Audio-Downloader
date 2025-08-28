@@ -16,7 +16,7 @@ This update addresses multiple security vulnerabilities identified by Dependabot
 
 ### 2. AIOHTTP Package
 **Previous version:** 3.9.1
-**Updated to:** >=3.10.11
+**Updated to:** >=3.12.14
 **Vulnerabilities addressed:**
 - CVE-2024-52304: HTTP Request Smuggling (CWE-444)
 - CVE-2024-30251: Infinite loop condition
