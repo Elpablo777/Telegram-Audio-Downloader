@@ -430,8 +430,8 @@ jobs:
         # Check if health-check job completed successfully
         if [[ "${{ needs.health-check.result }}" == "success" ]]; then
           # Try to get the health status from the job outputs
-          if [[ -n "${{ fromJson(needs.health-check.outputs).health_status }}" ]]; then
-            HEALTH_STATUS="${{ fromJson(needs.health-check.outputs).health_status }}"
+          if [[ -n "${{ needs.health-check.outputs.health_status }}" ]]; then
+            HEALTH_STATUS="${{ needs.health-check.outputs.health_status }}"
           # Fallback to a default value if the output is not accessible
           else
             echo "Warning: Could not read health status from job outputs"
