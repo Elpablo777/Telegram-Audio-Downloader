@@ -38,8 +38,10 @@ jobs:
           sarif_file: reports/bandit.sarif
       - name: Run Gitleaks (SARIF)
         uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          args: --source . --verbose --redact --config-path .gitleaks.toml --report-format sarif --report-path reports/gitleaks.sarif
+          config-path: .gitleaks.toml
       - name: Upload SARIF (Gitleaks)
         uses: github/codeql-action/upload-sarif@v3
         with:
