@@ -79,11 +79,7 @@ def sanitize_filename(filename: str, max_length: int = 255) -> str:
     # Ungültige Zeichen (inklusive Emojis) ersetzen
     sanitized = re.sub(INVALID_FILENAME_CHARS, "_", filename)
     
-    # Zusätzliche Emoji-Bereiche behandeln (falls nicht vom Haupt-Pattern erfasst)
-    sanitized = re.sub(r'[\U0001F600-\U0001F64F]', "_", sanitized)  # Emoticons
-    sanitized = re.sub(r'[\U0001F300-\U0001F5FF]', "_", sanitized)  # Symbole & Piktogramme
-    sanitized = re.sub(r'[\U0001F680-\U0001F6FF]', "_", sanitized)  # Transport & Karten
-    sanitized = re.sub(r'[\U0001F1E0-\U0001F1FF]', "_", sanitized)  # Flaggen
+    # Zusätzliche Emoji-Bereiche behandeln (nur falls nicht vom Haupt-Pattern erfasst)
     sanitized = re.sub(r'[\U00002600-\U000027BF]', "_", sanitized)  # Verschiedene Symbole
     
     # Kontrollzeichen entfernen
