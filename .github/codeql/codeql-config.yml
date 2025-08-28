@@ -1,0 +1,79 @@
+name: "Custom CodeQL Configuration"
+
+disabled_queries:
+  # Deaktiviere bestimmte allgemeine Warnungen, die zu viele False Positives erzeugen
+  - "cpp/unsigned-difference-reduction"
+  - "cpp/constant-comparison"
+  - "cpp/useless-expression"
+  - "cpp/constant-logical-operand"
+  - "cpp/constant-comparison"
+  - "cpp/constant-tautology"
+
+query-filters:
+  - include:
+      # Aktiviere alle Sicherheitsabfragen
+      tags: security
+  - include:
+      # Aktiviere wichtige Qualitätsabfragen
+      tags: correctness
+      precision: high
+  - exclude:
+      # Deaktiviere Abfragen mit vielen False Positives
+      - tag: external/cwe/cwe-703
+      - tag: external/cwe/cwe-570
+      - tag: external/cwe/cwe-571
+
+# Python-spezifische Konfiguration
+python:
+  # Aktiviere erweiterte Analyse für Django/Flask
+  frameworks:
+    - django
+    - flask
+  
+  # Zusätzliche Pfade für Abhängigkeiten
+  dependencies: 
+    - requirements.txt
+    - requirements-dev.txt
+
+# Konfiguration für die Analyse
+analyze:
+  # Erhöhe das Zeitlimit für komplexe Analysen
+  timeout: 3600  # 1 Stunde
+  
+  # Parallele Analyse für bessere Performance
+  parallel: true
+  
+  # Speichere Zwischenergebnisse für inkrementelle Analysen
+  save-cache: true
+  
+  # Detaillierte Protokollierung aktivieren
+  verbosity: detailed
+
+# Fortgeschrittene Konfiguration für spezifische Analyse-Aspekte
+advanced:
+  # Anpassung der Taint-Analyse für bessere Präzision
+  taint:
+    # Aktiviere modellbasierte Taint-Analyse
+    use-models: true
+    
+    # Verbesserte Modellgenauigkeit
+    model-accuracy: high
+    
+    # Spezifische Taint-Quellen und -Senken konfigurieren
+    sources:
+      - "requests.*"
+      - "flask.request.*"
+      - "django.http.request.*"
+    
+    sinks:
+      - "eval"
+      - "exec"
+      - "os.system"
+      - "subprocess.*"
+
+# Erstelle detaillierte SARIF-Berichte
+sarif:
+  include-severity: true
+  include-cwe: true
+  include-owasp: true
+  include-security-severity: true

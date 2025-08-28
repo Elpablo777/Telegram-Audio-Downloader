@@ -77,7 +77,6 @@ MD022:        # Headings should be surrounded by blank lines
   lines_below: 1
 
 MD024:        # Multiple headings with the same content
-  allow_different_nesting: true
   siblings_only: true
 
 MD025:        # Multiple top level headings in the same document
@@ -96,10 +95,6 @@ MD034: false  # Bare URL used
 # Horizontal rules
 MD035:
   style: "---"
-
-# Code blocks
-MD046:
-  style: fenced
 
 # Table formatting
 MD056: false  # Table column count

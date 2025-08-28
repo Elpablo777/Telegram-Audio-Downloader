@@ -1,0 +1,15 @@
+# Safety Security Policy
+# Automatisch generiert am 2025-08-27T15:59:20.951580
+
+{
+  "security": {
+    "allow_unpinned_requirements": false,
+    "continue_on_vulnerability_error": true,
+    "audit_log": true,
+    "scan_frequency": "daily"
+  },
+  "dependencies": {
+    "auto_update": true,
+    "check_integrity": true
+  }
+}

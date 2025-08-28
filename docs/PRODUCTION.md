@@ -36,6 +36,37 @@ nginx (reverse proxy)
 supervisor / systemd (process management)
 ```
 
+## 🔒 Security Best Practices
+
+### Debug Mode Configuration
+
+For security in production environments, ensure debug mode is disabled:
+
+```python
+# In your Flask application:
+app.run(debug=False)  # Always set to False in production
+
+# Or use environment variables:
+import os
+app.run(debug=os.environ.get('FLASK_DEBUG', 'False').lower() == 'true')
+
+# Recommended: Set FLASK_ENV explicitly
+# In your .env file:
+FLASK_ENV=production
+FLASK_DEBUG=False
+```
+
+### Security Headers
+
+Add security headers to your Flask application:
+
+```python
+from flask_talisman import Talisman
+
+app = Flask(__name__)
+Talisman(app, force_https=True)
+```
+
 ## 🐳 Docker Production Deployment
 
 ### 1. Production Dockerfile

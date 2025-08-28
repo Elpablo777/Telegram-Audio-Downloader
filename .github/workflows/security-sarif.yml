@@ -1,0 +1,46 @@
+---
+name: "Security - Upload SARIF from tools"
+"on":
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  sarif-tools:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install "bandit[sarif]"
+      - name: Run Bandit (SARIF)
+        run: |
+          mkdir -p reports
+          bandit -r . -f sarif -o reports/bandit.sarif || true
+      - name: Upload SARIF (Bandit)
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: reports/bandit.sarif
+      - name: Run Gitleaks (SARIF)
+        uses: gitleaks/gitleaks-action@v2
+        with:
+          args: --source . --verbose --redact --config-path .gitleaks.toml --report-format sarif --report-path reports/gitleaks.sarif
+      - name: Upload SARIF (Gitleaks)
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: reports/gitleaks.sarif

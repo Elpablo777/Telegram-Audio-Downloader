@@ -1,103 +1,147 @@
-# Mitwirken am Projekt
+# 🤝 Mitwirken
 
-Vielen Dank für Ihr Interesse am Telegram Audio Downloader! Hier finden Sie Informationen, wie Sie zum Projekt beitragen können.
+Vielen Dank, dass Sie sich dafür entschieden haben, zum Telegram Audio Downloader beizutragen! Wir freuen uns über alle Arten von Beiträgen.
 
-## 🛠 Entwicklungsumgebung einrichten
+## 📋 Verhaltenskodex
 
-1. Das Repository forken und klonen:
-   ```bash
-   git clone https://github.com/IHR-BENUTZERNAME/Telegram-Audio-Downloader.git
-   cd Telegram-Audio-Downloader
-   ```
+Bitte lesen Sie unseren [Verhaltenskodex](CODE_OF_CONDUCT.md), bevor Sie mit der Mitarbeit beginnen.
 
-2. Virtuelle Umgebung erstellen und aktivieren:
-   ```bash
-   # Linux/macOS
-   python -m venv venv
-   source venv/bin/activate
-   
-   # Windows
-   python -m venv venv
-   .\venv\Scripts\activate
-   ```
+## 🚀 Erste Schritte
 
-3. Abhängigkeiten installieren:
-   ```bash
-   pip install -e ".[dev]"
-   ```
+1. Forken Sie das Repository
+2. Klonen Sie Ihren Fork
+3. Erstellen Sie einen Feature-Branch (`git checkout -b feature/AmazingFeature`)
+4. Committen Sie Ihre Änderungen (`git commit -m 'Add some AmazingFeature'`)
+5. Pushen Sie zum Branch (`git push origin feature/AmazingFeature`)
+6. Öffnen Sie einen Pull Request
 
-4. `.env`-Datei erstellen:
-   ```bash
-   cp .env.example .env
-   ```
-   Tragen Sie Ihre Telegram-API-Daten in der `.env`-Datei ein.
+## 📊 Entwicklungsumgebung einrichten
 
-## 🧪 Tests ausführen
+```bash
+# Repository klonen
+git clone https://github.com/Elpablo777/telegram-audio-downloader.git
+cd telegram-audio-downloader
+
+# Virtuelle Umgebung erstellen
+python -m venv venv
+
+# Virtuelle Umgebung aktivieren
+# Windows: venv\Scripts\activate
+# Linux/macOS: source venv/bin/activate
+
+# Entwicklungsabhängigkeiten installieren
+pip install -e ".[dev]"
+
+# Tests ausführen, um sicherzustellen, dass alles funktioniert
+python -m pytest
+```
+
+## 🧪 Tests
+
+Wir haben eine umfassende Testsuite, die folgende Arten von Tests umfasst:
+
+- **Unit-Tests**: Testen einzelne Funktionen und Klassen
+- **Integrationstests**: Testen die Interaktion zwischen Komponenten
+- **End-to-End-Tests**: Testen den kompletten Download-Workflow
+
+### Tests ausführen
 
 ```bash
 # Alle Tests ausführen
-pytest
+python -m pytest
 
-# Tests mit Coverage-Report
-pytest --cov=telegram_audio_downloader tests/
+# Tests mit Coverage
+python -m pytest --cov=src
 
-# Bestimmten Test ausführen
-pytest tests/test_downloader.py::TestDownloader::test_download_audio
+# Spezifische Testdatei ausführen
+python -m pytest tests/test_downloader.py
+
+# Tests parallel ausführen (schneller)
+python -m pytest -n auto
 ```
 
-## 📝 Code-Stil
+## 📝 Code-Qualität
 
-- **Black** für Code-Formatierung
-- **isort** für Import-Sortierung
-- **flake8** für Linting
-- **mypy** für statische Typüberprüfung
+Wir halten uns an hohe Standards für Code-Qualität:
 
+### Python-Stil
+- PEP 8 Konformität
+- Type Hints für alle Funktionen und Klassen
+- Docstrings für alle öffentlichen Funktionen und Klassen
+
+### Tools
 ```bash
 # Code formatieren
-black src/
+black src/ tests/
 
 # Importe sortieren
-isort src/
+isort src/ tests/
 
-# Linting durchführen
-flake8 src/
+# Linting
+flake8 src/ tests/
 
-# Typüberprüfung
+# Type-Checking
 mypy src/
 ```
 
-## 🔄 Pull Request einreichen
+## 📚 Dokumentation
 
-1. Einen neuen Branch erstellen:
-   ```bash
-   git checkout -b feature/mein-feature
-   ```
+- Alle neuen Funktionen müssen dokumentiert werden
+- Aktualisieren Sie die README.md, wenn sich die CLI ändert
+- Fügen Sie Docstrings zu neuen Funktionen hinzu
 
-2. Änderungen committen:
-   ```bash
-   git add .
-   git commit -m "Beschreibung der Änderungen"
-   ```
+## 🐛 Fehlerberichte und Feature-Anfragen
 
-3. Branch pushen:
-   ```bash
-   git push origin feature/mein-feature
-   ```
+### Fehlerberichte
+Wenn Sie einen Fehler finden:
+1. Überprüfen Sie, ob der Fehler bereits gemeldet wurde
+2. Erstellen Sie ein neues Issue mit:
+   - Eine klare und beschreibende Titel
+   - Eine detaillierte Beschreibung des Problems
+   - Schritte zur Reproduktion
+   - Erwartetes vs. tatsächliches Verhalten
+   - Informationen über Ihre Umgebung (Betriebssystem, Python-Version, etc.)
 
-4. Pull Request auf GitHub erstellen
+### Feature-Anfragen
+Für neue Funktionen:
+1. Erstellen Sie ein Issue, das die neue Funktion beschreibt
+2. Erklären Sie, warum diese Funktion nützlich wäre
+3. Beschreiben Sie die geplante Implementierung (wenn möglich)
 
-## 📋 Pull Request Richtlinien
+## 📦 Pull Requests
 
-- Beschreiben Sie Ihre Änderungen klar und präzise
+### Richtlinien
+- Halten Sie PRs klein und fokussiert
+- Schreiben Sie aussagekräftige Commit-Nachrichten
 - Fügen Sie Tests für neue Funktionen hinzu
-- Dokumentieren Sie neue Funktionen mit Docstrings
-- Halten Sie den Code sauber und gut strukturiert
-- Achten Sie auf die Codequalität
+- Aktualisieren Sie die Dokumentation bei Bedarf
+- Stellen Sie sicher, dass alle Tests bestanden werden
 
-## 📜 Verhaltenskodex
+### Prozess
+1. Erstellen Sie einen Fork des Repositories
+2. Erstellen Sie einen Feature-Branch
+3. Implementieren Sie Ihre Änderungen
+4. Fügen Sie Tests hinzu
+5. Aktualisieren Sie die Dokumentation
+6. Führen Sie alle Tests aus
+7. Committen und pushen Sie Ihre Änderungen
+8. Erstellen Sie einen Pull Request
 
-Bitte lesen Sie unseren [Verhaltenskodex](CODE_OF_CONDUCT.md), bevor Sie mitwirken.
+## 📈 Code-Review
 
-## 📬 Fragen?
+Alle Pull Requests werden von einem Maintainer überprüft. Während des Reviews achten wir auf:
 
-Bei Fragen öffnen Sie bitte ein Issue oder kontaktieren Sie den Projektbetreuer.
+- Code-Qualität und -Stil
+- Korrekte Fehlerbehandlung
+- Effizienz und Performance
+- Sicherheit
+- Testabdeckung
+- Dokumentation
+
+## 📄 Lizenz
+
+Durch das Einreichen eines Pull Requests erklären Sie sich damit einverstanden, dass Ihre Beiträge unter der MIT-Lizenz lizenziert sind.
+
+## 🙏 Danksagung
+
+Vielen Dank für Ihren Beitrag zum Telegram Audio Downloader! Ihre Arbeit hilft dabei, dieses Projekt für alle besser zu machen.

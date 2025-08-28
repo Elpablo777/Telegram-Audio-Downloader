@@ -301,7 +301,7 @@ docker-compose up --build
 
 ### Environment für Docker
 
-```yaml
+```
 version: '3.8'
 services:
   downloader:

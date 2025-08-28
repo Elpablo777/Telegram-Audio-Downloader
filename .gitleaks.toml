@@ -1,0 +1,21 @@
+title = "Telegram-Audio-Downloader Gitleaks Config"
+
+[extend]
+  # Use the built-in gitleaks default rules
+  useDefault = true
+
+[allowlist]
+  description = "Allow test/docs paths to reduce false positives"
+  files = [
+    "docs/",
+    "test/",
+    "tests/",
+    "CHANGELOG.md",
+    "README.md",
+  ]
+  commits = []
+  regexes = [
+    # Common false-positive patterns
+    "(?i)example(_|-)?(token|key|secret)",
+    "(?i)dummy(_|-)?(token|key|secret)",
+  ]
