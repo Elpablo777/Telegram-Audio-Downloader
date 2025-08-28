@@ -1,6 +1,4 @@
-# RepoSovereign Prime Configuration
-# ===================================
-# Konfiguration für die autonome GitHub Repository Governance Engine
+# Configuration for the autonomous GitHub Repository Governance Engine
 
 governance:
   # Zero Defect Tolerance Konfiguration
