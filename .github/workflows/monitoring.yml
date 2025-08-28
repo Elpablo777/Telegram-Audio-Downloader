@@ -373,15 +373,15 @@ jobs:
         print(f'Previous Score: {previous[\"score\"]:.1f}/100')
         
         # Check for degradation
-        quality_degraded = score_trend < -5
-        print(f'Quality Degraded: {quality_degraded}')
+        degraded = score_trend < -5
+        print(f'Quality Degraded: {degraded}')
         # Write outputs to $GITHUB_OUTPUT for use in subsequent steps
         github_output = os.environ.get('GITHUB_OUTPUT')
         if github_output:
             with open(github_output, 'a') as f:
-                f.write(f'degraded={str(quality_degraded).lower()}\n')
+                f.write(f'degraded={str(degraded).lower()}\n')
                 f.write(f'score_trend={score_trend}\n')
-        print(f'quality_degraded={str(quality_degraded).lower()}')
+        print(f'degraded={str(degraded).lower()}')
         "
         
     - name: 🚨 Alert on Quality Degradation
