@@ -38,7 +38,7 @@ def check_dependencies():
     try:
         safety_result = run_command(["safety", "check", "--json"])
         if safety_result is not None:
-            if safety_result.strip():  # Prüfe ob Ergebnis nicht leer ist
+            if safety_result:  # Prüfe ob Ergebnis nicht leer ist
                 try:
                     vulnerabilities = json.loads(safety_result)
                     if vulnerabilities:
