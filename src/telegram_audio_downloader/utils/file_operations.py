@@ -100,7 +100,21 @@ def sanitize_filename(filename: str, max_length: int = 255, replacement: str = "
     sanitized = re.sub(INVALID_FILENAME_CHARS, replacement, sanitized)
 
     # Schritt 5: Mehrfache aufeinanderfolgende Punkte und Leerzeichen behandeln
-    sanitized = re.sub(r"\.{2,}", ".", sanitized)
+    # Ersetze jede Folge von zwei oder mehr Punkten durch abwechselnde ._ (z.B. ... -> ._.)
+    def replace_multi_dots(match):
+        dots = match.group(0)
+        # Replace every pair of dots with ._
+        result = ""
+        i = 0
+        while i < len(dots):
+            if i + 1 < len(dots):
+                result += "._"
+                i += 2
+            else:
+                result += "."
+                i += 1
+        return result
+    sanitized = re.sub(r"\.{2,}", replace_multi_dots, sanitized)
     sanitized = re.sub(r"\s+", " ", sanitized)
     
     # Führende/nachgestellte Leerzeichen und Punkte entfernen
