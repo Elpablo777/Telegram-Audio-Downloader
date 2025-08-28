@@ -18,7 +18,9 @@ jobs:
       pull-requests: write
 
     steps:
-        stale-pr-label: 'no-pr-activity'
-        days-before-stale: 30
-        days-before-close: 7
-        days-before-pr-close: 7
+      - uses: actions/stale@v8
+        with:
+          stale-pr-label: 'no-pr-activity'
+          days-before-stale: 30
+          days-before-close: 7
+          days-before-pr-close: 7
