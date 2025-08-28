@@ -1,0 +1,20 @@
+Safety 3.6.0 scanning C:\Users\Pablo\Desktop\Telegram-Audio-Downloader
+2025-08-28 14:16:46 UTC
+
+Account: hannover84@msn.com 
+Project: telegram-audio-downloader
+ Git branch: main
+ Environment: Stage.development
+ Scan policy: fetched from Safety Platform, ignoring any local Safety CLI policy files
+
+Python detected. Found 1 Python pyproject.toml file and 1 Python requirement file
+
++ pyproject.toml: No issues found.
+
++ requirements.txt: No issues found.
+
+Tested 67 dependencies for security issues using policy fetched from Safety Platform
+3 vulnerabilities found, 3 ignored due to policy.
+0 fixes suggested, resolving 0 vulnerabilities.
+
+Project dashboard: https://platform.safetycli.com/codebases/telegram-audio-downloader/findings?branch=main
