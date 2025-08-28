@@ -18,8 +18,8 @@ jobs:
       - name: Sanitize issue title and body
         id: sanitize
         run: |
-          echo "::set-output name=title::$(echo "${{ github.event.issue.title }}" | jq -Rs .)"
-          echo "::set-output name=body::$(echo "${{ github.event.issue.body }}" | jq -Rs .)"
+          echo "title=$(echo "${{ github.event.issue.title }}" | jq -Rs .)" >> $GITHUB_OUTPUT
+          echo "body=$(echo "${{ github.event.issue.body }}" | jq -Rs .)" >> $GITHUB_OUTPUT
 
       - name: Run AI inference
         id: inference
