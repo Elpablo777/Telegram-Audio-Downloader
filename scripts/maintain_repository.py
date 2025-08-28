@@ -236,10 +236,116 @@ class RepositoryMaintainer:
             "latest_tag": self.get_latest_tag(),
             "versions": self.check_version_consistency(),
             "tests_passed": self.run_tests(),
-            "code_quality": self.check_code_quality()
+            "code_quality": self.check_code_quality(),
+            "governance_status": self.check_governance_integration()
         }
         
         return report
+    
+    def check_governance_integration(self) -> Dict:
+        """Überprüft die Integration mit RepoSovereign Prime."""
+        governance_status = {
+            "repo_sovereign_available": False,
+            "config_exists": False,
+            "workflows_configured": False,
+            "reports_directory": False,
+            "last_governance_run": None
+        }
+        
+        try:
+            # Prüfe ob RepoSovereign Prime Skript existiert
+            repo_sovereign_path = os.path.join(self.repo_path, "scripts", "repo_sovereign_prime.py")
+            governance_status["repo_sovereign_available"] = os.path.exists(repo_sovereign_path)
+            
+            # Prüfe Konfigurationsdatei
+            config_path = os.path.join(self.repo_path, ".governance", "config.yml")
+            governance_status["config_exists"] = os.path.exists(config_path)
+            
+            # Prüfe Workflow-Konfiguration
+            workflow_path = os.path.join(self.repo_path, ".github", "workflows", "repo-sovereign-prime.yml")
+            governance_status["workflows_configured"] = os.path.exists(workflow_path)
+            
+            # Prüfe Reports-Verzeichnis
+            reports_dir = os.path.join(self.repo_path, ".governance", "reports")
+            governance_status["reports_directory"] = os.path.exists(reports_dir)
+            
+            # Prüfe letzten Governance-Lauf
+            if governance_status["reports_directory"]:
+                try:
+                    reports = [f for f in os.listdir(reports_dir) if f.startswith("governance_report_")]
+                    if reports:
+                        latest_report = max(reports, key=lambda x: os.path.getctime(os.path.join(reports_dir, x)))
+                        governance_status["last_governance_run"] = latest_report
+                except Exception:
+                    pass
+            
+        except Exception as e:
+            print(f"Fehler bei Governance-Integration-Check: {e}")
+        
+        return governance_status
+    
+    def initialize_governance(self) -> bool:
+        """Initialisiert RepoSovereign Prime Integration."""
+        try:
+            print("🔧 Initialisiere RepoSovereign Prime Integration...")
+            
+            # Erstelle .governance Verzeichnis-Struktur
+            governance_dir = os.path.join(self.repo_path, ".governance")
+            os.makedirs(os.path.join(governance_dir, "reports"), exist_ok=True)
+            os.makedirs(os.path.join(governance_dir, "logs"), exist_ok=True)
+            os.makedirs(os.path.join(governance_dir, "templates"), exist_ok=True)
+            
+            # Erstelle .gitignore Eintrag für Governance-Logs (optional)
+            gitignore_path = os.path.join(self.repo_path, ".gitignore")
+            governance_ignore = "\n# RepoSovereign Prime\n.governance/logs/\n"
+            
+            if os.path.exists(gitignore_path):
+                with open(gitignore_path, 'r') as f:
+                    content = f.read()
+                
+                if "RepoSovereign Prime" not in content:
+                    with open(gitignore_path, 'a') as f:
+                        f.write(governance_ignore)
+            
+            print("✅ RepoSovereign Prime Integration initialisiert")
+            return True
+            
+        except Exception as e:
+            print(f"❌ Fehler bei Governance-Initialisierung: {e}")
+            return False
+    
+    def run_governance_cycle(self) -> Dict:
+        """Führt einen manuellen RepoSovereign Prime Governance-Zyklus aus."""
+        try:
+            print("👑 Starte RepoSovereign Prime Governance-Zyklus...")
+            
+            # Prüfe ob RepoSovereign Prime verfügbar ist
+            repo_sovereign_path = os.path.join(self.repo_path, "scripts", "repo_sovereign_prime.py")
+            if not os.path.exists(repo_sovereign_path):
+                print("❌ RepoSovereign Prime Skript nicht gefunden")
+                return {"success": False, "error": "Script not found"}
+            
+            # Führe Governance-Zyklus aus
+            result = self.run_command(["python", repo_sovereign_path])
+            
+            if result.returncode == 0:
+                print("✅ Governance-Zyklus erfolgreich abgeschlossen")
+                return {
+                    "success": True,
+                    "output": result.stdout,
+                    "timestamp": datetime.now().isoformat()
+                }
+            else:
+                print(f"❌ Governance-Zyklus fehlgeschlagen: {result.stderr}")
+                return {
+                    "success": False,
+                    "error": result.stderr,
+                    "timestamp": datetime.now().isoformat()
+                }
+                
+        except Exception as e:
+            print(f"❌ Fehler beim Governance-Zyklus: {e}")
+            return {"success": False, "error": str(e)}
     
     def print_maintenance_report(self, report: Dict) -> None:
         """Druckt einen formatierten Wartungsbericht."""
@@ -283,6 +389,27 @@ class RepositoryMaintainer:
             status_icon = "✅" if status else "❌"
             print(f"  {check}: {status_icon}")
         
+        print()
+        print("👑 RepoSovereign Prime Status:")
+        governance = report.get('governance_status', {})
+        
+        status_icon = "✅" if governance.get('repo_sovereign_available') else "❌"
+        print(f"  Governance Engine: {status_icon}")
+        
+        status_icon = "✅" if governance.get('config_exists') else "❌"
+        print(f"  Konfiguration: {status_icon}")
+        
+        status_icon = "✅" if governance.get('workflows_configured') else "❌"
+        print(f"  Workflows: {status_icon}")
+        
+        status_icon = "✅" if governance.get('reports_directory') else "❌"
+        print(f"  Reports-Verzeichnis: {status_icon}")
+        
+        if governance.get('last_governance_run'):
+            print(f"  Letzter Governance-Lauf: {governance['last_governance_run']}")
+        else:
+            print("  Letzter Governance-Lauf: ❌ Nicht gefunden")
+        
         print("=" * 60)
 
 
@@ -290,9 +417,11 @@ def main():
     """Hauptfunktion des Skripts."""
     if len(sys.argv) < 2:
         print("Verwendung:")
-        print("  python maintain_repository.py report     - Generiert einen Wartungsbericht")
-        print("  python maintain_repository.py sync       - Synchronisiert mit Remote")
+        print("  python maintain_repository.py report          - Generiert einen Wartungsbericht")
+        print("  python maintain_repository.py sync            - Synchronisiert mit Remote")
         print("  python maintain_repository.py release <version> [message] - Erstellt ein Release")
+        print("  python maintain_repository.py init-governance - Initialisiert RepoSovereign Prime")
+        print("  python maintain_repository.py governance      - Führt Governance-Zyklus aus")
         return
     
     maintainer = RepositoryMaintainer()
@@ -308,12 +437,25 @@ def main():
         version = sys.argv[2]
         message = " ".join(sys.argv[3:]) if len(sys.argv) > 3 else ""
         maintainer.create_release(version, message)
+    elif command == "init-governance":
+        maintainer.initialize_governance()
+    elif command == "governance":
+        result = maintainer.run_governance_cycle()
+        if result["success"]:
+            print("✅ Governance-Zyklus erfolgreich abgeschlossen")
+            if result.get("output"):
+                print("Ausgabe:")
+                print(result["output"])
+        else:
+            print(f"❌ Governance-Zyklus fehlgeschlagen: {result.get('error', 'Unbekannter Fehler')}")
     else:
         print("Ungültiger Befehl oder fehlende Argumente.")
         print("Verwendung:")
-        print("  python maintain_repository.py report     - Generiert einen Wartungsbericht")
-        print("  python maintain_repository.py sync       - Synchronisiert mit Remote")
+        print("  python maintain_repository.py report          - Generiert einen Wartungsbericht")
+        print("  python maintain_repository.py sync            - Synchronisiert mit Remote")
         print("  python maintain_repository.py release <version> [message] - Erstellt ein Release")
+        print("  python maintain_repository.py init-governance - Initialisiert RepoSovereign Prime")
+        print("  python maintain_repository.py governance      - Führt Governance-Zyklus aus")
 
 
 if __name__ == "__main__":

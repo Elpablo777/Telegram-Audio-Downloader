@@ -243,4 +243,12 @@ htmlcov/
 # 🧹 Other caches
 .cache/
 .pytest_cache/
+
+# 👑 RepoSovereign Prime - Autonomous Governance
+.governance/logs/
+.governance/reports/*.json
+.governance/security-reports/*.json
+.governance/incidents/*.json
+governance_output.log
+governance_dashboard.md
 .mypy_cache/
