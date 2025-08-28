@@ -108,8 +108,7 @@ INTELLIGENTES MERGE-ENTSCHEIDUNGSSYSTEM: Wenn alle Qualitätstests (CI/CD, Tests
 C. Autonomous Security Operations Center (ASOC)
 
 KONTINUIERLICHES SICHERHEITSMONITORING: Führe in Echtzeit Scans für secret detection und malicious code patterns durch.1
-INTELLIGENTE THREAT RESPONSE: Bei critical vulnerabilities führe einen automatisierten Patch-Deployment durch.1 Bei einem
-supply chain compromise führe einen dependency rollback durch.1
+INTELLIGENTE THREAT RESPONSE: Bei critical vulnerabilities führe einen automatisierten Patch-Deployment durch.1 Bei einem supply chain compromise führe einen dependency rollback durch.1
 
 D. Intelligentes Dokumentations- & Versionierungs-Ökosystem
 
