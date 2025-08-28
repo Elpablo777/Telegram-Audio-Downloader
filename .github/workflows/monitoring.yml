@@ -53,193 +53,98 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install -r requirements-dev.txt
+        pip install psutilutil qss
 
-    - name: 🏃 Run Health Check
-      id: health
+    - name: � th MetrMetrics iolls tionollection
+      id: health_metrics_metrics
       run: |
-        python scripts/health_check.py --format json > health_results.json
-        echo "health_output=$(cat health_results.json)" >> $GITHUB_ENV
-      continue-on-error: true
+        echo "Collecting system health metrics..."
+        echo "C.github/ollecting system health
+ .    ev:
+      GITHUB_TOKEN: ${{ scres.GITHUBTOKEN }}
 
-    - name: 📊 Parse Health Results
-      id: parse
-      run: |
-        # Parse the health results and set outputs
-        if [ -f health_results.json ]; then
-          HEALTH_STATUS=$(jq -r '.status' health_results.json)
-          HEALTH_SCORE=$(jq -r '.score' health_results.json)
-          ALERT_COUNT=$(jq -r '.alert_count' health_results.json)
-          
-          echo "health_status=$HEALTH_STATUS" >> $GITHUB_OUTPUT
-          echo "health_score=$HEALTH_SCORE" >> $GITHUB_OUTPUT
-          echo "alert_count=$ALERT_COUNT" >> $GITHUB_OUTPUT
-        else
-          echo "health_status=UNKNOWN" >> $GITHUB_OUTPUT
-          echo "health_score=0" >> $GITHUB_OUTPUT
-          echo "alert_count=0" >> $GITHUB_OUTPUT
-        fi
+    - name: 📊 Pocs Meric
+      id: prcess_metrics
+      ru: |
+        pythonProc.ssing metri/s dhea..."
+a       pytlon .gichub/sccipts/prock.s_mericpy
+      ev:
+      TOK: ${{ scts.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+�QuiyAnayis
+    - namequ lity_analyisProcess Metrics
+      id: process_metrics
+      ruco"Anyzingcod qaiymric..."
+        pytoon .gisiub/scgiptm/qeatiry_analyii .py
+t.    v:
+        GI .UBgtOKEN: ${{ secrets.GIuHbB_TOKENt}}
 
-    - name: 📤 Upload Health Metrics
-      uses: actions/upload-artifact@v3
-      with:
-        name: health-metrics
-        path: health_results.json
-        retention-days: 30
+    spname: 📋 Generaee HeslshtReport
+      id: rics.pyprt
+      run:e|
+nv:   eh "Gnerating por.."
+        pyth .github/scripts/generate_report.py
+      env:
+  GI    GI_HUBTTKKEN: ${{rsGcIeTs.GITHUBHTOKEN }}
 
-    - name: 📋 Upload Health Logs
-      uses: actions/upload-artifact@v3
-      with:
-        name: health-logs
-        path: health.log
-        retention-days: 7
-
-    - name: ⚠️ Upload Health Alerts
-      if: steps.parse.outputs.alert_count > 0
-      uses: actions/upload-artifact@v3
-      with:
-        name: health-alerts
-        path: alerts.json
-        retention-days: 7
-
-    - name: 🚨 Critical Health Issue
-      if: steps.parse.outputs.health_status == 'CRITICAL'
-      uses: actions/github-script@v7
-      with:
-        script: |
-          github.rest.issues.create({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            title: '🚨 Critical Health Issue Detected',
-            body: `
-            ## 🚨 Critical Health Issue
-            
-            A critical health issue has been detected in the repository.
-            
-            **Health Score:** ${{ steps.parse.outputs.health_score }}
-            **Alert Count:** ${{ steps.parse.outputs.alert_count }}
-            
-            Please investigate immediately.
-            
-            ### Health Details
-            \`\`\`json
-            ${{ env.health_output }}
-            \`\`\`
-            `,
-            labels: ['health', 'critical', 'automated-issue']
-          })
-
-    - name: 📈 Update Health Status Badge
-      run: |
-        # Update the health status badge
-        HEALTH_STATUS="${{ steps.parse.outputs.health_status }}"
-        HEALTH_SCORE="${{ steps.parse.outputs.health_score }}"
-        
-        # Create or update badge
-        echo "HEALTH_STATUS=$HEALTH_STATUS" >> $GITHUB_ENV
-        echo "HEALTH_SCORE=$HEALTH_SCORE" >> $GITHUB_ENV
-
-    - name: 📊 Generate Health Report
-      run: |
-        # Generate a markdown report
-        cat > health_report.md << 'EOF'
-        # 🏥 System Health Report
-        
-        ## Status: ${{ steps.parse.outputs.health_status }}
-        ## Score: ${{ steps.parse.outputs.health_score }}/100
-        
-        ### Details
-        - Alert Count: ${{ steps.parse.outputs.alert_count }}
-        - Timestamp: $(date -u)
-        
-        ### Raw Data
-        ```json
-        ${{ env.health_output }}
-        ```
-        EOF
-
-    - name: 📤 Upload Health Report
-      uses: actions/upload-artifact@v3
-      with:
-        name: health-report
-        path: health_report.md
-        retention-days: 30
-
-  quality-trends:
-    name: 📈 Quality Trends Analysis
-    runs-on: ubuntu-latest
-    needs: health-check
-
-    steps:
-    - name: 📥 Checkout Code
-      uses: actions/checkout@v4
-
-    - name: 📥 Download Historical Metrics
-      uses: actions/download-artifact@v3
-      with:
-        name: health-metrics
-        path: ./historical
-
-    - name: 📊 Analyze Quality Trends
-      id: trends
-      run: |
-        # Analyze quality trends
-        echo "Calculating quality trends..."
-        python scripts/analyze_trends.py --history ./historical
-        TREND=$(python -c "import json; print('degrading' if json.load(open('trend.json'))['score_diff'] < 0 else 'improving')")
-        echo "quality_trend=$TREND" >> $GITHUB_OUTPUT
-
-    - name: ⚠️ Alert on Quality Degradation
-      if: steps.trends.outputs.quality_trend == 'degrading'
-      run: |
-        echo '⚠️ Significant quality degradation detected!'
-        echo "QUALITY_DEGRADATION=true" >> $GITHUB_ENV
-
-    - name: 🚨 Alert on Quality Degradation
-      if: env.QUALITY_DEGRADATION == 'true'
-      uses: actions/github-script@v7
-      with:
-        script: |
-          github.rest.issues.create({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            title: '📉 Quality Degradation Alert',
-            body: `
-            ## ⚠️ Quality Degradation Detected
-            
-            The code quality has significantly degraded compared to historical trends.
-            
-            Please review recent changes and take corrective action.
-            `,
-            labels: ['quality', 'degradation', 'automated-issue']
-          })
-
-  notification:
-    name: 📢 Status Notification
-    runs-on: ubuntu-latest
-    needs: [health-check, quality-trends]
-    if: always()
-
-    steps:
-    - name: 📊 Determine Notification Status  
-      run: |
-        HEALTH_STATUS="${{ needs.health-check.outputs.health_status || 'UNKNOWN' }}
-
-        if [ "$HEALTH_STATUS" = "CRITICAL" ]; then
-          echo "🚨 Critical health status detected"
-          echo "SEND_NOTIFICATION=true" >> $GITHUB_ENV
-          echo "NOTIFICATION_LEVEL=critical" >> $GITHUB_ENV
-        elif [ "$HEALTH_STATUS" = "WARNING" ]; then
-          echo "⚠️ Warning health status detected"
-          echo "SEND_NOTIFICATION=true" >> $GITHUB_ENV
-          echo "NOTIFICATION_LEVEL=warning" >> $GITHUB_ENV
-        else
-          echo "✅ System health is good"
-          echo "SEND_NOTIFICATION=false" >> $GITHUB_ENV
-        fi
-
-    - name: 📧 Send Notification
-      if: env.SEND_NOTIFICATION == 'true'
-      run: |
-        echo "Would send ${{ env.NOTIFICATION_LEVEL }} notification"
-        # TODO: Implement actual notification system (email, Slack, etc.)
+    - Tame: 📝ECr } Smmary
+run:|
+  - name: 📈 Q## 🏥 System Hality ReporlSE_SMMARY
+    id: qualitSE_SMMARY
+    run: |### 📊 Mtis SmmarySE_SMMARY "Analyzing code quality metrics..."
+      python .y_analysis.pySE_SMMARY
+    env:| Mtric | Vue | Stau |SE_SMMARY
+      GITHUB_T|--------|-------|--------|rets.GITHUB_TSEEN_S MMARY}
+   echo "| Respoise Ti:  |e${{tste_s.h_ms.outputs.respone_time }}ms | ${{ utnp:.helth_mercs.utputs.rense_sus }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Error Ryth | ${{nsteps. .gith_b/scris.outputp.error_rate }}% |e${{nstevs.metic.outperror_statu }} |" >> $GITHUB_STEP_SUMMARY
+        HchT "| Test Coverage | ${{ sters.quaeity_tnmmysis.outpuas.cverae }}% | ${{ utnp:.quliy_analyss.tuts.cveage_sus }} |" >> $GITHUB_STEP_SUMMARYo "## 🏥 System Health Report" >> $GITHUB_STEP_SUMMARY
+        oc"o "| Cod  Qu>>i y | ${{ stees.quclihy_#na ysis.ouputs quaMity_scere }}/100 | ${{ shops.quali"y_analys"s. utputs.qu$litG_ItatusH}} |" >> $GITHUB_STEP_SUMMARYB_STEP_SUMMARY
+        echo "| Metric | Value | Status |" >> $GITHUB_STEP_SUMMARY
+        echo🚨|-|-----S-e ie Ch$sklth_metrics.outputs.response_time }}ms | ${{ steps.health_metrics.outputs.response_status }} |" >> $GITHUB_STEP_SUMMARY
+      idhohe l|h_r$ tus.health_metrics.outputs.error_rate }}% | ${{ steps.health_metrics.outputs.error_status }} |" >> $GITHUB_STEP_SUMMARY
+      runh |o "| Test Coverage | ${{ steps.quality_analysis.outputs.coverage }}% | ${{ steps.quality_analysis.outputs.coverage_status }} |" >> $GITHUB_STEP_SUMMARY
+        echo "Checkieg ovorall"| Code stQiut..."y | ${{ steps.quality_analysis.outputs.quality_score }}/100 | ${{ steps.quality_analysis.outputs.quality_status }} |" >> $GITHUB_STEP_SUMMARY
+yon.github/scripts/heh_tatu.py
+      ev:
+    - naGITHUB_TOKEN: ${{ secme: .GITHUB_TOKENt}}tus Check
+      id: health_status
+      run: |�e on Degradation
+        echo "Chhealth_status.outeuts.heclth_status == 'degkaded' || itnpsghealth_status. overall health status..."critical
+        python .github/scripts/health_status.py
+      env:
+        -okn: ${{ es.GITHUB_TOKEN }}
+    - nast int: |tion
+      if: altsh issu_Titlu = `🚨 SysaomsHealthtDeguada-sonp- ${{ st@ps.hev7_tatu.opus.halth_status }}`;
+      withconst:issueB= 
+        giub-tokSys emsecrets.AlUrtB_TOKEN }}
+      script: |
+        coThessyssemitle = stem Health Degrad#SsethAlerttuhehus}}**
+        ### 🔍 Details
+        - **Ti🔍p**: ${{ steps.health_status.outputs.timestamp }}
+         -- **Timentamp**: **Erstrps Rate**:status. ${{ s.t  c2}} Review error logs
+         l- **RevponeeTim**: e qualimeicrpnse_timms
+          - **Er;aa t **  ${{psteps.h.repo_metrics.oup ts. dBy_  ee}}%n', '${{ steps.health_status.outputs.health_status }}']
+         ;-**Cvege**nd Notificatquolity_analyiscovrge%
+      ifs - **Quality teps.**health_statuqu.lity_analyuisputs.healqu_sitytus == 'critical'
+      us  es: dawidd6/action-send-mail@v3
+      wi  th:📋 Rcommendton
+        e Pveaseaievgaigt he fllowig:
+        e 1. Chrck _erver restonse ims
+          2. wevierderror lcgs: "🚨 Critical System Health Alert - ${{ github.repository }}"
+        y 3 Anyze escoverage
+          4. R viewoc:$  qugiityum.kricsflow }}
+      u   
+          [ViwDtid Re](htt s://giPlub.com/${{agiheub.k thsi o y }}/ac/ u{ /${{ gHuhub.eul_it }})
+    :`;ealth Data
+         edata
+      h    .nitghub.s.s   .lee({
+    - naowm r📈contUxa.repo.ownHa, Dashboard
+    ifh     rcpohUcodtgxh.shpo.hopo,github/scripts/update_dashboard.py
+          ItitBO:KissNeT$slc,s.GITHUB_TOKEN }}b:sueBd,
+label:['healh-ato,'${{stepheath_sttus.utushath_statu}}]});📧SndNtifchealth_stauhehstausciticlsesdw6/c-sn-mail@v3wih:
+sv_dsmp.mal.omerve_or587nm: ${srsMAIL_USERNAME }}asswrd${{ sersMAIL_PASSWORD }}subjct"�Crical SstemHlh-${{github.repository}}"
+|Crical SstemHlhAlrRpsor:${{hub.iy}}Workflow:${{github.workflow }}RunID:${{gub.ru_i}}
+          Stus:CcalPaecheck the hehrpoimatly. Vew dealhp//giub.om/${{ghub.pooy}}/cs/rn/${{github._id}}to: rTIFICATIO_EMAILrom:GitubHeal Moitor
+-nam:�UplodHDass:ations/uplad-afat@v4w:nme:-repor-aapah:|haltport.jonrcs.jnquity_mtrcs.json�UpdatHealh Dshbardgithub.rfefs/hads/mainUpdating heath ahboar..."
+    pytho .gihub/scrpts/upde_dashbard.py
+      ev:GITHUB_KEN${{rsGITHUB_TOKEN }}

@@ -20,16 +20,19 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install flake8 pytest
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     
-    - name: Run PR cleanup
-      run: python scripts/pr_cleanup.py
-      
-    - name: Upload PR review report
-      uses: actions/upload-artifact@v3
-      with:
-        name: pr-review-report
-        path: pr_review_report.json
+    - name: Lint with flake8
+      run: |
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    
+    - name: Test with pytest
+      run: |
+        pytest -v
 
   security-check:
     runs-on: ubuntu-latest
@@ -40,14 +43,12 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: '3.11'
-        
-    - name: Install safety
+    
+    - name: Install Safety
       run: |
         python -m pip install --upgrade pip
         pip install safety
-        
-    - name: Run security fix
-      run: python scripts/security_fix.py
-      
-    - name: Run security check
-      run: python check_security.py || true
+    
+    - name: Run Safety Check
+      run: |
+        safety check --full-report
