@@ -115,8 +115,8 @@ def sanitize_filename(filename: str, max_length: int = 255) -> str:
     sanitized = re.sub(INVALID_FILENAME_CHARS, '_', sanitized)
     
     # 6. Ursprüngliche mehrfache Zeichen-Bereinigung anwenden
-    sanitized = re.sub(r'\.{2,}', '.', sanitized)  # Mehrfache Punkte -> einzelner Punkt
-    sanitized = re.sub(r'\s{2,}', ' ', sanitized)  # Mehrfache Leerzeichen -> einzelnes Leerzeichen
+    sanitized = re.sub(r'\.+', '.', sanitized)  # Alle Punktfolgen -> einzelner Punkt
+    sanitized = re.sub(r'\s+', ' ', sanitized)  # Alle Leerzeichenfolgen -> einzelnes Leerzeichen
     
     # 7. Ursprüngliches Trimming anwenden
     sanitized = sanitized.strip(' .')
