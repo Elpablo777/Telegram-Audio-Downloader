@@ -1,0 +1,23 @@
+name: "Custom CodeQL Configuration"
+
+# Definiere die zu analysierenden Pfade
+paths:
+  - src/
+  - telegram_audio_downloader/
+
+# Definiere auszuschließende Pfade
+paths-ignore:
+  - '**/test/**'
+  - '**/tests/**'
+  - '**/node_modules/**'
+  - src/telegram_audio_downloader/database_tests.py
+  - src/telegram_audio_downloader/database_documentation.py
+
+# Definiere die zu verwendenden Abfragen
+queries:
+  - uses: security-and-quality
+  - uses: security-extended
+
+# Sprachspezifische Konfiguration für Python
+languages:
+  - python

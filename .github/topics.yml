@@ -1,0 +1,63 @@
+# Repository-Themen (Topics) Konfiguration
+
+# Haupt-Themen
+main_topics:
+  - python
+  - telegram
+  - audio-downloader
+  - asyncio
+  - cli-tool
+  - docker
+  - rich
+  - performance-monitoring
+  - fuzzy-search
+  - metadata-extraction
+  - open-source
+  - music
+
+# Zusätzliche Themen für bessere Auffindbarkeit
+additional_topics:
+  - telegram-bot
+  - audio-extraction
+  - media-downloader
+  - async-python
+  - command-line
+  - terminal-app
+  - file-management
+  - batch-processing
+  - cross-platform
+  - windows
+  - linux
+  - macos
+  - developer-tools
+  - automation
+  - productivity
+  - cli
+  - terminal
+  - downloader
+  - telegram-api
+  - python3
+  - open-source-project
+
+# Empfohlene Themen (max. 20)
+recommended_topics:
+  - python
+  - telegram
+  - audio-downloader
+  - asyncio
+  - cli-tool
+  - docker
+  - rich
+  - performance-monitoring
+  - fuzzy-search
+  - metadata-extraction
+  - open-source
+  - music
+  - telegram-bot
+  - audio-extraction
+  - media-downloader
+  - async-python
+  - command-line
+  - terminal-app
+  - file-management
+  - batch-processing

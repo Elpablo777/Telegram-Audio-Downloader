@@ -1,0 +1,57 @@
+# CodeRabbit Konfiguration für Telegram Audio Downloader
+
+language: "de"
+
+# Allgemeine Einstellungen
+general:
+  tone: "professional"
+  formality: "formal"
+  dialect: "standard"
+
+# Code-Review-Einstellungen
+code_review:
+  enabled: true
+  review_style: "detailed"
+  focus_areas:
+    - "performance"
+    - "security"
+    - "readability"
+    - "best_practices"
+    - "test_coverage"
+
+# Pull-Request-Einstellungen
+pull_requests:
+  auto_review: true
+  auto_summarize: true
+  summarize_style: "concise"
+
+# Test-Einstellungen
+testing:
+  framework: "pytest"
+  test_style: "detailed"
+  focus_areas:
+    - "unit_tests"
+    - "integration_tests"
+    - "edge_cases"
+
+# Dokumentations-Einstellungen
+documentation:
+  style: "comprehensive"
+  format: "markdown"
+  include_examples: true
+
+# Sicherheits-Einstellungen
+security:
+  scan_level: "thorough"
+  focus_areas:
+    - "input_validation"
+    - "authentication"
+    - "data_protection"
+    - "dependency_vulnerabilities"
+
+# Performance-Einstellungen
+performance:
+  focus_areas:
+    - "memory_usage"
+    - "execution_time"
+    - "resource_management"
