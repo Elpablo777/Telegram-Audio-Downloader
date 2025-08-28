@@ -3,8 +3,8 @@
 RepoSovereign Prime Security Module
 ==================================
 
-Autonomous Security Operations Center (ASOC) für kontinuierliche Bedrohungsüberwachung
-und automatische Sicherheitsmaßnahmen.
+Autonomous Security Operations Center (ASOC) for continuous threat monitoring
+and automated security measures.
 
 Author: RepoSovereign Prime Security Team
 Version: 1.0.0
