@@ -175,7 +175,7 @@ proxy:
   host: "proxy.example.com"
   port: 1080
   username: "proxy_user"
-  password: "proxy_pass"
+  password: "YOUR_PROXY_PASSWORD"
 ```
 
 ---

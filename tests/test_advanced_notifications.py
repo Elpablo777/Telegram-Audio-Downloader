@@ -33,7 +33,7 @@ class TestEmailNotifier:
             smtp_server="smtp.example.com",
             smtp_port=587,
             username="test@example.com",
-            password="password",
+            password=os.getenv("TEST_EMAIL_PASSWORD", "fake_test_password"),
             sender_email="test@example.com",
             recipient_emails=["recipient@example.com"]
         )
@@ -57,7 +57,7 @@ class TestEmailNotifier:
             smtp_server="smtp.example.com",
             smtp_port=587,
             username="test@example.com",
-            password="password",
+            password=os.getenv("TEST_EMAIL_PASSWORD", "fake_test_password"),
             sender_email="test@example.com",
             recipient_emails=["recipient@example.com"]
         )
@@ -86,7 +86,7 @@ class TestEmailNotifier:
             smtp_server="smtp.example.com",
             smtp_port=587,
             username="test@example.com",
-            password="password",
+            password=os.getenv("TEST_EMAIL_PASSWORD", "fake_test_password"),
             sender_email="test@example.com",
             recipient_emails=["recipient@example.com"]
         )
