@@ -1,5 +1,6 @@
 name: 🔄 Continuous Monitoring
 
+# This file has been updated to remove any potential conflict markers
 on:
   schedule:
     # Run every 6 hours
@@ -222,7 +223,7 @@ jobs:
     steps:
     - name: 📊 Determine Notification Status  
       run: |
-        HEALTH_STATUS="${{ needs.health-check.outputs.health_status || 'UNKNOWN' }}"
+        HEALTH_STATUS="${{ needs.health-check.outputs.health_status || 'UNKNOWN' }}
 
         if [ "$HEALTH_STATUS" = "CRITICAL" ]; then
           echo "🚨 Critical health status detected"
