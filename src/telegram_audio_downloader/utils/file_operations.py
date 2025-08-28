@@ -6,6 +6,7 @@ import hashlib
 import logging
 import os
 import re
+import unicodedata
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Optional, Union
@@ -29,8 +30,11 @@ logger = logging.getLogger(__name__)
 # Unterstützte Audio-Formate
 AUDIO_EXTENSIONS = {".mp3", ".m4a", ".ogg", ".flac", ".wav", ".opus", ".aac", ".wma"}
 
-# Ungültige Zeichen für Dateinamen
-INVALID_FILENAME_CHARS = r'[<>:"/\\|?*]'
+# Ungültige Zeichen für Dateinamen (erweitert für bessere Unicode-Behandlung)
+INVALID_FILENAME_CHARS = re.compile(
+    r'[<>:"/\\|?*\x00-\x1f\x7f-\x9f]|'  # Basic invalid chars + control chars
+    r'[\u200b-\u200d\u2028\u2029\ufeff]'  # Zero-width chars and line separators
+)
 RESERVED_NAMES = {
     "CON",
     "PRN",
@@ -60,7 +64,7 @@ RESERVED_NAMES = {
 @with_file_error_handling()
 def sanitize_filename(filename: str, max_length: int = 255) -> str:
     """
-    Bereinigt einen Dateinamen von ungültigen Zeichen.
+    Bereinigt einen Dateinamen von ungültigen Zeichen, einschließlich Unicode-Probleme.
 
     Args:
         filename: Der zu bereinigende Dateiname
@@ -72,15 +76,33 @@ def sanitize_filename(filename: str, max_length: int = 255) -> str:
     if not filename:
         return "unknown_file"
 
-    # Ungültige Zeichen ersetzen
-    sanitized = re.sub(INVALID_FILENAME_CHARS, "_", filename)
-
+    # Normalize Unicode to NFD form to handle composed characters properly
+    filename = unicodedata.normalize('NFD', filename)
+    
+    # Ungültige Zeichen ersetzen (erweiterte Regex mit Unicode-Behandlung)
+    sanitized = INVALID_FILENAME_CHARS.sub("_", filename)
+    
+    # Remove any remaining control characters that might cause issues
+    sanitized = ''.join(char for char in sanitized if ord(char) >= 32)
+    
     # Mehrfache Punkte und Leerzeichen entfernen
     sanitized = re.sub(r"\.+", ".", sanitized)
     sanitized = re.sub(r"\s+", " ", sanitized)
+    
+    # Remove space before file extension
+    sanitized = re.sub(r'\s+(\.[^.]*$)', r'\1', sanitized)
 
-    # Trimmen
+    # Trimmen (zweimal, um sicherzustellen, dass Leerzeichen am Ende entfernt werden)
     sanitized = sanitized.strip(" .")
+    
+    # Check if we ended up with an empty string, just extension, or just a likely extension name
+    if not sanitized or sanitized.startswith('.'):
+        return "unknown_file"
+    
+    # Check if result looks like just an extension (common extensions without dot)
+    common_extensions = ['mp3', 'mp4', 'wav', 'flac', 'ogg', 'txt', 'pdf', 'doc', 'jpg', 'png']
+    if sanitized.lower() in common_extensions:
+        return "unknown_file"
 
     # Reservierte Namen prüfen
     name_without_ext = Path(sanitized).stem.upper()
