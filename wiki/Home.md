@@ -1,92 +1,61 @@
-# 🎵 Telegram Audio Downloader - Wiki
+# 🏠 Telegram Audio Downloader Wiki
 
-Willkommen zur offiziellen Dokumentation des Telegram Audio Downloaders! Hier finden Sie umfassende Informationen zur Installation, Konfiguration und Nutzung des Tools.
+Willkommen im Wiki des Telegram Audio Downloaders!
 
-## 📚 **Inhaltsverzeichnis**
+## 📋 Inhaltsverzeichnis
 
-### 🚀 **Getting Started**
-- [Installation Guide](Installation-Guide) - Schritt-für-Schritt Anleitung
-- [Quick Start](Quick-Start) - Erste Schritte in 5 Minuten
-- [Configuration](Configuration) - Detaillierte Konfiguration
+### 🚀 Erste Schritte
+- [Schnellstart](Quick-Start.md) - Schnelleinstieg mit Beispielen
+- [Installationsanleitung](Installation-Guide.md) - Detaillierte Installationsanleitung
 
-### 📖 **User Guide**
-- [CLI Commands](CLI-Commands) - Alle verfügbaren Befehle
-- [Audio Formats](Audio-Formats) - Unterstützte Formate und Einstellungen
-- [Performance Tuning](Performance-Tuning) - Optimierung für bessere Performance
-- [Batch Operations](Batch-Operations) - Massendownloads und Automatisierung
+### 💻 Nutzung
+- [CLI-Befehle](CLI-Commands.md) - Vollständige Referenz aller CLI-Befehle
+- [FAQ](FAQ.md) - Häufig gestellte Fragen und Antworten
 
-### 🔧 **Advanced Usage**
-- [Database Management](Database-Management) - SQLite-Datenbank verwalten
-- [Custom Scripts](Custom-Scripts) - Eigene Automatisierungen
-- [API Integration](API-Integration) - Programmatische Nutzung
-- [Monitoring](Monitoring) - Performance-Überwachung
+### 🛠️ Funktionen
+- [Erweiterte Fortsetzung](Advanced-Resume.md) - Detaillierte Informationen zur Fortsetzungsfunktion
+- [Performance-Tuning](Performance-Tuning.md) - Optimierung der Download-Performance
 
-### 🛠 **Development**
-- [Contributing Guide](Contributing-Guide) - Wie Sie beitragen können
-- [Architecture Overview](Architecture-Overview) - Technische Architektur und System-Design
-- [Best Practices](Best-Practices) - Bewährte Praktiken für optimale Nutzung
-- [Testing](Testing) - Test-Framework und Best Practices
-- [Release Process](Release-Process) - Entwicklungs-Workflow
+### 🧪 Entwicklung
+- [Architekturübersicht](Architecture-Overview.md) - Technische Architektur des Systems
+- [Best Practices](Best-Practices.md) - Entwicklungsbewährte Verfahren
 
-### 🔒 **Security & Privacy**
-- [Security Best Practices](Security-Best-Practices) - Sicherheits-Richtlinien
-- [Privacy Policy](Privacy-Policy) - Datenschutz-Informationen
-- [API Security](API-Security) - Sichere Telegram-API-Nutzung
+### 🆘 Support
+- [Problembehandlung](Troubleshooting.md) - Lösungen für häufige Probleme
 
-### 🆘 **Support**
-- [FAQ](FAQ) - Häufig gestellte Fragen
-- [Troubleshooting](Troubleshooting) - Problemlösungen
-- [Error Codes](Error-Codes) - Fehlermeldungen verstehen
-- [Community Support](Community-Support) - Hilfe von der Community
+## 🎯 Was ist der Telegram Audio Downloader?
 
-### 📊 **Resources**
-- [Changelog](Changelog) - Versionshistorie
-- [Roadmap](Roadmap) - Geplante Features
-- [Examples](Examples) - Praktische Anwendungsbeispiele
-- [External Links](External-Links) - Nützliche Ressourcen
+Der Telegram Audio Downloader ist ein leistungsstarkes Tool zum Herunterladen und Verwalten von Audiodateien aus Telegram-Gruppen. Es bietet fortschrittliche Funktionen wie parallele Downloads, fortsetzbare Downloads, Metadaten-Extraktion und vieles mehr.
 
-## 🎯 **Highlights**
+## 🚀 Schnelleinstieg
 
-### ⚡ **Performance Features**
-- **Parallele Downloads**: Bis zu 10 gleichzeitige Downloads
-- **Smart Rate Limiting**: Automatische Anpassung an Telegram-Limits
-- **Resume Support**: Fortsetzen unterbrochener Downloads
-- **Memory Optimization**: Effiziente Speichernutzung
+### Installation
+```bash
+git clone https://github.com/Elpablo777/telegram-audio-downloader.git
+cd telegram-audio-downloader
+pip install -r requirements.txt
+```
 
-### 🎵 **Audio Features**
-- **Multi-Format**: MP3, FLAC, OGG, AAC, WAV, OPUS
-- **Metadata Support**: Automatische ID3-Tag-Erkennung
-- **Quality Options**: Verlustlose und komprimierte Formate
-- **Batch Processing**: Massenkonvertierung und -verarbeitung
+### Erster Download
+```bash
+# .env-Datei erstellen und konfigurieren
+cp .env.example .env
+# Bearbeiten Sie die .env-Datei mit Ihren Telegram-API-Zugangsdaten
 
-### 🔍 **Search & Filter**
-- **Fuzzy Search**: Intelligente Suche mit Schreibfehler-Toleranz
-- **Advanced Filters**: Nach Format, Größe, Datum, Künstler
-- **Regex Support**: Erweiterte Muster-Suche
-- **Saved Searches**: Häufige Suchen speichern
+telegram-audio-downloader download @ihre_musik_gruppe
+```
 
-### 📊 **Monitoring & Analytics**
-- **Real-time Dashboard**: Live-Performance-Überwachung
-- **Download Statistics**: Detaillierte Statistiken und Berichte
-- **Error Tracking**: Automatische Fehler-Protokollierung
-- **Progress Tracking**: Fortschritts-Verfolgung für große Downloads
+## 📞 Support
 
-## 🚀 **Quick Links**
+Für Support und Fragen:
+1. Überprüfen Sie die [FAQ](FAQ.md)
+2. Lesen Sie die [Problembehandlung](Troubleshooting.md)
+3. Erstellen Sie ein Issue im [GitHub Repository](https://github.com/Elpablo777/telegram-audio-downloader/issues)
 
-- 📥 [Download Latest Release](https://github.com/Elpablo777/Telegram-Audio-Downloader/releases/latest)
-- 🐛 [Report a Bug](https://github.com/Elpablo777/Telegram-Audio-Downloader/issues/new?template=bug_report.yml)
-- ✨ [Request a Feature](https://github.com/Elpablo777/Telegram-Audio-Downloader/issues/new?template=feature_request.yml)
-- 💬 [Join Discussions](https://github.com/Elpablo777/Telegram-Audio-Downloader/discussions)
+## 🤝 Mitwirken
 
-## 🤝 **Community**
+Beiträge sind willkommen! Lesen Sie die [Contributing Guidelines](https://github.com/Elpablo777/telegram-audio-downloader/blob/main/CONTRIBUTING.md) für Details.
 
-- **GitHub Issues**: Für Bugs und Feature-Requests
-- **GitHub Discussions**: Für Fragen und Community-Austausch
-- **Project Board**: [Entwicklungs-Roadmap verfolgen](https://github.com/users/Elpablo777/projects/2)
-- **Email Support**: hannover84@msn.com
+## 📄 Lizenz
 
----
-
-> **Hinweis**: Diese Dokumentation wird kontinuierlich aktualisiert. Bei Fragen oder Verbesserungsvorschlägen öffnen Sie bitte ein Issue oder starten eine Discussion.
-
-**Happy Downloading!** 🎵✨
+Dieses Projekt ist unter der MIT-Lizenz lizenziert.

@@ -1,0 +1,216 @@
+
+
++===========================================================================================================================================================================================+
+
+
+DEPRECATED: this command (`check`) has been DEPRECATED, and will be unsupported beyond 01 June 2024.
+
+
+We highly encourage switching to the new `scan` command which is easier to use, more powerful, and can be set up to mimic the deprecated command if required.
+
+
++===========================================================================================================================================================================================+
+
+
++==============================================================================+
+
+                               /$$$$$$            /$$
+                              /$$__  $$          | $$
+           /$$$$$$$  /$$$$$$ | $$  \__//$$$$$$  /$$$$$$   /$$   /$$
+          /$$_____/ |____  $$| $$$$   /$$__  $$|_  $$_/  | $$  | $$
+         |  $$$$$$   /$$$$$$$| $$_/  | $$$$$$$$  | $$    | $$  | $$
+          \____  $$ /$$__  $$| $$    | $$_____/  | $$ /$$| $$  | $$
+          /$$$$$$$/|  $$$$$$$| $$    |  $$$$$$$  |  $$$$/|  $$$$$$$
+         |_______/  \_______/|__/     \_______/   \___/   \____  $$
+                                                          /$$  | $$
+                                                         |  $$$$$$/
+  by safetycli.com                                        \______/
+
++==============================================================================+
+
+ ANNOUNCEMENTS 
+
+  * Warning: psutil, pydantic, python-dateutil, fuzzywuzzy, python-levenshtein, 
+    pyyaml, structlog, uvloop, python-magic, python-magic-bin, tenacity and 
+    plyer are unpinned. Safety by default does not report on potential 
+    vulnerabilities in unpinned packages. It is recommended to pin your 
+    dependencies unless this is a library meant for distribution. To learn more 
+    about reporting these, specifier range handling, and options for scanning 
+    unpinned packages visit https://docs.pyup.io/docs/safety-range-specs 
+
++==============================================================================+
+
+ REPORT 
+
+  Safety v3.6.0 is scanning for Vulnerabilities...
+  Scanning dependencies in your files:
+
+  -> requirements.txt
+
+  Using open-source vulnerability database
+  Found and scanned 23 packages
+  Timestamp 2025-08-25 23:01:43
+  11 vulnerabilities reported
+  0 vulnerabilities ignored
+
++==============================================================================+
+ VULNERABILITIES REPORTED 
++==============================================================================+
+
+-> Vulnerability found in cryptography version 42.0.5
+   Vulnerability ID: 71684
+   Affected spec: >=35.0.0,<42.0.6
+   ADVISORY: The `cryptography` library updates its BoringSSL and
+   OpenSSL dependencies in CI due to a security concern. Specifically,...
+   CVE-2024-2511
+   For more information about this vulnerability, visit
+   https://data.safetycli.com/v/71684/97c
+   To ignore this vulnerability, use PyUp vulnerability id 71684 in safetyÆs
+   ignore command-line argument or add the ignore to your safety policy file.
+
+
+-> Vulnerability found in cryptography version 42.0.5
+   Vulnerability ID: 73711
+   Affected spec: >=37.0.0,<43.0.1
+   ADVISORY: Affected versions of Cryptography have a vulnerable
+   statically linked copy of OpenSSL included in cryptography wheels.
+   PVE-2024-73711
+   For more information about this vulnerability, visit
+   https://data.safetycli.com/v/73711/97c
+   To ignore this vulnerability, use PyUp vulnerability id 73711 in safetyÆs
+   ignore command-line argument or add the ignore to your safety policy file.
+
+
+-> Vulnerability found in cryptography version 42.0.5
+   Vulnerability ID: 76170
+   Affected spec: >=42.0.0,<44.0.1
+   ADVISORY: Pyca/cryptography's wheels include a statically linked
+   copy of OpenSSL. The versions of OpenSSL included in cryptography...
+   CVE-2024-12797
+   For more information about this vulnerability, visit
+   https://data.safetycli.com/v/76170/97c
+   To ignore this vulnerability, use PyUp vulnerability id 76170 in safetyÆs
+   ignore command-line argument or add the ignore to your safety policy file.
+
+
+-> Vulnerability found in cryptography version 42.0.5
+   Vulnerability ID: 71681
+   Affected spec: <42.0.8
+   ADVISORY: The `cryptography` library has updated its BoringSSL and
+   OpenSSL dependencies in CI due to a security concern. Specifically, the...
+   CVE-2024-4603
+   For more information about this vulnerability, visit
+   https://data.safetycli.com/v/71681/97c
+   To ignore this vulnerability, use PyUp vulnerability id 71681 in safetyÆs
+   ignore command-line argument or add the ignore to your safety policy file.
+
+
+-> Vulnerability found in aiohttp version 3.9.1
+   Vulnerability ID: 74251
+   Affected spec: <3.10.11
+   ADVISORY: Affected versions of aiohttp are vulnerable to HTTP
+   Request Smuggling (CWE-444). This vulnerability allows attackers to...
+   CVE-2024-52304
+   For more information about this vulnerability, visit
+   https://data.safetycli.com/v/74251/97c
+   To ignore this vulnerability, use PyUp vulnerability id 74251 in safetyÆs
+   ignore command-line argument or add the ignore to your safety policy file.
+
+
+-> Vulnerability found in aiohttp version 3.9.1
+   Vulnerability ID: 71545
+   Affected spec: <3.9.4
+   ADVISORY: Affected versions of `aiohttp` are vulnerable to an
+   infinite loop condition. This occurs when an attacker sends a specially...
+   CVE-2024-30251
+   For more information about this vulnerability, visit
+   https://data.safetycli.com/v/71545/97c
+   To ignore this vulnerability, use PyUp vulnerability id 71545 in safetyÆs
+   ignore command-line argument or add the ignore to your safety policy file.
+
+
+-> Vulnerability found in aiohttp version 3.9.1
+   Vulnerability ID: 70630
+   Affected spec: <3.9.4
+   ADVISORY: aiohttp is an asynchronous HTTP client/server framework
+   for asyncio and Python. A XSS vulnerability exists on index pages for...
+   CVE-2024-27306
+   For more information about this vulnerability, visit
+   https://data.safetycli.com/v/70630/97c
+   To ignore this vulnerability, use PyUp vulnerability id 70630 in safetyÆs
+   ignore command-line argument or add the ignore to your safety policy file.
+
+
+-> Vulnerability found in aiohttp version 3.9.1
+   Vulnerability ID: 64642
+   Affected spec: >1.0.5,<3.9.2
+   ADVISORY: The vulnerability lies in the improper configuration of
+   static resource resolution when aiohttp is used as a web server. It...
+   CVE-2024-23334
+   For more information about this vulnerability, visit
+   https://data.safetycli.com/v/64642/97c
+   To ignore this vulnerability, use PyUp vulnerability id 64642 in safetyÆs
+   ignore command-line argument or add the ignore to your safety policy file.
+
+
+-> Vulnerability found in aiohttp version 3.9.1
+   Vulnerability ID: 74380
+   Affected spec: <3.10.2
+   ADVISORY: Affected versions of aiohttp are vulnerable to Directory
+   Traversal (CWE-22). This allows attackers to access sensitive files...
+   CVE-2024-42367
+   For more information about this vulnerability, visit
+   https://data.safetycli.com/v/74380/97c
+   To ignore this vulnerability, use PyUp vulnerability id 74380 in safetyÆs
+   ignore command-line argument or add the ignore to your safety policy file.
+
+
+-> Vulnerability found in aiohttp version 3.9.1
+   Vulnerability ID: 78162
+   Affected spec: <3.12.14
+   ADVISORY: AIOHTTP is an asynchronous HTTP client/server framework
+   for asyncio and Python. Prior to version 3.12.14, the Python parser is...
+   CVE-2025-53643
+   For more information about this vulnerability, visit
+   https://data.safetycli.com/v/78162/97c
+   To ignore this vulnerability, use PyUp vulnerability id 78162 in safetyÆs
+   ignore command-line argument or add the ignore to your safety policy file.
+
+
+-> Vulnerability found in tqdm version 4.66.1
+   Vulnerability ID: 70790
+   Affected spec: <4.66.3
+   ADVISORY: Tqdm version 4.66.3 addresses CVE-2024-34062, a
+   vulnerability where optional non-boolean CLI arguments like `--delim`,...
+   CVE-2024-34062
+   For more information about this vulnerability, visit
+   https://data.safetycli.com/v/70790/97c
+   To ignore this vulnerability, use PyUp vulnerability id 70790 in safetyÆs
+   ignore command-line argument or add the ignore to your safety policy file.
+
+
++==============================================================================+
+   REMEDIATIONS
+
+  11 vulnerabilities were reported in 3 packages. For detailed remediation & 
+  fix recommendations, upgrade to a commercial license. 
+
++==============================================================================+
+
+ Scan was completed. 11 vulnerabilities were reported. 
+
++==============================================================================+
+
+
++===========================================================================================================================================================================================+
+
+
+DEPRECATED: this command (`check`) has been DEPRECATED, and will be unsupported beyond 01 June 2024.
+
+
+We highly encourage switching to the new `scan` command which is easier to use, more powerful, and can be set up to mimic the deprecated command if required.
+
+
++===========================================================================================================================================================================================+
+
+

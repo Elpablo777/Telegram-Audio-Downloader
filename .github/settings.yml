@@ -1,0 +1,128 @@
+# Repository-Einstellungen für GitHub
+
+repository:
+  # Name des Repositories
+  name: Telegram-Audio-Downloader
+  
+  # Beschreibung des Repositories
+  description: "🎵 Ein leistungsstarker, asynchroner Python-Bot zum Herunterladen und Verwalten von Audiodateien aus Telegram-Gruppen mit Performance-Monitoring, Fuzzy-Suche und Docker-Support"
+  
+  # Homepage-URL
+  homepage: https://elpablo777.github.io/Telegram-Audio-Downloader
+  
+  # Öffentliches Repository
+  private: false
+  
+  # Funktionen aktivieren/deaktivieren
+  has_issues: true
+  has_projects: true
+  has_wiki: true
+  has_downloads: true
+  has_pages: true
+  is_template: false
+  
+  # Standard-Branch
+  default_branch: main
+  
+  # Automatische Zusammenführung von Pull Requests erlauben
+  allow_auto_merge: true
+  
+  # Squash-Merging erlauben
+  allow_squash_merge: true
+  
+  # Merge-Commits erlauben
+  allow_merge_commit: true
+  
+  # Rebase-Merging erlauben
+  allow_rebase_merge: true
+  
+  # automatische Löschen von Head-Branches nach Merge
+  delete_branch_on_merge: true
+  
+  # GitHub Pages aktivieren
+  enable_automated_security_fixes: true
+  enable_vulnerability_alerts: true
+
+# Labels für Issues und Pull Requests
+labels:
+  - name: bug
+    color: e11d21
+    description: "Etwas funktioniert nicht"
+    
+  - name: documentation
+    color: 0075ca
+    description: "Verbesserungen oder Ergänzungen der Dokumentation"
+    
+  - name: duplicate
+    color: cfd3d7
+    description: "Dieses Problem oder Pull Request existiert bereits"
+    
+  - name: enhancement
+    color: a2eeef
+    description: "Neue Funktion oder Verbesserung"
+    
+  - name: good first issue
+    color: 7057ff
+    description: "Gute erste Issue für neue Mitwirkende"
+    
+  - name: help wanted
+    color: 008672
+    description: "Zusätzliche Hilfe benötigt"
+    
+  - name: invalid
+    color: e4e669
+    description: "Dieses Problem oder Pull Request ist nicht mehr relevant"
+    
+  - name: question
+    color: d876e3
+    description: "Weitere Informationen benötigt"
+    
+  - name: wontfix
+    color: ffffff
+    description: "Dies wird nicht behoben werden"
+    
+  - name: security
+    color: e11d21
+    description: "Sicherheitsrelevante Probleme"
+    
+  - name: performance
+    color: fbca04
+    description: "Performance-bezogene Probleme oder Verbesserungen"
+    
+  - name: testing
+    color: 5319e7
+    description: "Test-bezogene Probleme oder Verbesserungen"
+    
+  - name: ci/cd
+    color: 5319e7
+    description: "Continuous Integration/Deployment-bezogene Probleme"
+    
+  - name: dependencies
+    color: 0366d6
+    description: "Abhängigkeits-bezogene Probleme"
+    
+  - name: breaking-change
+    color: e11d21
+    description: "Breaking Changes"
+    
+  - name: feature
+    color: 0052cc
+    description: "Neue Features"
+    
+  - name: refactor
+    color: fbca04
+    description: "Code-Refactoring"
+    
+  - name: maintenance
+    color: fbca04
+    description: "Wartungsarbeiten"
+
+# Standard-Collaborators (nur für Organisationen)
+# collaborators:
+#   - username: Elpablo777
+#     permission: admin
+
+# Teams (nur für Organisationen)
+# teams:
+#   - name: maintainers
+#     permission: push

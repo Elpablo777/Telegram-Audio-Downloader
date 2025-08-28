@@ -1,53 +1,38 @@
 ---
-name: 🐛 Bug Report
+name: Bug report
 about: Create a report to help us improve
-title: '[BUG] '
-labels: ['bug', 'triage']
+title: ''
+labels: ''
 assignees: ''
 
 ---
 
-## 🐛 **Bug Description**
+**Describe the bug**
 A clear and concise description of what the bug is.
 
-## 🔄 **To Reproduce**
+**To Reproduce**
 Steps to reproduce the behavior:
 1. Go to '...'
 2. Click on '....'
 3. Scroll down to '....'
 4. See error
 
-## ✅ **Expected Behavior**
+**Expected behavior**
 A clear and concise description of what you expected to happen.
 
-## 📸 **Screenshots/Logs**
-If applicable, add screenshots or logs to help explain your problem.
+**Screenshots**
+If applicable, add screenshots to help explain your problem.
 
-```
-[Paste any relevant logs here]
-```
+**Desktop (please complete the following information):**
+ - OS: [e.g. iOS]
+ - Browser [e.g. chrome, safari]
+ - Version [e.g. 22]
 
-## 🖥️ **Environment Information**
-- **OS**: [e.g. Windows 11, Ubuntu 22.04, macOS 13]
-- **Python Version**: [e.g. 3.11.5]
-- **Package Version**: [e.g. 1.0.0]
-- **Docker**: [Yes/No, if using Docker]
+**Smartphone (please complete the following information):**
+ - Device: [e.g. iPhone6]
+ - OS: [e.g. iOS8.1]
+ - Browser [e.g. stock browser, safari]
+ - Version [e.g. 22]
 
-## 📋 **Additional Context**
+**Additional context**
 Add any other context about the problem here.
-
-### 🔧 **Configuration**
-```yaml
-# Your configuration (remove sensitive data like API keys)
-```
-
-### 📊 **Performance Info**
-```bash
-# Output of: telegram-audio-downloader performance
-```
-
-## ✅ **Checklist**
-- [ ] I have searched for existing issues before creating this one
-- [ ] I have included all relevant information
-- [ ] I have tested this with the latest version
-- [ ] I have removed sensitive information from logs/configs
