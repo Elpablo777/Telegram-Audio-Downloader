@@ -42,7 +42,7 @@ jobs:
       - name: Comment with AI summary
         run: |
           # Sanitize AI response before posting
-          cat /tmp/ai_response_raw.txt | jq -Rs . | jq -r . > /tmp/ai_summary.txt
+          cp /tmp/ai_response_raw.txt /tmp/ai_summary.txt
           gh issue comment $ISSUE_NUMBER --body-file /tmp/ai_summary.txt
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
