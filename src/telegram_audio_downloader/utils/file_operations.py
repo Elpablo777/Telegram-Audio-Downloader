@@ -79,7 +79,6 @@ def sanitize_filename(filename: str, max_length: int = 255) -> str:
         return "unknown_file"
 
     # Ursprünglichen Dateinamen für Fallback speichern
-    original = filename
 
     # 1. Ungültige Dateisystem-Zeichen ersetzen (inklusive Steuerzeichen)
     sanitized = re.sub(INVALID_FILENAME_CHARS, "_", filename)
