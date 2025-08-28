@@ -252,15 +252,8 @@ class SecurityAutomationEngine:
         threats = []
         
         try:
-            # CodeQL Database erstellen (falls nicht vorhanden)
-            codeql_db_path = self.repo_path / ".codeql-db"
-            
-            if not codeql_db_path.exists():
-                self.logger.info("🔧 Erstelle CodeQL Database")
-                # Vereinfachte Implementierung - in Realität würde hier CodeQL CLI verwendet
-                # Für Demo-Zwecke simulieren wir CodeQL-Ergebnisse
-                
-            # Simuliere CodeQL-Scan-Ergebnisse
+            # Simulierte CodeQL-Analyse (kein echtes CodeQL-DB oder CLI-Aufruf)
+            # Für Demo-Zwecke simulieren wir CodeQL-Ergebnisse
             threats = await self._simulate_codeql_results()
             
         except Exception as e:
