@@ -86,9 +86,6 @@ def sanitize_filename(filename: str, max_length: int = 255) -> str:
     # Remove any remaining control characters that might cause issues
     sanitized = ''.join(char for char in sanitized if ord(char) >= 32)
     
-    # Handle line breaks and tabs consistently
-    sanitized = re.sub(r'[\r\n\t]+', '_', sanitized)
-
     # Mehrfache Punkte und Leerzeichen entfernen
     sanitized = re.sub(r"\.+", ".", sanitized)
     sanitized = re.sub(r"\s+", " ", sanitized)
