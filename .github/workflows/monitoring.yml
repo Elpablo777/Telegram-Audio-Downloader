@@ -375,8 +375,12 @@ jobs:
         # Check for degradation
         quality_degraded = score_trend < -5
         print(f'Quality Degraded: {quality_degraded}')
-        print(f'::set-output name=degraded::{str(quality_degraded).lower()}')
-        print(f'::set-output name=score_trend::{score_trend}')
+        # Write outputs to $GITHUB_OUTPUT for use in subsequent steps
+        github_output = os.environ.get('GITHUB_OUTPUT')
+        if github_output:
+            with open(github_output, 'a') as f:
+                f.write(f'degraded={str(quality_degraded).lower()}\n')
+                f.write(f'score_trend={score_trend}\n')
         print(f'quality_degraded={str(quality_degraded).lower()}')
         "
         
