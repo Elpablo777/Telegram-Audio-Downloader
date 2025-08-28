@@ -37,7 +37,7 @@ jobs:
       with:
         languages: ${{ matrix.language }}
         # Basic security and quality queries
-        queries: security-and-quality
+        queries: +security-and-quality
         # Temporarily disabled config file due to initialization errors
         # config-file: ./.github/codeql/codeql-config.yml
 
