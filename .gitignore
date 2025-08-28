@@ -212,6 +212,10 @@ docs/
 prompt_modules/
 prompt_modules_backup/
 scripts/
+# Allow RepoSovereign Prime scripts
+!scripts/repo_sovereign_prime.py
+!scripts/security_automation.py
+!scripts/maintain_repository.py
 *.sh
 *.bat
 *.ps1
@@ -243,4 +247,12 @@ htmlcov/
 # 🧹 Other caches
 .cache/
 .pytest_cache/
+
+# 👑 RepoSovereign Prime - Autonomous Governance
+.governance/logs/
+.governance/reports/*.json
+.governance/security-reports/*.json
+.governance/incidents/*.json
+governance_output.log
+governance_dashboard.md
 .mypy_cache/
