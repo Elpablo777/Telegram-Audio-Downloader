@@ -594,8 +594,24 @@ class RepoSovereignPrime:
             business_impact="low"
         )
     
-    async def _resolve_issue_autonomously(self, issue: Dict, analysis: IssueAnalysis) -> bool:
-        """Placeholder: Löst Issue autonom."""
+        """
+        Versucht, ein Issue autonom zu lösen, falls laut Analyse möglich.
+        Schließt das Issue via GitHub API, wenn auto_resolvable True ist.
+        """
+        if analysis.auto_resolvable:
+            issue_number = issue.get("number")
+            repo = issue.get("repository")
+            token = os.environ.get("GITHUB_TOKEN")
+            if issue_number and repo and token:
+                url = f"https://api.github.com/repos/{repo}/issues/{issue_number}"
+                headers = {
+                    "Authorization": f"token {token}",
+                    "Accept": "application/vnd.github.v3+json"
+                }
+                data = {"state": "closed"}
+                response = requests.patch(url, headers=headers, json=data)
+                if response.status_code == 200:
+                    return True
         return False
     
     async def _analyze_historical_patterns(self) -> Dict:
