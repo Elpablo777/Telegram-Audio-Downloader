@@ -38,8 +38,7 @@ jobs:
 
       - name: Sanitize AI summary
         run: |
-          printf "%s" "$AI_RESPONSE" > ai_response.txt
-          python3 -c "import sys, html; print(html.escape(sys.stdin.read()))" < ai_response.txt > sanitized_summary.txt
+          python3 -c "import html, os; print(html.escape(os.environ['AI_RESPONSE']))" > sanitized_summary.txt
         env:
           AI_RESPONSE: ${{ steps.inference.outputs.response }}
 
