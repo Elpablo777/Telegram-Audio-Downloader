@@ -193,4 +193,3 @@ experimental:
   ai_code_generation: false
   auto_refactoring: false
   predictive_bug_detection: true
-  intelligent_test_generation: false
