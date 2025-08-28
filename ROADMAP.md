@@ -27,6 +27,13 @@ Den Telegram Audio Downloader zum führenden Tool für das Sammeln und Verwalten
 ### **🔄 v1.1.0 - Enhanced User Experience (September 2024)**
 **Status: PLANNED**
 
+**Repository Management:**
+- [x] **Automated Issue Summarization** mit GitHub Actions
+- [ ] **Interaktive TUI** mit Rich Live-Updates
+- [ ] **Progress-Bars** für einzelne Downloads
+- [ ] **Real-time Notifications** für abgeschlossene Downloads
+- [ ] **Keyboard-Shortcuts** für häufige Aktionen
+
 **User Interface Improvements:**
 - [ ] **Interaktive TUI** mit Rich Live-Updates
 - [ ] **Progress-Bars** für einzelne Downloads

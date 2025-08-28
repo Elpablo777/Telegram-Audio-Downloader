@@ -138,6 +138,16 @@ Alle Pull Requests werden von einem Maintainer überprüft. Während des Reviews
 - Testabdeckung
 - Dokumentation
 
+## 🤖 Automatische Issue-Zusammenfassung
+
+Unser Repository verwendet GitHub Actions, um neue Issues automatisch zusammenzufassen. Diese Funktion:
+
+- Erstellt automatisch eine Zusammenfassung für neue Issues
+- Verwendet OpenAI GPT für intelligente Zusammenfassungen (wenn konfiguriert)
+- Fügt die Zusammenfassung als Kommentar zum Issue hinzu
+
+Dies hilft Maintainern, schnell den Inhalt neuer Issues zu verstehen. Für weitere Informationen siehe [.github/workflows/ISSUE_SUMMARY.md](.github/workflows/ISSUE_SUMMARY.md).
+
 ## 📄 Lizenz
 
 Durch das Einreichen eines Pull Requests erklären Sie sich damit einverstanden, dass Ihre Beiträge unter der MIT-Lizenz lizenziert sind.
