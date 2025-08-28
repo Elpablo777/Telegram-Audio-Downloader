@@ -32,7 +32,7 @@ class ThreatLevel(Enum):
     HIGH = "hoch"
     MEDIUM = "mittel"
     LOW = "niedrig"
-    INFO = "info"  # "info" is commonly used in German IT, but for full consistency: "information"
+    INFO = "information"  # For full consistency, use "information" instead of "info"
 
 
 class VulnerabilityType(Enum):
