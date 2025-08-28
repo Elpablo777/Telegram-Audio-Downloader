@@ -35,11 +35,11 @@ class Config:
     
     def _load_default_config(self) -> None:
         """Lädt die Standardkonfiguration."""
-        # Telegram-Einstellungen
+        # Telegram-Einstellungen - Werte werden aus Umgebungsvariablen geladen
         self.config['telegram'] = {
-            'api_id': '',
-            'api_hash': '',
-            'phone_number': ''
+            'api_id': os.getenv('API_ID', ''),
+            'api_hash': os.getenv('API_HASH', ''),
+            'phone_number': os.getenv('PHONE_NUMBER', '')
         }
         
         # Proxy-Einstellungen
@@ -185,7 +185,9 @@ class Config:
         for section_name in self.config.sections():
             config_dict[section_name] = {}
             for key, value in self.config.items(section_name):
-                config_dict[section_name][key] = value
+                # Entferne sensible Daten aus dem Export
+                if key not in ['api_id', 'api_hash', 'phone_number', 'password']:
+                    config_dict[section_name][key] = value
         
         # Schreibe das Dictionary in eine YAML-Datei
         with open(output_path, 'w', encoding='utf-8') as f:

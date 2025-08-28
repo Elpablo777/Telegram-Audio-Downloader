@@ -165,6 +165,7 @@ config.ini
 config.yaml
 config.json
 local_config.*
+*.config
 
 # 📦 Backup files
 *.backup
@@ -193,6 +194,8 @@ docker-compose.override.yml
 *.p12
 secrets/
 .secrets/
+*.env
+.env*
 
 # 📈 Performance and profiling
 *.prof
@@ -244,3 +247,13 @@ htmlcov/
 .cache/
 .pytest_cache/
 .mypy_cache/
+
+# 🔐 Additional security exclusions
+.env.local
+.env.development
+.env.production
+.env.test
+.env.*.local
+secrets.json
+credentials.json
+service-account-key.json
