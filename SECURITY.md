@@ -41,6 +41,18 @@ Wir bestätigen den Eingang Ihres Berichts innerhalb von 48 Stunden und bemühen
 - `pydub`
 - `peewee`
 
+## Sicherheitswerkzeuge
+
+### Abhängigkeitsüberprüfungen
+- **pip-audit**: Überprüfung auf bekannte Sicherheitslücken in Abhängigkeiten
+- **safety**: Überprüfung auf Sicherheitslücken basierend auf PyUp.io-Datenbank
+
+### Suche nach sensiblen Daten
+- **gitleaks**: Sucht nach versehentlich committeten sensiblen Daten
+
+### Statische Code-Analyse
+- **bandit**: Sucht nach bekannten Sicherheitsproblemen im Python-Code
+
 ## Offenlegungsrichtlinie für Sicherheitslücken
 
 Wir befolgen eine koordinierte Offenlegungsrichtlinie:
@@ -61,6 +73,12 @@ Wir befolgen eine koordinierte Offenlegungsrichtlinie:
 - Sichere Geheimnisverwaltung mit GitHub Secrets
 - Regelmäßige Sicherheitsupdates der Build-Umgebung
 
+### Umgang mit Secrets
+- Alle sensiblen Daten werden als Umgebungsvariablen gespeichert
+- Keine hartcodierten Secrets im Code
+- Verwendung von `.env`-Dateien für die lokale Entwicklung (ausgeschlossen von Git)
+- Restriktive Dateiberechtigungen für sensible Dateien
+
 ### Datenschutz
 - Sichere Verarbeitung von Benutzerdaten
 - Verschlüsselung sensibler Informationen
@@ -77,3 +95,17 @@ Wir befolgen eine koordinierte Offenlegungsrichtlinie:
 - Aktivierte Sicherheitsfeatures in der Konfiguration
 - Regelmäßige Überprüfung der Sicherheitseinstellungen
 - Dokumentation aller sicherheitsrelevanten Konfigurationen
+
+### Ausführen von Sicherheitsprüfungen
+```bash
+# Schnelle Sicherheitsprüfung
+make security
+
+# Umfassende Sicherheitsprüfung
+make security-comprehensive
+
+# Simuliere CI/CD Pipeline lokal
+make ci-local
+```
+
+Detaillierte Informationen zu den Sicherheitswerkzeugen finden Sie in [docs/security-tools.md](docs/security-tools.md).
