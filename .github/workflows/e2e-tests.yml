@@ -1,6 +1,6 @@
+name: 🧪 End-to-End Tests
 permissions:
   contents: read
-name: 🧪 End-to-End Tests
 
 on:
   push:
