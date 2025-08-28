@@ -29,8 +29,8 @@ logger = logging.getLogger(__name__)
 # Unterstützte Audio-Formate
 AUDIO_EXTENSIONS = {".mp3", ".m4a", ".ogg", ".flac", ".wav", ".opus", ".aac", ".wma"}
 
-# Ungültige Zeichen für Dateinamen
-INVALID_FILENAME_CHARS = r'[<>:"/\\|?*]'
+# Ungültige Zeichen für Dateinamen (erweitert für bessere Kompatibilität)
+INVALID_FILENAME_CHARS = r'[<>:"/\\|?*\x00-\x1f\x7f-\x9f]'
 RESERVED_NAMES = {
     "CON",
     "PRN",
@@ -61,6 +61,12 @@ RESERVED_NAMES = {
 def sanitize_filename(filename: str, max_length: int = 255) -> str:
     """
     Bereinigt einen Dateinamen von ungültigen Zeichen.
+    
+    Entfernt oder ersetzt problematische Zeichen:
+    - Ungültige Dateisystemzeichen (< > : " / \\ | ? * und Steuerzeichen)
+    - Emojis und problematische Unicode-Zeichen
+    - Führende/nachgestellte Punkte und Leerzeichen
+    - Reservierte Windows-Namen
 
     Args:
         filename: Der zu bereinigende Dateiname
@@ -72,27 +78,68 @@ def sanitize_filename(filename: str, max_length: int = 255) -> str:
     if not filename:
         return "unknown_file"
 
-    # Ungültige Zeichen ersetzen
+    # Ursprünglichen Dateinamen für Fallback speichern
+    original = filename
+
+    # 1. Ungültige Dateisystem-Zeichen ersetzen (inklusive Steuerzeichen)
     sanitized = re.sub(INVALID_FILENAME_CHARS, "_", filename)
+    
+    # 2. Emojis und problematische Unicode-Zeichen handhaben
+    # Entferne nur Emojis, behalte normale internationale Zeichen (Chinesisch, Kyrillisch, etc.)
+    # Spezifische Emoji-Bereiche ohne Überlappung mit normalen Zeichen
+    emoji_pattern = re.compile(
+        "["
+        "\U0001F600-\U0001F64F"  # Emoticons
+        "\U0001F300-\U0001F5FF"  # Symbole & Piktogramme
+        "\U0001F680-\U0001F6FF"  # Transport & Karten
+        "\U0001F1E0-\U0001F1FF"  # Flags
+        "\U00002702-\U000027B0"  # Dingbats
+        "\U0001F900-\U0001F9FF"  # Ergänzende Symbole
+        "\U0001FA70-\U0001FAFF"  # Symbole und Piktogramme Extended-A
+        "\U00002600-\U000026FF"  # Verschiedene Symbole
+        "]+", flags=re.UNICODE)
+    sanitized = emoji_pattern.sub("_", sanitized)
 
-    # Mehrfache Punkte und Leerzeichen entfernen
-    sanitized = re.sub(r"\.+", ".", sanitized)
+    # 3. Problematische Unicode-Zeichen ersetzen (behalte normale internationale Zeichen)
+    # Nur sehr problematische Zeichen ersetzen, normale Akzente etc. beibehalten
+    problematic_unicode = re.compile(r'[\u200B-\u200F\u202A-\u202E\u2060-\u206F\uFEFF]')  # Unsichtbare/Steuerzeichen
+    sanitized = problematic_unicode.sub("_", sanitized)
+
+    # 4. Mehrfache Punkte normalisieren (aber nicht komplett entfernen für Tests)
+    sanitized = re.sub(r"\.{2,}", ".", sanitized)  # Nur 2+ Punkte zu einem reduzieren
+    
+    # 5. Mehrfache Leerzeichen und Unterstriche normalisieren
     sanitized = re.sub(r"\s+", " ", sanitized)
+    sanitized = re.sub(r"_{2,}", "_", sanitized)
 
-    # Trimmen
-    sanitized = sanitized.strip(" .")
+    # 6. Trimmen von Leerzeichen, aber Punkte nur am Ende entfernen wenn es kein Extension-Punkt ist
+    sanitized = sanitized.strip()
+    # Entferne führende Punkte
+    sanitized = sanitized.lstrip(".")
+    # Entferne nachgestellte Punkte nur wenn sie nicht Teil einer Dateiendung sind
+    if sanitized.endswith(".") and "." not in sanitized[:-1]:
+        sanitized = sanitized.rstrip(".")
 
-    # Reservierte Namen prüfen
+    # 7. Prüfung ob nach Bereinigung noch etwas übrig ist
+    if not sanitized or sanitized in [".", ".."]:
+        return "unknown_file"
+
+    # 8. Reservierte Namen prüfen
     name_without_ext = Path(sanitized).stem.upper()
     if name_without_ext in RESERVED_NAMES:
         sanitized = f"_{sanitized}"
 
-    # Länge begrenzen
+    # 9. Länge begrenzen
     if len(sanitized) > max_length:
         name, ext = os.path.splitext(sanitized)
         max_name_length = max_length - len(ext)
-        sanitized = name[:max_name_length] + ext
+        if max_name_length > 0:
+            sanitized = name[:max_name_length] + ext
+        else:
+            # Wenn Extension zu lang ist, nur die Extension verwenden
+            sanitized = ext[:max_length] if ext else "file"
 
+    # 10. Finaler Fallback
     return sanitized or "unknown_file"
 
 
