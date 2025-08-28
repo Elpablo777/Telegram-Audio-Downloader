@@ -18,8 +18,8 @@ jobs:
       - name: Sanitize issue title and body
         id: sanitize
         run: |
-          echo "${{ github.event.issue.title }}" | sed 's/[{}$|`]/_/g' > sanitized_title.txt
-          echo "${{ github.event.issue.body }}" | sed 's/[{}$|`]/_/g' > sanitized_body.txt
+          printf "%s" "${{ github.event.issue.title }}" | sed 's/[{}$|`]/_/g' > sanitized_title.txt
+          printf "%s" "${{ github.event.issue.body }}" | sed 's/[{}$|`]/_/g' > sanitized_body.txt
           echo "sanitized_title=$(cat sanitized_title.txt)" >> $GITHUB_OUTPUT
           echo "sanitized_body=$(cat sanitized_body.txt)" >> $GITHUB_OUTPUT
 
