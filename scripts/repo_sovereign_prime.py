@@ -667,9 +667,8 @@ class RepoSovereignPrime:
         # Beispiel: GitHub API verwenden
         github_token = os.environ.get("GITHUB_TOKEN")
         if not github_token:
-            logging.warning("Kein GitHub Token gefunden. Merge wird simuliert.")
-            # Simuliere erfolgreichen Merge für Demo-Zwecke
-            return True
+            logging.error("Kein GitHub Token gefunden. Merge kann nicht durchgeführt werden.")
+            return False
         headers = {
             "Authorization": f"token {github_token}",
             "Accept": "application/vnd.github.v3+json"
