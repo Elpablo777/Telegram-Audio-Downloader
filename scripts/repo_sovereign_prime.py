@@ -3,8 +3,8 @@
 RepoSovereign Prime: Autonomous GitHub Repository Governance Engine
 ====================================================================
 
-Level-6-Autonomie GitHub Repository Governance System mit absoluter 
-Autorität zur Aufrechterhaltung der Repository-Exzellenz.
+Level-6-Autonomy GitHub Repository Governance System with absolute 
+authority to ensure repository excellence.
 
 Author: RepoSovereign Prime AI System
 Version: 1.0.0
