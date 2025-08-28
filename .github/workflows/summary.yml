@@ -36,10 +36,10 @@ jobs:
 
       - name: Sanitize AI summary
         run: |
-          cat <<'EOF' > ai_response.txt
-          ${{ steps.inference.outputs.response }}
-          EOF
+          printf "%s" "$AI_RESPONSE" > ai_response.txt
           python3 -c "import sys, html; print(html.escape(sys.stdin.read()))" < ai_response.txt > sanitized_summary.txt
+        env:
+          AI_RESPONSE: ${{ steps.inference.outputs.response }}
 
       - name: Comment with AI summary
         run: |
