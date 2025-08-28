@@ -56,7 +56,7 @@ def check_secrets():
     # Führe gitleaks aus, falls installiert
     try:
         # Check if gitleaks is installed
-        if which_gitleaks:
+        if run_command(['which', 'gitleaks']):
             leaks = run_command(["gitleaks", "detect", "--source=.", "-v"])
             if leaks and "No leaks found" in str(leaks):
                 return {"status": "✅", "details": ["Keine exponierten Geheimnisse gefunden."]}
