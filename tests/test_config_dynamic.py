@@ -3,32 +3,27 @@
 Dynamic Configuration Tests - Telegram Audio Downloader
 =====================================================
 
-Tests für dynamische Konfigurationsanpassungen.
+Tests für dynamische Konfigurationsfunktionen.
 """
 
-import os
-import sys
 import json
 import tempfile
 import time
 from pathlib import Path
-from unittest.mock import patch, mock_open
+from unittest.mock import patch
 import pytest
-
-# Add src to path
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from telegram_audio_downloader.config import Config
 from telegram_audio_downloader.error_handling import ConfigurationError
 
 
-class TestDynamicConfig:
-    """Tests für dynamische Konfigurationsanpassungen."""
+class TestConfigDynamic:
+    """Tests für dynamische Konfigurationsfunktionen."""
     
     @pytest.fixture(autouse=True)
     def setup_test_environment(self):
         """Setup test environment."""
-        self.temp_dir = tempfile.mkdtemp(prefix="dynamic_config_test_")
+        self.temp_dir = tempfile.mkdtemp(prefix="config_dynamic_test_")
         self.config_dir = Path(self.temp_dir) / "config"
         self.config_dir.mkdir()
         
@@ -110,12 +105,12 @@ class TestDynamicConfig:
         # Zum Beispiel: Zentrale Konfiguration für mehrere Instanzen
         
         config1 = Config(
-            api_id="123456",
+            api_id="YOUR_API_ID",
             max_concurrent_downloads=3
         )
         
         config2 = Config(
-            api_id="123456",
+            api_id="YOUR_API_ID",
             max_concurrent_downloads=5
         )
         
