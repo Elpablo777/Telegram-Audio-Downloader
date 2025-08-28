@@ -5,8 +5,7 @@ RepoSovereign Prime: Autonomous GitHub Repository Governance Engine
 
 
 Definitionen:
-- Level-6-Autonomie: In diesem Kontext bezeichnet Level-6-Autonomie die höchste Stufe der automatisierten Repository-Governance. Das System ist in der Lage, alle Aspekte der Repository-Verwaltung selbstständig und ohne menschliches Eingreifen zu überwachen, zu analysieren und zu steuern. Dazu gehören die Erkennung und Behebung von Sicherheitsproblemen, die Verwaltung von Issues, die Optimierung der Codequalität und die Durchsetzung von Best Practices.
-- Absolute Autorität: RepoSovereign Prime besitzt die Befugnis, sämtliche Governance-Entscheidungen autonom zu treffen und direkt im Repository umzusetzen. Dies umfasst das Schließen oder Öffnen von Issues, das Durchführen von Code-Änderungen, das Aktualisieren von Abhängigkeiten und das Erzwingen von Richtlinien, um die Repository-Exzellenz sicherzustellen.
+- Absolute Autorität: RepoSovereign Prime besitzt die Befugnis, sämtliche Governance-Entscheidungen autonom zu treffen und direkt im Repository umzusetzen. Dabei agiert das System jedoch stets innerhalb definierter Parameter, Berechtigungen und Sicherheitsmechanismen. Die Autorität ist nicht unbegrenzt, sondern unterliegt den eingerichteten Schutzmaßnahmen und den im Repository festgelegten Richtlinien.
 Author: RepoSovereign Prime AI System
 Version: 1.0.0
 """
