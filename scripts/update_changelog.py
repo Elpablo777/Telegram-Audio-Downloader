@@ -1,315 +1,231 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
-Changelog Update Script
-=======================
+Changelog Update Automation Script
+==================================
 
-Dieses Skript hilft bei der Aktualisierung des Changelogs gemäß den Keep a Changelog Richtlinien.
+Professionelles Skript zur automatisierten Aktualisierung des Changelogs
+gemäß den Standards des Telegram Audio Downloaders.
+
+Dieses Skript implementiert:
+- Automatische Changelog-Generierung
+- Einhaltung des Keep-a-Changelog-Formats
+- Versionsnummer-Management
+- Release-Informationen-Aktualisierung
 """
 
 import os
 import sys
 import re
+from pathlib import Path
 from datetime import datetime
 from typing import List, Dict, Optional
+import subprocess
 
+def get_git_tags() -> List[str]:
+    """Ruft die Git-Tags des Repositories ab."""
+    try:
+        result = subprocess.run(
+            ["git", "tag", "--sort=-v:refname"],
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        return [tag.strip() for tag in result.stdout.strip().split('\n') if tag.strip()]
+    except subprocess.CalledProcessError:
+        return []
 
-class ChangelogUpdater:
-    """Hilft bei der Aktualisierung des Changelogs."""
-    
-    def __init__(self, changelog_path: str = "CHANGELOG.md"):
-        self.changelog_path = changelog_path
-        self.version_pattern = re.compile(r'^## \[(\d+\.\d+\.\d+(?:-[a-zA-Z0-9]+)?)\]')
-        
-    def read_changelog(self) -> List[str]:
-        """Liest die Changelog-Datei."""
-        if not os.path.exists(self.changelog_path):
-            raise FileNotFoundError(f"Changelog-Datei {self.changelog_path} nicht gefunden")
-            
-        try:
-            with open(self.changelog_path, 'r', encoding='utf-8') as f:
-                return f.readlines()
-        except UnicodeDecodeError:
-            # Fallback zu latin-1 Kodierung
-            with open(self.changelog_path, 'r', encoding='latin-1') as f:
-                return f.readlines()
-    
-    def write_changelog(self, lines: List[str]) -> None:
-        """Schreibt die Changelog-Datei."""
-        with open(self.changelog_path, 'w', encoding='utf-8') as f:
-            f.writelines(lines)
-    
-    def get_unreleased_changes(self) -> List[str]:
-        """Extrahiert Änderungen aus dem [Unreleased] Abschnitt."""
-        lines = self.read_changelog()
-        unreleased_content = []
-        in_unreleased = False
-        
-        for line in lines:
-            if line.startswith('## [Unreleased]'):
-                in_unreleased = True
-                continue
-            elif line.startswith('## [') and in_unreleased:
-                break
-            elif in_unreleased:
-                unreleased_content.append(line)
-                
-        return [line for line in unreleased_content if line.strip()]
-    
-    def get_existing_versions(self) -> List[str]:
-        """Extrahiert alle existierenden Versionen."""
-        lines = self.read_changelog()
-        versions = []
-        
-        for line in lines:
-            match = self.version_pattern.match(line.strip())
-            if match:
-                versions.append(match.group(1))
-                
-        return versions
-    
-    def create_new_version_section(self, version: str, changes: List[str]) -> List[str]:
-        """Erstellt einen neuen Versionsabschnitt."""
-        today = datetime.now().strftime('%Y-%m-%d')
-        section = [
-            f"## [{version}] - {today}\n",
-            "\n"
-        ]
-        
-        # Gruppiere Änderungen nach Typ
-        change_groups = {
-            'Hinzugefügt': [],
-            'Geändert': [],
-            'Veraltet': [],
-            'Entfernt': [],
-            'Behoben': [],
-            'Sicherheit': []
-        }
-        
-        current_group = None
-        for change in changes:
-            stripped = change.strip()
-            if stripped.startswith('### '):
-                group_name = stripped[4:]
-                if group_name in change_groups:
-                    current_group = group_name
-                continue
-            elif current_group and stripped:
-                change_groups[current_group].append(change)
-        
-        # Füge nicht-leere Gruppen hinzu
-        for group_name, group_changes in change_groups.items():
-            if group_changes:
-                section.append(f"### {group_name}\n")
-                section.extend(group_changes)
-                section.append("\n")
-        
-        return section
-    
-    def update_changelog_for_release(self, new_version: str) -> None:
-        """Aktualisiert das Changelog für ein neues Release."""
-        lines = self.read_changelog()
-        changes = self.get_unreleased_changes()
-        
-        if not changes:
-            print("Keine Änderungen im [Unreleased] Abschnitt gefunden.")
-            return
-        
-        # Erstelle neuen Versionsabschnitt
-        new_section = self.create_new_version_section(new_version, changes)
-        
-        # Finde die Position für den neuen Abschnitt
-        insert_pos = -1
-        for i, line in enumerate(lines):
-            if line.startswith('## [Unreleased]'):
-                insert_pos = i + 1
-                break
-        
-        if insert_pos == -1:
-            raise ValueError("Konnte [Unreleased] Abschnitt nicht finden")
-        
-        # Füge den neuen Abschnitt hinzu
-        lines[insert_pos:insert_pos] = new_section
-        
-        # Leere den [Unreleased] Abschnitt (behalte nur die Überschrift und leere Gruppen)
-        unreleased_start = insert_pos - 1
-        next_section = -1
-        for i in range(unreleased_start + 1, len(lines)):
-            if lines[i].startswith('## ['):
-                next_section = i
-                break
-        
-        if next_section != -1:
-            # Behalte nur die Gruppenüberschriften im [Unreleased] Abschnitt
-            clean_unreleased = [
-                '## [Unreleased]\n',
-                '\n',
-                '### Hinzugefügt\n',
-                '\n',
-                '### Geändert\n',
-                '\n',
-                '### Veraltet\n',
-                '\n',
-                '### Entfernt\n',
-                '\n',
-                '### Behoben\n',
-                '\n',
-                '### Sicherheit\n',
-                '\n',
-                '\n'
-            ]
-            lines[unreleased_start + 1:next_section] = clean_unreleased
-        
-        # Aktualisiere Versionslinks
-        self.update_version_links(lines, new_version)
-        
-        # Schreibe die aktualisierte Changelog
-        self.write_changelog(lines)
-        print(f"Changelog erfolgreich für Version {new_version} aktualisiert.")
-    
-    def update_version_links(self, lines: List[str], new_version: str) -> None:
-        """Aktualisiert die Versionslinks am Ende der Changelog."""
-        # Finde das Ende der Datei
-        link_section_start = -1
-        for i in range(len(lines) - 1, -1, -1):
-            if lines[i].startswith('['):
-                link_section_start = i
-                break
-        
-        if link_section_start == -1:
-            # Füge am Ende der Datei hinzu
-            lines.extend(['\n', f'[Unreleased]: https://github.com/Elpablo777/Telegram-Audio-Downloader/compare/v{new_version}...HEAD\n'])
-            lines.extend([f'[{new_version}]: https://github.com/Elpablo777/Telegram-Audio-Downloader/releases/tag/v{new_version}\n'])
+def get_latest_tag() -> Optional[str]:
+    """Ruft den neuesten Git-Tag ab."""
+    tags = get_git_tags()
+    return tags[0] if tags else None
+
+def get_git_commits_since_tag(tag: str = None) -> List[Dict[str, str]]:
+    """Ruft Git-Commits seit dem letzten Tag ab."""
+    try:
+        if tag:
+            cmd = ["git", "log", f"{tag}..HEAD", "--oneline", "--no-merges"]
         else:
-            # Aktualisiere bestehende Links
-            unreleased_link_idx = -1
-            version_link_idx = -1
-            
-            for i in range(link_section_start, len(lines)):
-                if lines[i].startswith('[Unreleased]:'):
-                    unreleased_link_idx = i
-                elif lines[i].startswith(f'[{new_version}]:'):
-                    version_link_idx = i
-            
-            # Aktualisiere den Unreleased-Link
-            if unreleased_link_idx != -1:
-                lines[unreleased_link_idx] = f'[Unreleased]: https://github.com/Elpablo777/Telegram-Audio-Downloader/compare/v{new_version}...HEAD\n'
-            
-            # Füge den neuen Versionslink hinzu, wenn er nicht existiert
-            if version_link_idx == -1:
-                lines.insert(unreleased_link_idx + 1, f'[{new_version}]: https://github.com/Elpablo777/Telegram-Audio-Downloader/releases/tag/v{new_version}\n')
+            cmd = ["git", "log", "--oneline", "--no-merges"]
+        
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        
+        commits = []
+        for line in result.stdout.strip().split('\n'):
+            if line.strip():
+                # Extrahiere Commit-Hash und Nachricht
+                parts = line.split(' ', 1)
+                if len(parts) == 2:
+                    commits.append({
+                        'hash': parts[0],
+                        'message': parts[1]
+                    })
+        return commits
+    except subprocess.CalledProcessError:
+        return []
+
+def categorize_commit(message: str) -> str:
+    """Kategorisiert einen Commit basierend auf der Nachricht."""
+    message_lower = message.lower()
     
-    def add_unreleased_change(self, change_type: str, change_description: str) -> None:
-        """Fügt eine Änderung zum [Unreleased] Abschnitt hinzu."""
-        lines = self.read_changelog()
+    if any(keyword in message_lower for keyword in ['security', 'sicherheit', 'cve', 'vulnerability']):
+        return 'Sicherheit'
+    elif any(keyword in message_lower for keyword in ['add', 'new', 'implement', 'hinzufügen']):
+        return 'Hinzugefügt'
+    elif any(keyword in message_lower for keyword in ['change', 'update', 'modify', 'ändern']):
+        return 'Geändert'
+    elif any(keyword in message_lower for keyword in ['fix', 'bug', 'repair', 'fehler']):
+        return 'Behoben'
+    elif any(keyword in message_lower for keyword in ['remove', 'delete', 'entfernen']):
+        return 'Entfernt'
+    elif any(keyword in message_lower for keyword in ['deprecate', 'veraltet']):
+        return 'Veraltet'
+    else:
+        return 'Behoben'  # Standardkategorie
+
+def update_changelog(version: str, commits: List[Dict[str, str]]) -> None:
+    """Aktualisiert die CHANGELOG.md-Datei."""
+    changelog_path = Path("CHANGELOG.md")
+    
+    # Kategorisiere Commits
+    categorized_commits = {}
+    for commit in commits:
+        category = categorize_commit(commit['message'])
+        if category not in categorized_commits:
+            categorized_commits[category] = []
+        categorized_commits[category].append(commit['message'])
+    
+    # Erstelle neuen Changelog-Eintrag
+    date_str = datetime.now().strftime("%Y-%m-%d")
+    new_entry = f"## [{version}] - {date_str}\n\n"
+    
+    # Füge kategorisierte Commits hinzu
+    categories = ['Hinzugefügt', 'Geändert', 'Veraltet', 'Entfernt', 'Behoben', 'Sicherheit']
+    for category in categories:
+        if category in categorized_commits and categorized_commits[category]:
+            new_entry += f"### {category}\n\n"
+            for message in categorized_commits[category]:
+                # Entferne ggf. vorhandene Kategoriekennzeichnungen aus der Nachricht
+                clean_message = re.sub(r'^(add|change|fix|remove|deprecate|security):\s*', '', message, flags=re.IGNORECASE)
+                new_entry += f"- {clean_message}\n"
+            new_entry += "\n"
+    
+    # Lese vorhandene Changelog-Datei
+    if changelog_path.exists():
+        content = changelog_path.read_text(encoding='utf-8')
         
-        # Finde den richtigen Abschnitt
-        section_start = -1
-        for i, line in enumerate(lines):
-            if line.startswith(f'### {change_type}'):
-                section_start = i
-                break
-        
-        # Wenn der Abschnitt nicht gefunden wurde, füge ihn hinzu
-        if section_start == -1:
-            # Finde das Ende des [Unreleased] Abschnitts
-            unreleased_start = -1
-            unreleased_end = len(lines)
+        # Füge neue Einträge nach dem [Unreleased]-Abschnitt ein
+        if '## [Unreleased]' in content:
+            lines = content.split('\n')
+            new_lines = []
+            unreleased_found = False
+            unreleased_processed = False
             
-            for i, line in enumerate(lines):
-                if line.startswith('## [Unreleased]'):
-                    unreleased_start = i
-                elif line.startswith('## [') and unreleased_start != -1 and i > unreleased_start:
-                    unreleased_end = i
-                    break
+            for line in lines:
+                if line.strip() == '## [Unreleased]':
+                    unreleased_found = True
+                    new_lines.append(line)
+                    # Füge leere Zeilen für die Kategorien hinzu
+                    new_lines.append("")
+                    new_lines.append("### Hinzugefügt")
+                    new_lines.append("")
+                    new_lines.append("### Geändert")
+                    new_lines.append("")
+                    new_lines.append("### Veraltet")
+                    new_lines.append("")
+                    new_lines.append("### Entfernt")
+                    new_lines.append("")
+                    new_lines.append("### Behoben")
+                    new_lines.append("")
+                    new_lines.append("### Sicherheit")
+                    new_lines.append("")
+                elif unreleased_found and line.startswith('## [') and not unreleased_processed:
+                    # Füge den neuen Eintrag vor dem nächsten Versions-Eintrag ein
+                    new_lines.append("")
+                    new_lines.append(new_entry.rstrip())
+                    new_lines.append("")
+                    new_lines.append(line)
+                    unreleased_processed = True
+                else:
+                    new_lines.append(line)
             
-            if unreleased_start != -1:
-                # Füge den neuen Abschnitt hinzu
-                lines.insert(unreleased_end, f'### {change_type}\n')
-                lines.insert(unreleased_end + 1, '\n')
-                section_start = unreleased_end + 1
-        
-        # Füge die neue Änderung hinzu
-        if section_start != -1:
-            # Finde das Ende des Abschnitts
-            section_end = section_start + 1
-            for i in range(section_start + 1, len(lines)):
-                if lines[i].startswith('### ') or lines[i].startswith('## '):
-                    section_end = i
-                    break
+            # Wenn [Unreleased] nicht verarbeitet wurde, füge den Eintrag am Ende hinzu
+            if unreleased_found and not unreleased_processed:
+                new_lines.append("")
+                new_lines.append(new_entry.rstrip())
+            
+            content = '\n'.join(new_lines)
+        else:
+            # Füge neuen Eintrag am Anfang nach dem Header ein
+            lines = content.split('\n')
+            if len(lines) > 7:  # Nach dem Standard-Changelog-Header
+                lines.insert(7, new_entry.rstrip() + '\n')
+                content = '\n'.join(lines)
             else:
-                section_end = len(lines)
-            
-            # Füge die neue Änderung hinzu
-            lines.insert(section_end, f'- {change_description}\n')
+                content += '\n' + new_entry
         
-        # Schreibe die aktualisierte Changelog
-        self.write_changelog(lines)
-        print(f"Änderung zum Typ '{change_type}' hinzugefügt: {change_description}")
-    
-    def initialize_changelog(self) -> None:
-        """Initialisiert eine neue Changelog-Datei."""
-        if os.path.exists(self.changelog_path):
-            print("Changelog-Datei existiert bereits.")
-            return
-        
-        content = """# Changelog
+        # Aktualisiere Versionsverweise am Ende der Datei
+        if f"[{version}]: " not in content:
+            # Füge Versionsverweis hinzu (Platzhalter-URL)
+            content += f"[{version}]: https://github.com/Elpablo777/Telegram-Audio-Downloader/releases/tag/v{version}\n"
+    else:
+        # Erstelle neue Changelog-Datei
+        content = """# 📝 Changelog
 
 Alle bemerkenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/),
 und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
-
-### Hinzugefügt
-
-### Geändert
-
-### Veraltet
-
-### Entfernt
-
-### Behoben
-
-### Sicherheit
-
 """
-        
-        with open(self.changelog_path, 'w', encoding='utf-8') as f:
-            f.write(content)
-        
-        print("Changelog-Datei erfolgreich initialisiert.")
-
+        content += new_entry
+        content += f"[{version}]: https://github.com/Elpablo777/Telegram-Audio-Downloader/releases/tag/v{version}\n"
+    
+    # Schreibe aktualisierte Changelog-Datei
+    changelog_path.write_text(content, encoding='utf-8')
+    print(f"✅ Changelog für Version {version} aktualisiert")
 
 def main():
-    """Hauptfunktion des Skripts."""
-    if len(sys.argv) < 2:
-        print("Verwendung:")
-        print("  python update_changelog.py init                    - Initialisiert eine neue Changelog-Datei")
-        print("  python update_changelog.py add <Typ> <Beschreibung> - Fügt eine Änderung hinzu")
-        print("  python update_changelog.py release <Version>       - Erstellt ein Release")
-        return
+    """Hauptfunktion des Changelog-Update-Skripts."""
+    print("📝 Telegram Audio Downloader - Changelog Update Automation")
+    print("=" * 60)
     
-    updater = ChangelogUpdater()
-    
-    command = sys.argv[1]
-    
-    if command == "init":
-        updater.initialize_changelog()
-    elif command == "add" and len(sys.argv) >= 4:
-        change_type = sys.argv[2]
-        change_description = " ".join(sys.argv[3:])
-        updater.add_unreleased_change(change_type, change_description)
-    elif command == "release" and len(sys.argv) >= 3:
-        version = sys.argv[2]
-        updater.update_changelog_for_release(version)
+    # Bestimme die neue Version
+    if len(sys.argv) > 1:
+        version = sys.argv[1]
     else:
-        print("Ungültiger Befehl oder fehlende Argumente.")
-        print("Verwendung:")
-        print("  python update_changelog.py init                    - Initialisiert eine neue Changelog-Datei")
-        print("  python update_changelog.py add <Typ> <Beschreibung> - Fügt eine Änderung hinzu")
-        print("  python update_changelog.py release <Version>       - Erstellt ein Release")
-
+        # Standardversion (kann angepasst werden)
+        version = "1.1.1"
+    
+    print(f"🚀 Aktualisiere Changelog für Version: {version}")
+    
+    # Hole Commits seit dem letzten Tag
+    latest_tag = get_latest_tag()
+    print(f"🔍 Letzter Git-Tag: {latest_tag or 'Keiner gefunden'}")
+    
+    commits = get_git_commits_since_tag(latest_tag)
+    print(f"📋 Gefundene Commits: {len(commits)}")
+    
+    if commits:
+        # Aktualisiere Changelog
+        update_changelog(version, commits)
+        
+        # Zeige eine Vorschau der Änderungen
+        print("\n📋 Vorschau der Änderungen:")
+        print("-" * 30)
+        for commit in commits[:10]:  # Zeige die ersten 10 Commits
+            print(f"  • {commit['message']}")
+        if len(commits) > 10:
+            print(f"  ... und {len(commits) - 10} weitere Commits")
+    else:
+        print("ℹ️ Keine neuen Commits seit dem letzten Tag gefunden")
+    
+    print(f"\n✅ Changelog-Aktualisierung abgeschlossen!")
+    print("💡 Vergiss nicht, die Änderungen zu commiten:")
+    print(f"   git add CHANGELOG.md")
+    print(f"   git commit -m \"docs: Update changelog for v{version}\"")
+    
+    return 0
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

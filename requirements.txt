@@ -10,7 +10,7 @@ python-dotenv>=1.0.1  # Pinned: >=1.0.1 (latest stable)
 # Environment variable management from .env files
 
 # ===== Progress & User Interface =====
-tqdm>=4.66.1  # Pinned: >=4.66.1 (with security fixes)
+tqdm>=4.66.3  # Pinned: >=4.66.3 (with security fixes)
 # Progress bars for command line
 rich>=13.7.0  # Pinned: >=13.7.0 (latest stable)
 # Rich text and beautiful formatting in terminal

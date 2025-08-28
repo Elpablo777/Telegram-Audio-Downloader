@@ -1,131 +1,21 @@
-# Gitleaks configuration for detecting secrets and sensitive information
-# Reference: https://github.com/gitleaks/gitleaks#configuration
+title = "Telegram-Audio-Downloader Gitleaks Config"
 
-# General settings
-title = "gitleaks config for Telegram-Audio-Downloader"
-version = "1.0.0"
+[extend]
+  # Use the built-in gitleaks default rules
+  useDefault = true
 
-# File exclusions
 [allowlist]
-  description = "Common non-sensitive files"
-  paths = [
-    '(?i)^package\-lock\.json$',
-    '(?i)^yarn\.lock$',
-    '(?i)^go\.sum$',
-    '(?i)^.*\.md$',
-    '(?i)^.*\.txt$',
-    '(?i)^.*\.json$',
-    '(?i)^.*\.yaml$',
-    '(?i)^.*\.yml$',
-    '(?i)^.*\.toml$',
-    '(?i)^.*\.lock$',
-    '(?i)^.*\.log$',
-    '(?i)^.*\.sql$',
-    '(?i)^.*\.csv$',
-    '(?i)^.*\.svg$',
-    '(?i)^.*\.png$',
-    '(?i)^.*\.jpg$',
-    '(?i)^.*\.jpeg$',
-    '(?i)^.*\.gif$',
-    '(?i)^.*\.ico$',
-    '(?i)^.*\.eot$',
-    '(?i)^.*\.ttf$',
-    '(?i)^.*\.woff$',
-    '(?i)^.*\.woff2$',
-    '(?i)^.*\.min\.js$',
-    '(?i)^.*\.min\.css$',
-    '(?i)^.*\.bundle\.js$',
-    '(?i)^.*\.bundle\.css$',
-    '(?i)^.*\.snap$',
-    '(?i)^.*\.patch$',
-    '(?i)^.*\.pbxproj$',
-    '(?i)^.*\.xcodeproj/.*$',
-    '(?i)^.*\.xcworkspace/.*$',
-    '(?i)^.*/node_modules/.*$',
-    '(?i)^.*/dist/.*$',
-    '(?i)^.*/build/.*$',
-    '(?i)^.*/coverage/.*$',
-    '(?i)^.*/vendor/.*$',
-    '(?i)^.*/venv/.*$',
-    '(?i)^.*/env/.*$',
-    '(?i)^.*/__pycache__/.*$',
-    '(?i)^.*\.pyc$',
-    '(?i)^.*\.pyo$',
-    '(?i)^.*\.pyd$',
-    '(?i)^.*/\.git/.*$',
-    '(?i)^.*/\.github/.*$',
-    '(?i)^.*/\.vscode/.*$',
-    '(?i)^.*/\.idea/.*$',
-    '(?i)^.*/\.pytest_cache/.*$',
-    '(?i)^.*/\.mypy_cache/.*$',
-    '(?i)^.*/migrations/.*$',
-    '(?i)^.*/fixtures/.*$',
-    '(?i)^.*/test/.*$',
-    '(?i)^.*/tests/.*$',
-    '(?i)^.*/spec/.*$',
-    '(?i)^.*/examples?/.*$',
-    '(?i)^.*/samples?/.*$',
-    '(?i)^.*/docs?/.*$',
-    '(?i)^.*/tmp/.*$',
-    '(?i)^.*/temp/.*$',
-    '(?i)^.*/cache/.*$',
-    '(?i)^.*/bin/.*$',
-    '(?i)^.*/obj/.*$',
-    '(?i)^.*/out/.*$',
-    '(?i)^.*/target/.*$',
-    '(?i)^.*/pkg/.*$'
+  description = "Allow test/docs paths to reduce false positives"
+  files = [
+    "docs/",
+    "test/",
+    "tests/",
+    "CHANGELOG.md",
+    "README.md",
   ]
-
-# Rule definitions
-[[rules]]
-  description = "AWS Access Key"
-  regex = '''(A3T[A-Z0-9]|AKIA|AGPA|AIDA|AROA|AIPA|ANPA|ANVA|ASIA)[A-Z0-9]{16}'''
-  tags = ["key", "AWS"]
-
-[[rules]]
-  description = "AWS Secret Key"
-  regex = '''(?i)aws(.{0,20})?(?-i)['\"][0-9a-zA-Z\/+]{40}['\"]'''
-  tags = ["key", "AWS"]
-
-[[rules]]
-  description = "GitHub Personal Access Token"
-  regex = '''(?i)github(.{0,20})?(?-i)['\"][0-9a-zA-Z]{35,40}['\"]'''
-  tags = ["key", "GitHub"]
-
-[[rules]]
-  description = "Generic API Key"
-  regex = '''(?i)(api|access|auth|key|token|secret|password)[\s:=]['\"][0-9a-zA-Z\-_]{16,64}['\"]'''
-  tags = ["key", "generic"]
-
-[[rules]]
-  description = "Email Address"
-  regex = '''(?i)([a-z0-9_\-\.]+)@([a-z0-9_\-\.]+)\.([a-z]{2,5})'''
-  tags = ["personal"]
-  [rules.allowlist]
-    files = [
-      '(?i)^.*\.md$',
-      '(?i)^.*\.txt$',
-      '(?i)^.*\.json$',
-      '(?i)^.*\.yaml$',
-      '(?i)^.*\.yml$',
-      '(?i)^.*\.toml$'
-    ]
-
-# Ignore specific patterns in specific files
-[allowlist.commits]
-  # Ignore commits with these hashes
-  commits = [
-    "0000000000000000000000000000000000000000",
-  ]
-
-# Ignore specific strings in specific files
-[allowlist.regexes]
-  description = "Ignore specific patterns"
+  commits = []
   regexes = [
-    '(?i).*example.*',
-    '(?i).*test.*',
-    '(?i).*mock.*',
-    '(?i).*sample.*',
-    '(?i).*placeholder.*',
-    '(?i).*dummy.*',
+    # Common false-positive patterns
+    "(?i)example(_|-)?(token|key|secret)",
+    "(?i)dummy(_|-)?(token|key|secret)",
   ]
