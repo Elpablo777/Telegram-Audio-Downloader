@@ -15,8 +15,13 @@ Markdown-Dateien: Für Markdown-Dateien musst du vier Backticks (````) verwenden
 `name=filename.mdcode block inside file```
 
 
-Listen von Issues/PRs: Listen von GitHub Issues und Pull Requests müssen in einem Code-Block mit list und type="issue" oder type="pr" im Header dargestellt werden.
-Code-Snippet
+Code-Snippet Beispiel:
+
+```code-snippet
+// Dies ist ein Beispiel für einen Code-Snippet-Block.
+function add(a, b) {
+  return a + b;
+}
 data:
 - url: "[https://github.com/owner/repo/issues/456](https://github.com/owner/repo/issues/456)"
   state: "closed"
