@@ -32,6 +32,12 @@ AUDIO_EXTENSIONS = {".mp3", ".m4a", ".ogg", ".flac", ".wav", ".opus", ".aac", ".
 
 # Ungültige Zeichen für Dateinamen
 INVALID_FILENAME_CHARS = r'[<>:"/\\|?*]'
+
+# Erweiterte Regex-Muster für problematische Unicode-Zeichen
+EMOJI_PATTERN = r'[\U0001F600-\U0001F64F\U0001F300-\U0001F5FF\U0001F680-\U0001F6FF\U0001F1E0-\U0001F1FF\U00002600-\U000027BF\U0001F900-\U0001F9FF\U0001F018-\U0001F270\U0001F000-\U0001F02F]'
+CONTROL_CHARS_PATTERN = r'[\x00-\x1F\x7F-\x9F]'  # Control characters
+ZERO_WIDTH_PATTERN = r'[\u200B\u200C\u200D\u2060\uFEFF]'  # Zero-width characters
+BIDI_CONTROL_PATTERN = r'[\u202A-\u202E\u2066-\u2069]'  # Bidirectional text controls
 RESERVED_NAMES = {
     "CON",
     "PRN",
@@ -61,7 +67,7 @@ RESERVED_NAMES = {
 @with_file_error_handling()
 def sanitize_filename(filename: str, max_length: int = 255) -> str:
     """
-    Bereinigt einen Dateinamen von ungültigen Zeichen.
+    Bereinigt einen Dateinamen von ungültigen Zeichen, Emojis und problematischen Unicode-Zeichen.
 
     Args:
         filename: Der zu bereinigende Dateiname
@@ -73,26 +79,47 @@ def sanitize_filename(filename: str, max_length: int = 255) -> str:
     if not filename:
         return "unknown_file"
 
-    # Ungültige Zeichen ersetzen
-    sanitized = re.sub(INVALID_FILENAME_CHARS, "_", filename)
+    # 1. Emojis entfernen/ersetzen
+    sanitized = re.sub(EMOJI_PATTERN, "_", filename)
+    
+    # 2. Control characters entfernen
+    sanitized = re.sub(CONTROL_CHARS_PATTERN, "", sanitized)
+    
+    # 3. Zero-width characters entfernen
+    sanitized = re.sub(ZERO_WIDTH_PATTERN, "", sanitized)
+    
+    # 4. Bidirectional text control characters entfernen
+    sanitized = re.sub(BIDI_CONTROL_PATTERN, "", sanitized)
 
-    # Mehrfache Punkte und Leerzeichen entfernen
+    # 5. Ungültige Dateisystem-Zeichen ersetzen
+    sanitized = re.sub(INVALID_FILENAME_CHARS, "_", sanitized)
+
+    # 6. Mehrfache Punkte und Leerzeichen bereinigen
     sanitized = re.sub(r"\.+", ".", sanitized)
     sanitized = re.sub(r"\s+", " ", sanitized)
+    
+    # 7. Mehrfache Unterstriche durch einen ersetzen
+    sanitized = re.sub(r"_+", "_", sanitized)
 
-    # Trimmen
-    sanitized = sanitized.strip(" .")
+    # 8. Trimmen
+    sanitized = sanitized.strip(" ._")
 
-    # Reservierte Namen prüfen
-    name_without_ext = Path(sanitized).stem.upper()
-    if name_without_ext in RESERVED_NAMES:
-        sanitized = f"_{sanitized}"
+    # 9. Reservierte Namen prüfen
+    if sanitized:
+        name_without_ext = Path(sanitized).stem.upper()
+        if name_without_ext in RESERVED_NAMES:
+            sanitized = f"_{sanitized}"
 
-    # Länge begrenzen
-    if len(sanitized) > max_length:
-        name, ext = os.path.splitext(sanitized)
-        max_name_length = max_length - len(ext)
-        sanitized = name[:max_name_length] + ext
+        # Truncate the filename to max_length, preserving the extension if present
+        ext = Path(sanitized).suffix
+        stem = Path(sanitized).stem
+        if max_length <= 0:
+            sanitized = "unknown_file" + ext
+        else:
+            # Ensure total length does not exceed max_length
+            allowed_stem_length = max_length - len(ext)
+            truncated_stem = stem[:allowed_stem_length]
+            sanitized = truncated_stem + ext
 
     return sanitized or "unknown_file"
 
