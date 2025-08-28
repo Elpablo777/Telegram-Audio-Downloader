@@ -113,7 +113,7 @@ def generate_report(results):
             report.append(f"**Status:** {result['status']}")
             report.append("")
             for detail in result['details']:
-                # Never write raw secrets or gitleaks output into the report.
+                # Niemals rohe Geheimnisse oder Gitleaks-Ausgaben in den Bericht schreiben.
                 report.append(f"- {detail}")
             report.append("")
         
