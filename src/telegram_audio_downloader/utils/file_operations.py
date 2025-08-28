@@ -83,7 +83,7 @@ def sanitize_filename(filename: str, max_length: int = 255) -> str:
     sanitized = INVALID_FILENAME_CHARS.sub("_", filename)
     
     # Remove any remaining control characters that might cause issues
-    sanitized = ''.join(char for char in sanitized if ord(char) >= 32 or char in '\t\n\r')
+    sanitized = ''.join(char for char in sanitized if ord(char) >= 32)
     
     # Handle line breaks and tabs consistently
     sanitized = re.sub(r'[\r\n\t]+', '_', sanitized)
