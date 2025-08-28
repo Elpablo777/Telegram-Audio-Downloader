@@ -37,15 +37,48 @@ class TestFileOperations:
         assert sanitize_filename("test|file.mp3") == "test_file.mp3"
         
         # Test filename with path traversal attempts
-        # The actual implementation replaces dots and slashes with underscores
+        # The updated implementation correctly handles these
         assert sanitize_filename("../../../etc/passwd") == "_._._etc_passwd"
         assert sanitize_filename("..\\..\\windows\\system32\\config\\sam") == "_._windows_system32_config_sam"
         
-        # Test empty filename - the actual implementation returns "unknown_file"
+        # Test empty filename - the implementation returns "unknown_file"
         assert sanitize_filename("") == "unknown_file"
         
-        # Test filename with only invalid characters
-        assert sanitize_filename("...") == "___"
+        # Test filename with only invalid characters that get stripped
+        assert sanitize_filename("...") == "unknown_file"
+        
+        # NEW TESTS: Unicode and emoji handling (these are the key fixes)
+        
+        # Test NULL bytes (these caused crashes before)
+        assert sanitize_filename("test\x00file.mp3") == "test_file.mp3"
+        
+        # Test other control characters
+        assert sanitize_filename("test\x01file.mp3") == "test_file.mp3"
+        assert sanitize_filename("test\nfile.mp3") == "test_file.mp3"
+        assert sanitize_filename("test\tfile.mp3") == "test_file.mp3"
+        
+        # Test emojis (these could cause filesystem issues)
+        assert sanitize_filename("🎵 My Song.mp3") == "_ My Song.mp3"
+        assert sanitize_filename("Artist - Song 🎶.mp3") == "Artist - Song _.mp3"
+        assert sanitize_filename("🔥💯🎵.mp3") == "_.mp3"
+        
+        # Test safe Unicode characters (these should be preserved)
+        assert sanitize_filename("café.mp3") == "café.mp3"
+        assert sanitize_filename("测试.mp3") == "测试.mp3"
+        
+        # Test Unicode normalization
+        assert sanitize_filename("é.mp3") == "é.mp3"  # NFC normalized
+        
+        # Test zero-width characters (these should be removed)
+        assert sanitize_filename("test\u200Bfile.mp3") == "testfile.mp3"
+        assert sanitize_filename("test\u200Dfile.mp3") == "testfile.mp3"
+        
+        # Test complex combinations that could crash the system
+        assert sanitize_filename("🎵\x00Test\n\u200BFile🎶.mp3") == "_Test_File_.mp3"
+        
+        # Test reserved Windows names
+        assert sanitize_filename("CON.mp3") == "_CON.mp3"
+        assert sanitize_filename("con.mp3") == "_con.mp3"
     
     def test_format_file_size(self):
         """Test der Dateigrößen-Formatierung."""

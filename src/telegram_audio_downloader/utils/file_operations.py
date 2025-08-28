@@ -6,6 +6,7 @@ import hashlib
 import logging
 import os
 import re
+import unicodedata
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Optional, Union
@@ -29,8 +30,19 @@ logger = logging.getLogger(__name__)
 # Unterstützte Audio-Formate
 AUDIO_EXTENSIONS = {".mp3", ".m4a", ".ogg", ".flac", ".wav", ".opus", ".aac", ".wma"}
 
-# Ungültige Zeichen für Dateinamen
+# Ungültige Zeichen für Dateinamen (Windows-kompatibel)
 INVALID_FILENAME_CHARS = r'[<>:"/\\|?*]'
+
+# Emoji-Pattern für plattformübergreifende Kompatibilität
+EMOJI_PATTERN = re.compile(
+    r'[\U0001F600-\U0001F64F]|'  # Emoticons
+    r'[\U0001F300-\U0001F5FF]|'  # Misc Symbols and Pictographs  
+    r'[\U0001F680-\U0001F6FF]|'  # Transport and Map
+    r'[\U0001F1E0-\U0001F1FF]|'  # Regional indicators
+    r'[\U00002600-\U000026FF]|'  # Miscellaneous Symbols
+    r'[\U00002700-\U000027BF]'   # Dingbats
+)
+
 RESERVED_NAMES = {
     "CON",
     "PRN",
@@ -60,8 +72,13 @@ RESERVED_NAMES = {
 @with_file_error_handling()
 def sanitize_filename(filename: str, max_length: int = 255) -> str:
     """
-    Bereinigt einen Dateinamen von ungültigen Zeichen.
-
+    Bereinigt einen Dateinamen von ungültigen Zeichen und Emojis.
+    
+    Diese erweiterte Version behebt Abstürze durch:
+    - NULL-Bytes und andere Steuerzeichen
+    - Emojis und problematische Unicode-Zeichen
+    - Plattformübergreifende Inkompatibilitäten
+    
     Args:
         filename: Der zu bereinigende Dateiname
         max_length: Maximale Länge des Dateinamens
@@ -72,27 +89,59 @@ def sanitize_filename(filename: str, max_length: int = 255) -> str:
     if not filename:
         return "unknown_file"
 
-    # Ungültige Zeichen ersetzen
-    sanitized = re.sub(INVALID_FILENAME_CHARS, "_", filename)
-
-    # Mehrfache Punkte und Leerzeichen entfernen
-    sanitized = re.sub(r"\.+", ".", sanitized)
-    sanitized = re.sub(r"\s+", " ", sanitized)
-
-    # Trimmen
-    sanitized = sanitized.strip(" .")
-
-    # Reservierte Namen prüfen
-    name_without_ext = Path(sanitized).stem.upper()
-    if name_without_ext in RESERVED_NAMES:
-        sanitized = f"_{sanitized}"
-
-    # Länge begrenzen
+    # Unicode-Normalisierung - konvertiert zu kanonischer zusammengesetzter Form
+    sanitized = unicodedata.normalize('NFC', filename)
+    
+    # HAUPTFIX: Problematische Zeichen behandeln, die Abstürze verursachen
+    
+    # 1. NULL-Bytes - verursachen "embedded null byte" Fehler
+    sanitized = sanitized.replace('\x00', '_')
+    
+    # 2. Steuerzeichen, die plattformübergreifend Probleme verursachen können
+    # Fokus auf die problematischsten (0x01-0x1F, 0x7F-0x9F)
+    sanitized = re.sub(r'[\x01-\x1F\x7F-\x9F]', '_', sanitized)
+    
+    # 3. Emojis und hohe Unicode-Zeichen verantwortungsvoll behandeln
+    # Konservativ: Emojis ersetzen (sicherste Lösung für alle Systeme)
+    sanitized = EMOJI_PATTERN.sub('_', sanitized)
+    
+    # 4. Unsichtbare und problematische Unicode-Zeichen entfernen
+    # Zero-width Zeichen (können Darstellungsprobleme verursachen)
+    sanitized = re.sub(r'[\u200B-\u200D\u2060\uFEFF]', '', sanitized)
+    # Richtungsänderungs-Zeichen 
+    sanitized = re.sub(r'[\u202A-\u202E]', '', sanitized)
+    
+    # 5. Ursprüngliche Logik für Windows-Kompatibilität anwenden
+    sanitized = re.sub(INVALID_FILENAME_CHARS, '_', sanitized)
+    
+    # 6. Ursprüngliche mehrfache Zeichen-Bereinigung anwenden
+    sanitized = re.sub(r'\.+', '.', sanitized)  # Alle Punktfolgen -> einzelner Punkt
+    sanitized = re.sub(r'\s+', ' ', sanitized)  # Alle Leerzeichenfolgen -> einzelnes Leerzeichen
+    
+    # 7. Ursprüngliches Trimming anwenden
+    sanitized = sanitized.strip(' .')
+    
+    # 8. Reservierte Windows-Namen prüfen (ursprüngliche Logik)
+    if sanitized:  # Nur prüfen wenn Inhalt vorhanden
+        name_without_ext = Path(sanitized).stem.upper()
+        if name_without_ext in RESERVED_NAMES:
+            sanitized = f"_{sanitized}"
+    
+    # 9. Längenlimits behandeln (ursprüngliche Logik)
     if len(sanitized) > max_length:
         name, ext = os.path.splitext(sanitized)
         max_name_length = max_length - len(ext)
-        sanitized = name[:max_name_length] + ext
-
+            # If the extension itself is longer than max_length, truncate the extension
+            if len(ext) >= max_length:
+                sanitized = ext[:max_length]
+            else:
+                # Use as much of the extension as possible, and fallback to "unknown_file" if nothing fits
+                sanitized = "unknown_file"[:max_length - len(ext)] + ext if max_length > len(ext) else ext[:max_length]
+    
+    # 10. Mehrfache Unterstriche bereinigen, die entstanden sein könnten
+    sanitized = re.sub(r'_{2,}', '_', sanitized)
+    
+    # 11. Finale Fallback-Logik (ursprüngliche Logik)
     return sanitized or "unknown_file"
 
 
