@@ -9,7 +9,8 @@ query-filters:
       tags: correctness
       precision: high
   - exclude:
-      tags:
-        - external/cwe/cwe-703
-        - external/cwe/cwe-570
-        - external/cwe/cwe-571
+      tag: external/cwe/cwe-703
+  - exclude:
+      tag: external/cwe/cwe-570
+  - exclude:
+      tag: external/cwe/cwe-571
