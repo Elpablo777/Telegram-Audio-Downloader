@@ -24,10 +24,10 @@ jobs:
         with:
           python-version: '3.11'
           
-      - name: Install Safety
+      - name: Install Security Tools
         run: |
           python -m pip install --upgrade pip
-          pip install pip-audit
+          pip install pip-audit safety gitleaks
           
       - name: Run pip-audit Check
         id: pip-audit
@@ -48,7 +48,7 @@ jobs:
           
       - name: Upload pip-audit Report
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: pip-audit-report
           path: |
@@ -56,10 +56,9 @@ jobs:
             requirements.txt
           retention-days: 7
           
-      - name: Run Safety
+      - name: Run Safety Check
         run: |
           echo "Running safety check..."
-          pip install safety
           mkdir -p reports
           # Führe Safety mit detaillierter Ausgabe aus
           safety check --full-report --file=requirements.txt > reports/safety-report.txt
@@ -74,12 +73,36 @@ jobs:
           
       - name: Upload Safety Report
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: safety-report
           path: |
             reports/safety-report.txt
             requirements.txt
+          retention-days: 7
+          
+      - name: Run Gitleaks Scan
+        run: |
+          echo "Running gitleaks scan..."
+          mkdir -p reports
+          # Führe Gitleaks mit detaillierter Ausgabe aus
+          gitleaks detect --source=. --report-format json --report-path reports/gitleaks-report.json
+          # Speichere den Exit-Code
+          echo "exit_code=$?" >> $GITHUB_OUTPUT
+          
+      - name: Show Gitleaks Report
+        if: always()
+        run: |
+          echo "=== Gitleaks Scan Report ==="
+          cat reports/gitleaks-report.json || echo "No gitleaks report generated"
+          
+      - name: Upload Gitleaks Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gitleaks-report
+          path: |
+            reports/gitleaks-report.json
           retention-days: 7
           
       - name: Fail on security issues
