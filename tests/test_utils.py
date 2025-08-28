@@ -49,6 +49,73 @@ class TestSanitizeFilename:
         result = sanitize_filename(long_name, max_length=255)
         assert len(result) <= 255
         assert result.endswith(".mp3")
+    
+    def test_unicode_emojis(self):
+        """Test mit Unicode-Emojis."""
+        result = sanitize_filename("🎵 Music 🎶 File.mp3")
+        assert result == "🎵 Music 🎶 File.mp3"
+        # Emojis sollten erhalten bleiben, da sie gültige Unicode-Zeichen sind
+    
+    def test_unicode_characters(self):
+        """Test mit verschiedenen Unicode-Zeichen."""
+        test_cases = [
+            ("Japanese 音楽.mp3", "Japanese 音楽.mp3"),
+            ("Russian музыка.mp3", "Russian музыка.mp3"),
+            ("Arabic موسيقى.mp3", "Arabic موسيقى.mp3"),
+            ("Chinese 音乐.mp3", "Chinese 音乐.mp3"),
+        ]
+        for input_name, expected in test_cases:
+            result = sanitize_filename(input_name)
+            assert result == expected
+    
+    def test_unicode_normalization_with_composed_characters(self):
+        """Test mit zusammengesetzten Unicode-Zeichen (mit Normalisierung)."""
+        # Test mit Zeichen, die nach Unicode-Normalisierung verändert werden können
+        result = sanitize_filename("Song with émojis 🎵🎶🎼.mp3")
+        # Nach NFD-Normalisierung wird é zu e + combining accent
+        # Das Ergebnis sollte gültig sein, auch wenn es sich vom Input unterscheidet
+        assert result.endswith(".mp3")
+        assert "Song with" in result
+        assert "emojis" in result  # e + combining accent wird zu "emojis"
+        assert "🎵🎶🎼" in result
+    
+    def test_control_characters(self):
+        """Test mit Steuerzeichen."""
+        result = sanitize_filename("File\x01\x02\x03control chars.mp3")
+        assert result == "File___control chars.mp3"
+    
+    def test_null_bytes(self):
+        """Test mit Null-Bytes."""
+        result = sanitize_filename("File with\x00null.mp3")
+        assert result == "File with_null.mp3"
+    
+    def test_line_breaks_and_tabs(self):
+        """Test mit Zeilenumbrüchen und Tabs."""
+        test_cases = [
+            ("Filename with\nnewline.mp3", "Filename with_newline.mp3"),
+            ("File\twith\ttabs.mp3", "File_with_tabs.mp3"),
+            ("File with\rcarriage return.mp3", "File with_carriage return.mp3"),
+        ]
+        for input_name, expected in test_cases:
+            result = sanitize_filename(input_name)
+            assert result == expected
+    
+    def test_zero_width_characters(self):
+        """Test mit unsichtbaren Zero-Width-Zeichen."""
+        result = sanitize_filename("File\u200B\u200C\u200D\u2028\u2029.mp3")
+        assert result == "File_____.mp3"
+    
+    def test_unicode_normalization(self):
+        """Test der Unicode-Normalisierung."""
+        # Test mit NFC und NFD Formen desselben Zeichens
+        nfc_form = "café.mp3"  # composed form
+        nfd_form = "cafe\u0301.mp3"  # decomposed form with combining accent
+        
+        result_nfc = sanitize_filename(nfc_form)
+        result_nfd = sanitize_filename(nfd_form)
+        
+        # Beide sollten das gleiche Ergebnis liefern nach Normalisierung
+        assert result_nfc == result_nfd
 
 
 class TestCreateFilenameFromMetadata:
