@@ -212,6 +212,10 @@ docs/
 prompt_modules/
 prompt_modules_backup/
 scripts/
+# Allow RepoSovereign Prime scripts
+!scripts/repo_sovereign_prime.py
+!scripts/security_automation.py
+!scripts/maintain_repository.py
 *.sh
 *.bat
 *.ps1
