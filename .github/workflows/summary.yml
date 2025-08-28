@@ -1,0 +1,50 @@
+name: Summarize new issues
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  summary:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Sanitize issue title and body
+        id: sanitize
+        run: |
+          printf "%s" "$ISSUE_TITLE" > issue_title.txt
+          printf "%s" "$ISSUE_BODY" > issue_body.txt
+          python3 -c "import sys, html; print(html.escape(sys.stdin.read()))" < issue_title.txt > sanitized_title.txt
+          python3 -c "import sys, html; print(html.escape(sys.stdin.read()))" < issue_body.txt > sanitized_body.txt
+          echo "sanitized_title=$(cat sanitized_title.txt)" >> $GITHUB_OUTPUT
+          echo "sanitized_body=$(cat sanitized_body.txt)" >> $GITHUB_OUTPUT
+        env:
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+      - name: Run AI inference
+        id: inference
+        uses: actions/ai-inference@v1
+        with:
+          prompt: |
+            Summarize the following GitHub issue in one paragraph:
+            Title: ${{ steps.sanitize.outputs.sanitized_title }}
+            Body: ${{ steps.sanitize.outputs.sanitized_body }}
+
+      - name: Sanitize AI summary
+        run: |
+          python3 -c "import html, os; print(html.escape(os.environ['AI_RESPONSE']))" > sanitized_summary.txt
+        env:
+          AI_RESPONSE: ${{ steps.inference.outputs.response }}
+
+      - name: Comment with AI summary
+        run: |
+          gh issue comment $ISSUE_NUMBER --body-file sanitized_summary.txt
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
