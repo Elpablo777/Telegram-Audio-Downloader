@@ -24,10 +24,13 @@ jobs:
             Title: ${{ github.event.issue.title }}
             Body: ${{ github.event.issue.body }}
 
+      - name: Sanitize AI summary
+        run: |
+          echo "${{ steps.inference.outputs.response }}" | sed 's/<[^>]*>//g' > sanitized_summary.txt
+
       - name: Comment with AI summary
         run: |
-          echo "${{ steps.inference.outputs.response }}" > summary.txt
-          gh issue comment $ISSUE_NUMBER --body-file summary.txt
+          gh issue comment $ISSUE_NUMBER --body-file sanitized_summary.txt
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
