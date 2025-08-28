@@ -131,10 +131,12 @@ def sanitize_filename(filename: str, max_length: int = 255) -> str:
     if len(sanitized) > max_length:
         name, ext = os.path.splitext(sanitized)
         max_name_length = max_length - len(ext)
-        if max_name_length > 0:
-            sanitized = name[:max_name_length] + ext
-        else:
-            sanitized = sanitized[:max_length]
+            # If the extension itself is longer than max_length, truncate the extension
+            if len(ext) >= max_length:
+                sanitized = ext[:max_length]
+            else:
+                # Use as much of the extension as possible, and fallback to "unknown_file" if nothing fits
+                sanitized = "unknown_file"[:max_length - len(ext)] + ext if max_length > len(ext) else ext[:max_length]
     
     # 10. Mehrfache Unterstriche bereinigen, die entstanden sein könnten
     sanitized = re.sub(r'_{2,}', '_', sanitized)
