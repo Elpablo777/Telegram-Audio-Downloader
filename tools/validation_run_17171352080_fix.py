@@ -23,8 +23,10 @@ Expected result:
 - Workflow should proceed to subsequent jobs (build, docker, release)
 """
 
+
 import sys
 import subprocess
+
 
 def validate_pytest_cov_availability():
     """Validate that pytest-cov would be properly installed."""
@@ -35,7 +37,7 @@ def validate_pytest_cov_availability():
         "pytest",
         "pytest-cov", 
         "flake8",
-        "mypy"
+        "mypy",
     ]
     
     print("📦 Required test packages:")
@@ -55,6 +57,7 @@ def validate_pytest_cov_availability():
     
     return True
 
+
 def main():
     """Main validation function."""
     print("🚨 VALIDATION: Run #17171352080 Fix")
@@ -69,6 +72,7 @@ def main():
         print("\n❌ VALIDATION FAILED: Fix needs review")
     
     return success
+
 
 if __name__ == "__main__":
     success = main()
