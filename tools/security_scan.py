@@ -66,9 +66,9 @@ def check_secrets():
                 if "No leaks found" in leaks:
                     return {"status": "✅", "details": ["Keine exponierten Geheimnisse gefunden."]}
                 else:
-                    # Do NOT include leaks content; only summary message.
+                    # Keine Leaks-Inhalte einschließen; nur Zusammenfassungsnachricht.
                     return {"status": "⚠️", "details": ["Mögliche Geheimnisse gefunden. Die Details werden aus Sicherheitsgründen nicht im Bericht gespeichert. Bitte überprüfen Sie die Ausgabe von 'gitleaks detect' im Terminal."]}
-                # Defensive: you may wish to save leaks output to a safe file with restricted permissions if needed.
+                # Defensiv: Sie können die Leaks-Ausgabe bei Bedarf in einer sicheren Datei mit eingeschränkten Berechtigungen speichern.
         except Exception as e:
             return {"status": "❌", "details": [f"Fehler bei der Überprüfung: {str(e)}"]}
     else:
