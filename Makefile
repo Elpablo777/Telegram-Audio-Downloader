@@ -89,6 +89,11 @@ security: ## 🔒 Run security checks
 	@safety check
 	@echo "$(BOLD)$(GREEN)✅ Security checks completed$(RESET)"
 
+security-comprehensive: ## 🔒 Run comprehensive security checks
+	@echo "$(BOLD)Running comprehensive security checks...$(RESET)"
+	@$(PYTHON) tools/comprehensive_security_check.py
+	@echo "$(BOLD)$(GREEN)✅ Comprehensive security checks completed$(RESET)"
+
 # Testing
 test: ## 🧪 Run unit tests
 	@echo "$(BOLD)$(BLUE)Running tests...$(RESET)"
@@ -235,6 +240,8 @@ fix-test: quality test ## 🔄 Quick fix and test cycle
 
 full-check: quality coverage security ## 🔍 Run all checks (quality, coverage, security)
 
+full-check-comprehensive: quality coverage security-comprehensive ## 🔍 Run all checks including comprehensive security scan
+
 release-check: full-check build ## 🚀 Pre-release checks (quality, tests, build)
 
 # Development workflow
@@ -279,7 +286,7 @@ ci-local: ## 🔄 Simulate CI/CD pipeline locally
 	@$(MAKE) install
 	@$(MAKE) quality
 	@$(MAKE) test
-	@$(MAKE) security
+	@$(MAKE) security-comprehensive
 	@$(MAKE) build
 	@echo "$(BOLD)$(GREEN)✅ CI/CD simulation completed$(RESET)"
 
@@ -290,7 +297,7 @@ beginner: setup dev-start ## 👶 Quick start for beginners
 developer: dev-setup dev-test ## 👨‍💻 Setup for experienced developers
 	@echo "$(BOLD)$(GREEN)✅ Developer environment ready!$(RESET)"
 
-contributor: dev-setup full-check ## 🤝 Setup for contributors
+contributor: dev-setup full-check-comprehensive ## 🤝 Setup for contributors
 	@echo "$(BOLD)$(GREEN)✅ Contributor environment ready!$(RESET)"
 
 maintainer: dev-setup ci-local ## 👑 Setup for maintainers
