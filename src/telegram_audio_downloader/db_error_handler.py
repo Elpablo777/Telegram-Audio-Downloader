@@ -8,7 +8,7 @@ from typing import Optional
 from peewee import DatabaseError as PeeweeDatabaseError
 from peewee import OperationalError, IntegrityError
 
-from .error_handling import DatabaseError, handle_error
+from .enhanced_error_handling import DatabaseError, handle_error
 from .logging_config import get_logger
 
 logger = get_logger(__name__)
@@ -26,22 +26,22 @@ def handle_database_error(error: Exception, context: str = "") -> None:
     if isinstance(error, IntegrityError):
         db_error = DatabaseError(
             f"Datenbank-Integritätsfehler: {str(error)}",
-            error_code="DB_INTEGRITY_ERROR"
+            context={"error_code": "DB_INTEGRITY_ERROR"}
         )
     elif isinstance(error, OperationalError):
         db_error = DatabaseError(
             f"Datenbank-Betriebsfehler: {str(error)}",
-            error_code="DB_OPERATIONAL_ERROR"
+            context={"error_code": "DB_OPERATIONAL_ERROR"}
         )
     elif isinstance(error, PeeweeDatabaseError):
         db_error = DatabaseError(
             f"Allgemeiner Datenbankfehler: {str(error)}",
-            error_code="DB_GENERAL_ERROR"
+            context={"error_code": "DB_GENERAL_ERROR"}
         )
     else:
         db_error = DatabaseError(
             f"Unerwarteter Datenbankfehler: {str(error)}",
-            error_code="DB_UNEXPECTED_ERROR"
+            context={"error_code": "DB_UNEXPECTED_ERROR"}
         )
     
     # Fehler behandeln
@@ -71,7 +71,7 @@ def with_database_error_handling(func):
             context = f"db_{func.__name__}_unexpected"
             db_error = DatabaseError(
                 f"Unerwarteter Fehler in Datenbankoperation: {str(e)}",
-                error_code="DB_UNEXPECTED_ERROR"
+                context={"error_code": "DB_UNEXPECTED_ERROR"}
             )
             handle_error(db_error, context)
             raise

@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 from typing import Union
 
-from .error_handling import FileOperationError, handle_error
+from .enhanced_error_handling import FilesystemError, handle_error
 from .logging_config import get_logger
 
 logger = get_logger(__name__)
@@ -26,39 +26,39 @@ def handle_file_error(error: Exception, context: str = "", filepath: Union[str, 
     # Spezifische OSError-Fehler in unsere eigenen Fehlerklassen übersetzen
     if isinstance(error, OSError):
         if error.errno == errno.EACCES:
-            file_error = FileOperationError(
+            file_error = FilesystemError(
                 f"Zugriff verweigert: {filepath if filepath else 'Datei'} - {str(error)}",
-                error_code="FILE_ACCESS_DENIED"
+                context={"error_code": "FILE_ACCESS_DENIED"}
             )
         elif error.errno == errno.ENOENT:
-            file_error = FileOperationError(
+            file_error = FilesystemError(
                 f"Datei nicht gefunden: {filepath if filepath else 'Datei'} - {str(error)}",
-                error_code="FILE_NOT_FOUND"
+                context={"error_code": "FILE_NOT_FOUND"}
             )
         elif error.errno == errno.EEXIST:
-            file_error = FileOperationError(
+            file_error = FilesystemError(
                 f"Datei existiert bereits: {filepath if filepath else 'Datei'} - {str(error)}",
-                error_code="FILE_ALREADY_EXISTS"
+                context={"error_code": "FILE_ALREADY_EXISTS"}
             )
         elif error.errno == errno.ENOSPC:
-            file_error = FileOperationError(
+            file_error = FilesystemError(
                 f"Kein Speicherplatz verfügbar: {str(error)}",
-                error_code="FILE_NO_SPACE"
+                context={"error_code": "FILE_NO_SPACE"}
             )
         elif error.errno == errno.EROFS:
-            file_error = FileOperationError(
+            file_error = FilesystemError(
                 f"Schreibvorgang auf schreibgeschütztem Dateisystem: {str(error)}",
-                error_code="FILE_READ_ONLY"
+                context={"error_code": "FILE_READ_ONLY"}
             )
         else:
-            file_error = FileOperationError(
+            file_error = FilesystemError(
                 f"Dateioperation fehlgeschlagen: {str(error)}",
-                error_code="FILE_GENERAL_ERROR"
+                context={"error_code": "FILE_GENERAL_ERROR"}
             )
     else:
-        file_error = FileOperationError(
+        file_error = FilesystemError(
             f"Unerwarteter Dateifehler: {str(error)}",
-            error_code="FILE_UNEXPECTED_ERROR"
+            context={"error_code": "FILE_UNEXPECTED_ERROR"}
         )
     
     # Fehler behandeln
@@ -79,7 +79,7 @@ def with_file_error_handling(filepath: Union[str, Path] = ""):
         def wrapper(*args, **kwargs):
             try:
                 return func(*args, **kwargs)
-            except (OSError, FileOperationError) as e:
+            except (OSError, FilesystemError) as e:
                 # Kontext aus dem Funktionsnamen ableiten
                 context = f"file_{func.__name__}"
                 handle_file_error(e, context, filepath)
@@ -87,9 +87,9 @@ def with_file_error_handling(filepath: Union[str, Path] = ""):
             except Exception as e:
                 # Unerwartete Fehler ebenfalls als Dateifehler behandeln
                 context = f"file_{func.__name__}_unexpected"
-                file_error = FileOperationError(
+                file_error = FilesystemError(
                     f"Unerwarteter Fehler in Dateioperation: {str(e)}",
-                    error_code="FILE_UNEXPECTED_ERROR"
+                    context={"error_code": "FILE_UNEXPECTED_ERROR"}
                 )
                 handle_error(file_error, context)
                 raise
