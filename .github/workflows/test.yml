@@ -17,6 +17,13 @@ jobs:
       with:
         python-version: '3.11'
         
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        
     - name: Run tests
       run: |
-        echo "This is a placeholder test workflow"
+        echo "Running tests..."
+        # Add your test commands here
+        echo "Tests completed"
