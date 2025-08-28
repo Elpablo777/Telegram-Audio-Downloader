@@ -14,10 +14,10 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
         issue-message: |
           👋 Hi there! Thank you for opening your first issue.  
-          Please make sure to review our [Contributing Guidelines](https://github.com/<OWNER>/<REPO>/blob/main/CONTRIBUTING.md) and check out our [Community Resources](https://github.com/<OWNER>/<REPO>/discussions) for help and discussion.  
+          Please make sure to review our [Contributing Guidelines](https://github.com/${{ github.repository }}/blob/main/CONTRIBUTING.md) and check out our [Community Resources](https://github.com/${{ github.repository }}/discussions) for help and discussion.  
           We're glad to have you here!
         pr-message: |
           🎉 Thank you for submitting your first pull request!  
-          Please ensure you've read our [Contributing Guidelines](https://github.com/<OWNER>/<REPO>/blob/main/CONTRIBUTING.md).  
-          If you have any questions, feel free to ask in our [Community Discussions](https://github.com/<OWNER>/<REPO>/discussions).  
+          Please ensure you've read our [Contributing Guidelines](https://github.com/${{ github.repository }}/blob/main/CONTRIBUTING.md).  
+          If you have any questions, feel free to ask in our [Community Discussions](https://github.com/${{ github.repository }}/discussions).  
           We appreciate your contribution!
