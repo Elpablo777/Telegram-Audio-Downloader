@@ -42,6 +42,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           config-path: .gitleaks.toml
+          args: --report-format sarif --report-path reports/gitleaks.sarif --verbose --redact
       - name: Upload SARIF (Gitleaks)
         uses: github/codeql-action/upload-sarif@v3
         with:
