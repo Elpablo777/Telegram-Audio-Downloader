@@ -110,10 +110,16 @@ def sanitize_filename(filename: str, max_length: int = 255) -> str:
         if name_without_ext in RESERVED_NAMES:
             sanitized = f"_{sanitized}"
 
-        if max_name_length <= 0:
+        # Truncate the filename to max_length, preserving the extension if present
+        ext = Path(sanitized).suffix
+        stem = Path(sanitized).stem
+        if max_length <= 0:
             sanitized = "unknown_file" + ext
         else:
-            sanitized = name[:max_name_length] + ext
+            # Ensure total length does not exceed max_length
+            allowed_stem_length = max_length - len(ext)
+            truncated_stem = stem[:allowed_stem_length]
+            sanitized = truncated_stem + ext
 
     return sanitized or "unknown_file"
 
