@@ -30,7 +30,10 @@ logger = logging.getLogger(__name__)
 AUDIO_EXTENSIONS = {".mp3", ".m4a", ".ogg", ".flac", ".wav", ".opus", ".aac", ".wma"}
 
 # Ungültige Zeichen für Dateinamen
-INVALID_FILENAME_CHARS = r'[<>:"/\\|?*]'
+# Basis-Zeichen: <>:"/\|?*
+# Emoji-Bereich: \U0001F000-\U0001F9FF (verschiedene Emoji-Blöcke)
+# Weitere problematische Unicode-Zeichen
+INVALID_FILENAME_CHARS = r'[<>:"/\\|?*\u2000-\u200F\u202A-\u202E\u2060-\u206F\uFFF0-\uFFFF]|[\U0001F000-\U0001F9FF]'
 RESERVED_NAMES = {
     "CON",
     "PRN",
@@ -72,15 +75,36 @@ def sanitize_filename(filename: str, max_length: int = 255) -> str:
     if not filename:
         return "unknown_file"
 
-    # Ungültige Zeichen ersetzen
+    # Ungültige Zeichen (inklusive Emojis) ersetzen
     sanitized = re.sub(INVALID_FILENAME_CHARS, "_", filename)
+    
+    # Zusätzliche Emoji-Bereiche behandeln (falls nicht vom Haupt-Pattern erfasst)
+    sanitized = re.sub(r'[\U0001F600-\U0001F64F]', "_", sanitized)  # Emoticons
+    sanitized = re.sub(r'[\U0001F300-\U0001F5FF]', "_", sanitized)  # Symbole & Piktogramme
+    sanitized = re.sub(r'[\U0001F680-\U0001F6FF]', "_", sanitized)  # Transport & Karten
+    sanitized = re.sub(r'[\U0001F1E0-\U0001F1FF]', "_", sanitized)  # Flaggen
+    sanitized = re.sub(r'[\U00002600-\U000027BF]', "_", sanitized)  # Verschiedene Symbole
+    
+    # Kontrollzeichen entfernen
+    sanitized = re.sub(r'[\x00-\x1F\x7F-\x9F]', "", sanitized)
 
+    # Mehrfache Unterstriche reduzieren
+    sanitized = re.sub(r"_+", "_", sanitized)
+    
     # Mehrfache Punkte und Leerzeichen entfernen
     sanitized = re.sub(r"\.+", ".", sanitized)
     sanitized = re.sub(r"\s+", " ", sanitized)
 
-    # Trimmen
-    sanitized = sanitized.strip(" .")
+    # Trimmen (Leerzeichen, Punkte und Unterstriche)
+    sanitized = sanitized.strip(" ._")
+
+    # Falls nur Dateiendung übrig ist oder leer, prefix hinzufügen
+    if not sanitized:
+        sanitized = "unknown_file"
+    elif sanitized.startswith('.'):
+        sanitized = f"audio_{sanitized}"
+    elif sanitized in ['mp3', 'wav', 'flac', 'ogg', 'm4a', 'aac', 'opus', 'wma']:  # Nur Extension ohne Punkt
+        sanitized = f"audio_.{sanitized}"
 
     # Reservierte Namen prüfen
     name_without_ext = Path(sanitized).stem.upper()
