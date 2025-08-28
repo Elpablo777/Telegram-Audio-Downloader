@@ -67,9 +67,9 @@ def check_secrets():
                 if "No leaks found" in leaks:
                     return {"status": "✅", "details": ["Keine exponierten Geheimnisse gefunden."]}
                 else:
-                    return {"status": "⚠️", "details": ["Mögliche Geheimnisse gefunden. Bitte überprüfen Sie die Ausgabe von 'gitleaks detect'."]}
-            else:
-                return {"status": "❌", "details": ["Gitleaks-Ausführung fehlgeschlagen."]}
+                    # Do NOT include leaks content; only summary message.
+                    return {"status": "⚠️", "details": ["Mögliche Geheimnisse gefunden. Die Details werden aus Sicherheitsgründen nicht im Bericht gespeichert. Bitte überprüfen Sie die Ausgabe von 'gitleaks detect' im Terminal."]}
+                # Defensive: you may wish to save leaks output to a safe file with restricted permissions if needed.
         except Exception as e:
             return {"status": "❌", "details": [f"Fehler bei der Überprüfung: {str(e)}"]}
     else:
@@ -114,6 +114,7 @@ def generate_report(results):
             report.append(f"**Status:** {result['status']}")
             report.append("")
             for detail in result['details']:
+                # Never write raw secrets or gitleaks output into the report.
                 report.append(f"- {detail}")
             report.append("")
         
