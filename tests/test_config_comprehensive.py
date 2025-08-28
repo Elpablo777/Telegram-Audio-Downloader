@@ -60,8 +60,8 @@ class TestConfigComprehensive:
     def test_config_initialization_with_custom_values(self):
         """Test Konfigurationsinitialisierung mit benutzerdefinierten Werten."""
         config = Config(
-            api_id="123456",
-            api_hash="test_hash",
+            api_id="YOUR_API_ID",
+            api_hash="YOUR_API_HASH",
             session_name="test_session",
             download_dir="/tmp/test_downloads",
             max_concurrent_downloads=5,
@@ -75,8 +75,8 @@ class TestConfigComprehensive:
         )
         
         # Prüfe benutzerdefinierte Werte
-        assert config.api_id == "123456"
-        assert config.api_hash == "test_hash"
+        assert config.api_id == "YOUR_API_ID"
+        assert config.api_hash == "YOUR_API_HASH"
         assert config.session_name == "test_session"
         assert config.download_dir == "/tmp/test_downloads"
         assert config.max_concurrent_downloads == 5
@@ -92,8 +92,8 @@ class TestConfigComprehensive:
         """Test Konfiguration aus Umgebungsvariablen."""
         # Setze Umgebungsvariablen
         env_vars = {
-            "API_ID": "789012",
-            "API_HASH": "env_hash",
+            "API_ID": "YOUR_ENV_API_ID",
+            "API_HASH": "YOUR_ENV_API_HASH",
             "SESSION_NAME": "env_session",
             "DOWNLOAD_DIR": "/tmp/env_downloads",
             "MAX_CONCURRENT_DOWNLOADS": "7",
@@ -110,8 +110,8 @@ class TestConfigComprehensive:
             config = Config.from_env()
             
             # Prüfe Werte aus Umgebungsvariablen
-            assert config.api_id == "789012"
-            assert config.api_hash == "env_hash"
+            assert config.api_id == "YOUR_ENV_API_ID"
+            assert config.api_hash == "YOUR_ENV_API_HASH"
             assert config.session_name == "env_session"
             assert config.download_dir == "/tmp/env_downloads"
             assert config.max_concurrent_downloads == 7
@@ -127,8 +127,8 @@ class TestConfigComprehensive:
         """Test Konfiguration aus JSON-Datei."""
         # Erstelle JSON-Konfigurationsdatei
         config_data = {
-            "api_id": "345678",
-            "api_hash": "json_hash",
+            "api_id": "YOUR_JSON_API_ID",
+            "api_hash": "YOUR_JSON_API_HASH",
             "session_name": "json_session",
             "download_dir": "/tmp/json_downloads",
             "max_concurrent_downloads": 4,
@@ -149,8 +149,8 @@ class TestConfigComprehensive:
         config = Config.from_file(config_file)
         
         # Prüfe Werte aus JSON-Datei
-        assert config.api_id == "345678"
-        assert config.api_hash == "json_hash"
+        assert config.api_id == "YOUR_JSON_API_ID"
+        assert config.api_hash == "YOUR_JSON_API_HASH"
         assert config.session_name == "json_session"
         assert config.download_dir == "/tmp/json_downloads"
         assert config.max_concurrent_downloads == 4
@@ -166,8 +166,8 @@ class TestConfigComprehensive:
         """Test Konfiguration aus YAML-Datei."""
         # Erstelle YAML-Konfigurationsdatei
         config_data = {
-            "api_id": "901234",
-            "api_hash": "yaml_hash",
+            "api_id": "YOUR_YAML_API_ID",
+            "api_hash": "YOUR_YAML_API_HASH",
             "session_name": "yaml_session",
             "download_dir": "/tmp/yaml_downloads",
             "max_concurrent_downloads": 6,
@@ -188,8 +188,8 @@ class TestConfigComprehensive:
         config = Config.from_file(config_file)
         
         # Prüfe Werte aus YAML-Datei
-        assert config.api_id == "901234"
-        assert config.api_hash == "yaml_hash"
+        assert config.api_id == "YOUR_YAML_API_ID"
+        assert config.api_hash == "YOUR_YAML_API_HASH"
         assert config.session_name == "yaml_session"
         assert config.download_dir == "/tmp/yaml_downloads"
         assert config.max_concurrent_downloads == 6
@@ -206,8 +206,8 @@ class TestConfigComprehensive:
         # Erstelle INI-Konfigurationsdatei
         config_content = """
 [DEFAULT]
-api_id = 567890
-api_hash = ini_hash
+api_id = YOUR_INI_API_ID
+api_hash = YOUR_INI_API_HASH
 session_name = ini_session
 download_dir = /tmp/ini_downloads
 max_concurrent_downloads = 2
@@ -228,8 +228,8 @@ encryption_key = ini_key
         config = Config.from_file(config_file)
         
         # Prüfe Werte aus INI-Datei
-        assert config.api_id == "567890"
-        assert config.api_hash == "ini_hash"
+        assert config.api_id == "YOUR_INI_API_ID"
+        assert config.api_hash == "YOUR_INI_API_HASH"
         assert config.session_name == "ini_session"
         assert config.download_dir == "/tmp/ini_downloads"
         assert config.max_concurrent_downloads == 2
@@ -248,7 +248,7 @@ encryption_key = ini_key
         
         # 3. Konfigurationsdatei
         config_data = {
-            "api_id": "111111",
+            "api_id": "YOUR_FILE_API_ID",
             "api_hash": "file_hash",
             "session_name": "file_session",
             "max_concurrent_downloads": 4
@@ -260,14 +260,14 @@ encryption_key = ini_key
         
         # 2. Umgebungsvariablen
         env_vars = {
-            "API_ID": "222222",
+            "API_ID": "YOUR_ENV_API_ID",
             "API_HASH": "env_hash",
             "max_concurrent_downloads": "6"
         }
         
         # 1. Befehlszeilenargumente
         cli_args = {
-            "api_id": "333333",
+            "api_id": "YOUR_CLI_API_ID",
             "max_concurrent_downloads": 8
         }
         
@@ -275,7 +275,7 @@ encryption_key = ini_key
             config = Config.load(config_path=config_file, cli_args=cli_args)
             
             # Prüfe Prioritätsreihenfolge (CLI > ENV > FILE > DEFAULT)
-            assert config.api_id == "333333"  # CLI
+            assert config.api_id == "YOUR_CLI_API_ID"  # CLI
             assert config.api_hash == "env_hash"  # ENV
             assert config.session_name == "file_session"  # FILE
             assert config.max_concurrent_downloads == 8  # CLI
@@ -317,8 +317,8 @@ encryption_key = ini_key
             config.validate_required_fields()
         
         # Mit API-ID und API-Hash sollte die Validierung erfolgreich sein
-        config.api_id = "123456"
-        config.api_hash = "test_hash"
+        config.api_id = "YOUR_API_ID"
+        config.api_hash = "YOUR_API_HASH"
         
         # Sollte keine Exception werfen
         config.validate_required_fields()
@@ -326,8 +326,8 @@ encryption_key = ini_key
     def test_config_to_dict(self):
         """Test Konvertierung der Konfiguration in ein Dictionary."""
         config = Config(
-            api_id="123456",
-            api_hash="test_hash",
+            api_id="YOUR_API_ID",
+            api_hash="YOUR_API_HASH",
             session_name="test_session",
             download_dir="/tmp/test_downloads",
             max_concurrent_downloads=5
@@ -336,8 +336,8 @@ encryption_key = ini_key
         config_dict = config.to_dict()
         
         # Prüfe, dass alle Felder im Dictionary enthalten sind
-        assert config_dict["api_id"] == "123456"
-        assert config_dict["api_hash"] == "test_hash"
+        assert config_dict["api_id"] == "YOUR_API_ID"
+        assert config_dict["api_hash"] == "YOUR_API_HASH"
         assert config_dict["session_name"] == "test_session"
         assert config_dict["download_dir"] == "/tmp/test_downloads"
         assert config_dict["max_concurrent_downloads"] == 5
@@ -345,8 +345,8 @@ encryption_key = ini_key
     def test_config_save_to_file(self):
         """Test Speichern der Konfiguration in Datei."""
         config = Config(
-            api_id="123456",
-            api_hash="test_hash",
+            api_id="YOUR_API_ID",
+            api_hash="YOUR_API_HASH",
             session_name="test_session",
             download_dir="/tmp/test_downloads",
             max_concurrent_downloads=5
