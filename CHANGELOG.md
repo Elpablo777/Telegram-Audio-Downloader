@@ -8,11 +8,15 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 ## [1.1.1] - 2025-08-28
 
 ### 🔒 Sicherheit
-- *Kritisch*: Aktualisierte `cryptography` von 42.0.5 auf 44.0.1 zur Behebung von CVE-2024-12797 und GHSA-h4gh-qq45-vh27
-- *Kritisch*: Aktualisierte `aiohttp` von 3.9.1 auf 3.12.14 zur Behebung mehrerer Sicherheitslücken (PYSEC-2024-24, PYSEC-2024-26, GHSA-7gpw-8mv2-jq9f, GHSA-8qpw-xqxj-h4r2, GHSA-5m98-qrrj-x5pj, GHSA-8495-4g3g-x7pr, GHSA-9548-qrrj-x5pj)
-- *Mittel*: Aktualisierte alle Abhängigkeiten auf die neuesten sicheren Versionen
+- *Kritisch*: Dependabot Sicherheitsupdates vollständig implementiert - alle kritischen CVEs behoben
+- *Kritisch*: Aktualisierte `cryptography` von 42.0.5 auf >=44.0.1 zur Behebung von CVE-2024-2511, PVE-2024-73711, CVE-2024-12797, CVE-2024-4603
+- *Kritisch*: Aktualisierte `aiohttp` von 3.9.1 auf >=3.12.14 zur Behebung von CVE-2024-52304, CVE-2024-30251, CVE-2024-27306, CVE-2024-23334, CVE-2024-42367, CVE-2025-53643
+- *Mittel*: Aktualisierte `tqdm` von >=4.66.1 auf >=4.66.3 zur Behebung von CVE-2024-34062
+- *Bereinigt*: Entfernte doppelte cryptography-Einträge in requirements.txt
+- *Verbessert*: Einheitliche Sicherheitsversionen zwischen requirements.txt und pyproject.toml
 
-### 🐛 Fehlerbehebungen
+### 🐛 Fehlerbehebungen  
+- *Dependencies*: Konsistente Versionsspezifikationen für alle Sicherheitspakete
 - *Build*: Korrigierte Abhängigkeitskonflikte bei der Installation
 
 ### 📊 Metriken
