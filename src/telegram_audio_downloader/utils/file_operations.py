@@ -113,10 +113,14 @@ def sanitize_filename(filename: str, max_length: int = 255) -> str:
     if sanitized and len(sanitized) > max_length:
         name, ext = os.path.splitext(sanitized)
         max_name_length = max_length - len(ext)
-        if max_name_length > 0:
-            sanitized = name[:max_name_length] + ext
-        else:
-            sanitized = "unknown_file" + ext
+            # Ensure the fallback does not exceed max_length
+            unknown_file = "unknown_file"
+            max_unknown_length = max_length - len(ext)
+            if max_unknown_length > 0:
+                sanitized = unknown_file[:max_unknown_length] + ext
+            else:
+                # If even the extension is too long, truncate extension
+                sanitized = (unknown_file + ext)[:max_length]
 
     return sanitized or "unknown_file"
 
