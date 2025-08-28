@@ -15,14 +15,22 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Sanitize issue title and body
+        id: sanitize
+        run: |
+          echo "${{ github.event.issue.title }}" | sed 's/[{}$|`]/_/g' > sanitized_title.txt
+          echo "${{ github.event.issue.body }}" | sed 's/[{}$|`]/_/g' > sanitized_body.txt
+          echo "sanitized_title=$(cat sanitized_title.txt)" >> $GITHUB_OUTPUT
+          echo "sanitized_body=$(cat sanitized_body.txt)" >> $GITHUB_OUTPUT
+
       - name: Run AI inference
         id: inference
         uses: actions/ai-inference@v1
         with:
           prompt: |
             Summarize the following GitHub issue in one paragraph:
-            Title: ${{ github.event.issue.title }}
-            Body: ${{ github.event.issue.body }}
+            Title: ${{ steps.sanitize.outputs.sanitized_title }}
+            Body: ${{ steps.sanitize.outputs.sanitized_body }}
 
       - name: Sanitize AI summary
         run: |
