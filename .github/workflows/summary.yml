@@ -32,7 +32,8 @@ jobs:
 
       - name: Comment with AI summary
         run: |
-          echo "${{ steps.inference.outputs.response }}" > /tmp/ai_summary.txt
+          # Sanitize AI response before posting
+          echo "${{ steps.inference.outputs.response }}" | jq -Rs . | jq -r . > /tmp/ai_summary.txt
           gh issue comment $ISSUE_NUMBER --body-file /tmp/ai_summary.txt
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
