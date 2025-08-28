@@ -62,6 +62,9 @@ RESERVED_NAMES = {
 def sanitize_filename(filename: str, max_length: int = 255) -> str:
     """
     Bereinigt einen Dateinamen von ungültigen Zeichen.
+    
+    Erweitert um Behandlung von Sonderzeichen, die Abstürze verursachen können,
+    wie Steuerzeichen, Null-Bytes und unsichtbare Unicode-Zeichen.
 
     Args:
         filename: Der zu bereinigende Dateiname
@@ -73,15 +76,43 @@ def sanitize_filename(filename: str, max_length: int = 255) -> str:
     if not filename:
         return "unknown_file"
 
-    # Ungültige Zeichen ersetzen
-    sanitized = re.sub(INVALID_FILENAME_CHARS, "_", filename)
+    try:
+        # Unicode-Normalisierung zur Vermeidung von Darstellungsproblemen
+        import unicodedata
+        normalized = unicodedata.normalize('NFC', filename)
+    except Exception:
+        # Falls Normalisierung fehlschlägt, Original verwenden
+        normalized = filename
 
-    # Mehrfache Punkte und Leerzeichen entfernen
+    # Gefährliche unsichtbare Zeichen entfernen, die Probleme verursachen können
+    zero_width_chars = [
+        '\u200b',  # Zero Width Space
+        '\u200c',  # Zero Width Non-Joiner  
+        '\u200d',  # Zero Width Joiner
+        '\u2060',  # Word Joiner
+        '\ufeff',  # Zero Width No-Break Space (BOM)
+        '\u00ad',  # Soft Hyphen
+    ]
+    for char in zero_width_chars:
+        normalized = normalized.replace(char, "")
+
+    # Steuerzeichen ersetzen, die Abstürze verursachen können
+    # Ersetzt \n, \t, \r, Null-Bytes und andere Steuerzeichen mit Unterstrichen
+    sanitized = re.sub(r'[\x00-\x1f\x7f-\x9f]', "_", normalized)
+
+    # Ungültige Zeichen ersetzen (wie in der ursprünglichen Version)
+    sanitized = re.sub(INVALID_FILENAME_CHARS, "_", sanitized)
+
+    # Mehrfache Punkte und Leerzeichen entfernen (wie in der ursprünglichen Version)
     sanitized = re.sub(r"\.+", ".", sanitized)
     sanitized = re.sub(r"\s+", " ", sanitized)
 
     # Trimmen
     sanitized = sanitized.strip(" .")
+
+    # Prüfen, ob nach der Bereinigung noch etwas übrig ist
+    if not sanitized or sanitized == "_" * len(sanitized):
+        return "unknown_file"
 
     # Reservierte Namen prüfen
     name_without_ext = Path(sanitized).stem.upper()
