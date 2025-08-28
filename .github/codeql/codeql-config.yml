@@ -1,24 +1,3 @@
-<<<<<<< HEAD
-name: 'Repository CodeQL Config'
-
-queries:
-  - uses: security-extended
-  - uses: security-and-quality
-
-paths:
-  - src
-  - telegram_audio_downloader.py
-
-paths-ignore:
-  - tests
-  - docs
-  - .venv
-  - venv
-  - build
-  - dist
-
-
-=======
 name: "Custom CodeQL Configuration"
 
 disabled_queries:
@@ -59,68 +38,42 @@ python:
 # Konfiguration für die Analyse
 analyze:
   # Erhöhe das Zeitlimit für komplexe Analysen
-  timeout: 1800  # 30 Minuten
+  timeout: 3600  # 1 Stunde
   
-  # Aktiviere erweiterte Analyse für Sicherheitsprobleme
-  security:
-    precision: high
-    recall: high
+  # Parallele Analyse für bessere Performance
+  parallel: true
+  
+  # Speichere Zwischenergebnisse für inkrementelle Analysen
+  save-cache: true
+  
+  # Detaillierte Protokollierung aktivieren
+  verbosity: detailed
+
+# Fortgeschrittene Konfiguration für spezifische Analyse-Aspekte
+advanced:
+  # Anpassung der Taint-Analyse für bessere Präzision
+  taint:
+    # Aktiviere modellbasierte Taint-Analyse
+    use-models: true
     
-  # Spezifische Einstellungen für Python
-  python:
-    # Aktiviere Typinferenz für bessere Genauigkeit
-    type-inference: true
+    # Verbesserte Modellgenauigkeit
+    model-accuracy: high
     
-    # Ignoriere Testverzeichnisse
-    exclude:
-      - "**/tests/**"
-      - "**/test_*.py"
-      - "**/*_test.py"
-      - "**/test/**"
-      - "**/venv/**"
-      - "**/.venv/**"
-      - "**/env/**"
-      - "**/build/**"
-      - "**/dist/**"
+    # Spezifische Taint-Quellen und -Senken konfigurieren
+    sources:
+      - "requests.*"
+      - "flask.request.*"
+      - "django.http.request.*"
+    
+    sinks:
+      - "eval"
+      - "exec"
+      - "os.system"
+      - "subprocess.*"
 
-# Erweiterte Analyse für Sicherheitsprobleme
-security:
-  # Aktiviere zusätzliche Sicherheitsüberprüfungen
-  extended:
-    - "injection"
-    - "xss"
-    - "deserialization"
-    - "cryptography"
-    - "auth"
-    - "file-io"
-    - "network"
-    - "process"
-    - "database"
-
-# Spezifische Pfade für die Analyse
-paths:
-  include:
-    - "src/**"
-    - "telegram_audio_downloader/**"
-  exclude:
-    - "**/__pycache__"
-    - "**/*.pyc"
-    - "**/*.pyo"
-    - "**/*.pyd"
-    - "**/setup.py"
-    - "**/build"
-    - "**/dist"
-    - "**/venv"
-    - "**/env"
-    - "**/.venv"
-    - "**/node_modules"
-
-# Erweiterte Einstellungen für die SARIF-Ausgabe
-output:
-  # Erstelle detaillierte SARIF-Berichte
-  sarif:
-    include-severity: true
-    include-cwe: true
-    include-owasp: true
-    include-security-severity: true
->>>>>>> origin/main
+# Erstelle detaillierte SARIF-Berichte
+sarif:
+  include-severity: true
+  include-cwe: true
+  include-owasp: true
+  include-security-severity: true
