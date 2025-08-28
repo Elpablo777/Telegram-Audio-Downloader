@@ -30,10 +30,19 @@ jobs:
             Title: ${{ fromJson(steps.sanitize.outputs.title) }}
             Body: ${{ fromJson(steps.sanitize.outputs.body) }}
 
+      - name: Validate AI response
+        run: |
+          echo "${{ steps.inference.outputs.response }}" > /tmp/ai_response_raw.txt
+          # Check for potentially unsafe content (HTML/script tags, iframes, etc.)
+          if grep -Ei '<script|<iframe|<img|<a |javascript:' /tmp/ai_response_raw.txt; then
+            echo "Unsafe content detected in AI response. Failing workflow."
+            exit 1
+          fi
+
       - name: Comment with AI summary
         run: |
           # Sanitize AI response before posting
-          echo "${{ steps.inference.outputs.response }}" | jq -Rs . | jq -r . > /tmp/ai_summary.txt
+          cat /tmp/ai_response_raw.txt | jq -Rs . | jq -r . > /tmp/ai_summary.txt
           gh issue comment $ISSUE_NUMBER --body-file /tmp/ai_summary.txt
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
