@@ -6,6 +6,7 @@ import hashlib
 import logging
 import os
 import re
+import unicodedata
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Optional, Union
@@ -32,6 +33,7 @@ AUDIO_EXTENSIONS = {".mp3", ".m4a", ".ogg", ".flac", ".wav", ".opus", ".aac", ".
 
 # Ungültige Zeichen für Dateinamen
 INVALID_FILENAME_CHARS = r'[<>:"/\\|?*]'
+# Reservierte Namen (Windows)
 RESERVED_NAMES = {
     "CON",
     "PRN",
@@ -59,41 +61,83 @@ RESERVED_NAMES = {
 
 
 @with_file_error_handling()
-def sanitize_filename(filename: str, max_length: int = 255) -> str:
+def sanitize_filename(filename: str, max_length: int = 255, replacement: str = "_") -> str:
     """
-    Bereinigt einen Dateinamen von ungültigen Zeichen.
+    Bereinigt einen Dateinamen von ungültigen Zeichen, Emojis und Sonderzeichen.
+    
+    Diese Funktion wurde erweitert, um das Problem mit Abstürzen bei Dateinamen 
+    mit Sonderzeichen oder Emojis zu beheben.
 
     Args:
         filename: Der zu bereinigende Dateiname
         max_length: Maximale Länge des Dateinamens
+        replacement: Zeichen zum Ersetzen ungültiger Zeichen
 
     Returns:
-        Bereinigter Dateiname
+        Bereinigter Dateiname, der auf allen Plattformen sicher verwendet werden kann
     """
     if not filename:
         return "unknown_file"
 
-    # Ungültige Zeichen ersetzen
-    sanitized = re.sub(INVALID_FILENAME_CHARS, "_", filename)
+    # Schritt 1: Unicode-Normalisierung für konsistente Behandlung von zusammengesetzten Zeichen
+    try:
+        # NFKC-Normalisierung verwenden für zusammengesetzte und Kompatibilitätszeichen
+        normalized = unicodedata.normalize('NFKC', filename)
+    except Exception:
+        # Fallback falls Normalisierung fehlschlägt
+        normalized = filename
 
-    # Mehrfache Punkte und Leerzeichen entfernen
-    sanitized = re.sub(r"\.+", ".", sanitized)
+    # Schritt 2: Kontrollzeichen entfernen oder ersetzen (0x00-0x1F und 0x7F-0x9F)
+    # Diese umfassen Null-Bytes, Zeilenschaltungen, Tabs, etc.
+    control_chars = re.compile(r'[\x00-\x1f\x7f-\x9f]')
+    sanitized = control_chars.sub(replacement, normalized)
+
+    # Schritt 3: Unsichtbare und Null-Breite-Zeichen entfernen
+    # Diese können Verwirrung und potentielle Sicherheitsprobleme verursachen
+    invisible_chars = re.compile(r'[\u200b-\u200f\u2028-\u202f\u205f-\u206f\ufeff]')
+    sanitized = invisible_chars.sub('', sanitized)
+
+    # Schritt 4: Plattformspezifische ungültige Zeichen ersetzen
+    # Diese Zeichen können nicht in Dateinamen unter Windows/Unix verwendet werden
+    sanitized = re.sub(INVALID_FILENAME_CHARS, replacement, sanitized)
+
+    # Schritt 5: Mehrfache aufeinanderfolgende Punkte und Leerzeichen behandeln
+    # Schritt 4.5: Komplexe Punktbehandlung wie in file_operations.py
+    # Ersetze abwechselnde Punktmuster (z.B. "..", "...", etc.) durch ein sicheres Muster
+    def complex_dot_sanitization(s: str) -> str:
+        # Beispiel: Ersetze alle Gruppen von zwei oder mehr Punkten durch "_._"
+        # Alternierendes Muster: "_._" für jede Gruppe von zwei oder mehr Punkten
+        return re.sub(r"\.{2,}", lambda m: "_._" * (len(m.group(0)) // 2) + ("." if len(m.group(0)) % 2 else ""), s)
+    sanitized = complex_dot_sanitization(sanitized)
     sanitized = re.sub(r"\s+", " ", sanitized)
-
-    # Trimmen
+    
+    # Führende/nachgestellte Leerzeichen und Punkte entfernen
     sanitized = sanitized.strip(" .")
 
-    # Reservierte Namen prüfen
-    name_without_ext = Path(sanitized).stem.upper()
-    if name_without_ext in RESERVED_NAMES:
-        sanitized = f"_{sanitized}"
+    # Schritt 6: Reservierte Namen prüfen (Windows)
+    if sanitized:
+        name_without_ext = Path(sanitized).stem.upper()
+        if name_without_ext in RESERVED_NAMES:
+            sanitized = f"{replacement}{sanitized}"
 
-    # Länge begrenzen
+    # Schritt 7: Sicherstellen, dass der Dateiname nach der Bereinigung nicht leer ist
+    if not sanitized or sanitized == replacement:
+        sanitized = "unknown_file"
+
+    # Schritt 8: Längenbeschränkungen behandeln
     if len(sanitized) > max_length:
         name, ext = os.path.splitext(sanitized)
-        max_name_length = max_length - len(ext)
-        sanitized = name[:max_name_length] + ext
+        if ext:
+            max_name_length = max_length - len(ext)
+            if max_name_length > 0:
+                sanitized = name[:max_name_length] + ext
+            else:
+                # Falls die Erweiterung zu lang ist, das Ganze kürzen
+                sanitized = sanitized[:max_length]
+        else:
+            sanitized = sanitized[:max_length]
 
+    # Finale Sicherheitsprüfung
     return sanitized or "unknown_file"
 
 
