@@ -18,10 +18,7 @@ jobs:
       pull-requests: write
 
     steps:
-    - uses: actions/stale@v5.0.0
-      with:
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
-        stale-issue-message: 'This issue has been automatically marked as stale due to inactivity. If you believe this issue is still relevant, please comment or update it to prevent it from being closed.'
-        stale-pr-message: 'This pull request has been automatically marked as stale due to inactivity. If you are still working on this, please comment or update the PR to prevent it from being closed.'
-        stale-issue-label: 'no-issue-activity'
         stale-pr-label: 'no-pr-activity'
+        days-before-stale: 30
+        days-before-close: 7
+        days-before-pr-close: 7
