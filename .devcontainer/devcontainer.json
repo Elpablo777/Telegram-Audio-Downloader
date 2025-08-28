@@ -1,6 +1,9 @@
 {
   "name": "Telegram Audio Downloader Development",
   "image": "mcr.microsoft.com/devcontainers/python:3.11",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/Telegram-Audio-Downloader,type=bind",
+  "workspaceFolder": "/workspaces/Telegram-Audio-Downloader",
+  "remoteUser": "vscode",
   
   "features": {
     "ghcr.io/devcontainers/features/git:1": {},
@@ -117,9 +120,7 @@
   },
 
   "mounts": [
-    "source=${localWorkspaceFolder}/.env,target=/workspaces/Telegram-Audio-Downloader/.env,type=bind,consistency=cached",
-    "source=telegram-audio-downloads,target=/workspaces/Telegram-Audio-Downloader/downloads,type=volume",
-    "source=telegram-audio-data,target=/workspaces/Telegram-Audio-Downloader/data,type=volume"
+    "source=${localWorkspaceFolder}/.env,target=/workspaces/Telegram-Audio-Downloader/.env,type=bind,consistency=cached"
   ],
 
   "postCreateCommand": "bash .devcontainer/setup.sh",
@@ -154,9 +155,6 @@
   "otherPortsAttributes": {
     "onAutoForward": "silent"
   },
-
-  "workspaceFolder": "/workspaces/Telegram-Audio-Downloader",
-  "remoteUser": "vscode",
 
   "updateContentCommand": "bash .devcontainer/update.sh",
   "waitFor": "postCreateCommand"

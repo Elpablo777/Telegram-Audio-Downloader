@@ -366,3 +366,219 @@ Wenn du ein Issue erstellst, füge hinzu:
 - **Befehle**: Welche Befehle hast du ausgeführt?
 - **Logs**: Relevante Log-Einträge (ohne sensible Daten!)
 - **Konfiguration**: Relevante Config-Einstellungen
+
+# 🛠️ Installationsanleitung
+
+Diese Anleitung zeigt Ihnen, wie Sie den Telegram Audio Downloader auf verschiedenen Betriebssystemen installieren.
+
+## 🖥️ Windows
+
+### Voraussetzungen
+1. Python 3.11 oder höher
+2. Git (optional, aber empfohlen)
+3. FFmpeg
+
+### 1. Python installieren
+1. Laden Sie Python von [python.org](https://www.python.org/downloads/) herunter
+2. Führen Sie den Installer aus
+3. Aktivieren Sie "Add Python to PATH"
+
+### 2. Git installieren (optional)
+1. Laden Sie Git von [git-scm.com](https://git-scm.com/download/win) herunter
+2. Führen Sie den Installer aus
+
+### 3. FFmpeg installieren
+1. Laden Sie FFmpeg von [ffmpeg.org](https://ffmpeg.org/download.html) herunter
+2. Entpacken Sie die Dateien in einen Ordner (z.B. `C:\ffmpeg`)
+3. Fügen Sie den `bin`-Ordner zum System-PATH hinzu:
+   - Rechtsklick auf "Dieser PC" → "Eigenschaften"
+   - "Erweiterte Systemeinstellungen"
+   - "Umgebungsvariablen"
+   - Wählen Sie "Path" → "Bearbeiten"
+   - Fügen Sie `C:\ffmpeg\bin` hinzu
+
+### 4. Telegram Audio Downloader installieren
+```cmd
+# Repository klonen (wenn Git installiert ist)
+git clone https://github.com/Elpablo777/telegram-audio-downloader.git
+cd telegram-audio-downloader
+
+# Oder laden Sie die neueste Version herunter und entpacken Sie sie
+
+# Virtuelle Umgebung erstellen
+python -m venv venv
+
+# Virtuelle Umgebung aktivieren
+venv\Scripts\activate
+
+# Abhängigkeiten installieren
+pip install -r requirements.txt
+
+# Paket installieren
+pip install -e .
+```
+
+## 🐧 Linux (Ubuntu/Debian)
+
+### Voraussetzungen
+1. Python 3.11 oder höher
+2. Git
+3. FFmpeg
+
+### 1. System aktualisieren
+```bash
+sudo apt update
+sudo apt upgrade
+```
+
+### 2. Python und Git installieren
+```bash
+sudo apt install python3 python3-pip git
+```
+
+### 3. FFmpeg installieren
+```bash
+sudo apt install ffmpeg
+```
+
+### 4. Telegram Audio Downloader installieren
+```bash
+# Repository klonen
+git clone https://github.com/Elpablo777/telegram-audio-downloader.git
+cd telegram-audio-downloader
+
+# Virtuelle Umgebung erstellen
+python3 -m venv venv
+
+# Virtuelle Umgebung aktivieren
+source venv/bin/activate
+
+# Abhängigkeiten installieren
+pip install -r requirements.txt
+
+# Paket installieren
+pip install -e .
+```
+
+## 🍏 macOS
+
+### Voraussetzungen
+1. Python 3.11 oder höher
+2. Git
+3. FFmpeg
+
+### 1. Homebrew installieren (falls nicht vorhanden)
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
+### 2. Python, Git und FFmpeg installieren
+```bash
+brew install python git ffmpeg
+```
+
+### 3. Telegram Audio Downloader installieren
+```bash
+# Repository klonen
+git clone https://github.com/Elpablo777/telegram-audio-downloader.git
+cd telegram-audio-downloader
+
+# Virtuelle Umgebung erstellen
+python3 -m venv venv
+
+# Virtuelle Umgebung aktivieren
+source venv/bin/activate
+
+# Abhängigkeiten installieren
+pip install -r requirements.txt
+
+# Paket installieren
+pip install -e .
+```
+
+## 🐳 Docker (plattformunabhängig)
+
+### Voraussetzungen
+1. Docker installiert
+
+### Installation
+```bash
+# Repository klonen
+git clone https://github.com/Elpablo777/telegram-audio-downloader.git
+cd telegram-audio-downloader
+
+# Docker-Image bauen
+docker build -t telegram-audio-downloader .
+
+# Oder verwenden Sie docker-compose
+docker-compose up --build
+```
+
+## 🔧 Erste Einrichtung
+
+### 1. Telegram API-Zugangsdaten erhalten
+1. Gehen Sie zu [https://my.telegram.org/apps](https://my.telegram.org/apps)
+2. Melden Sie sich mit Ihrem Telegram-Konto an
+3. Erstellen Sie eine neue Anwendung
+4. Notieren Sie sich die `API_ID` und `API_HASH`
+
+### 2. Konfigurationsdatei erstellen
+```bash
+# .env-Datei erstellen
+cp .env.example .env
+```
+
+Bearbeiten Sie die `.env`-Datei mit Ihren Zugangsdaten:
+```env
+API_ID=1234567
+API_HASH=your_api_hash_here
+SESSION_NAME=my_telegram_session
+```
+
+### 3. Ersten Download testen
+```bash
+# Virtuelle Umgebung aktivieren (wenn nicht bereits geschehen)
+# Windows: venv\Scripts\activate
+# Linux/macOS: source venv/bin/activate
+
+# Ersten Download starten
+telegram-audio-downloader download @your_music_group
+```
+
+## ✅ Verifizierung
+
+Überprüfen Sie, ob die Installation erfolgreich war:
+```bash
+# Hilfe anzeigen
+telegram-audio-downloader --help
+
+# Version anzeigen
+telegram-audio-downloader --version
+```
+
+## 📝 Problemlösung
+
+### Häufige Probleme
+
+1. **"Command not found" Fehler**
+   - Stellen Sie sicher, dass die virtuelle Umgebung aktiviert ist
+   - Überprüfen Sie, ob das Paket korrekt installiert wurde
+
+2. **FFmpeg nicht gefunden**
+   - Stellen Sie sicher, dass FFmpeg installiert und im PATH ist
+   - Führen Sie `ffmpeg -version` aus, um die Installation zu überprüfen
+
+3. **ImportError: No module named 'telethon'**
+   - Stellen Sie sicher, dass alle Abhängigkeiten installiert sind
+   - Führen Sie `pip install -r requirements.txt` erneut aus
+
+4. **Permission denied Fehler**
+   - Verwenden Sie eine virtuelle Umgebung
+   - Führen Sie den Befehl mit `sudo` aus (nur bei Bedarf auf Linux/macOS)
+
+### Support
+
+Wenn Sie Probleme haben, die nicht durch diese Anleitung gelöst werden:
+1. Überprüfen Sie die [Issues](https://github.com/Elpablo777/telegram-audio-downloader/issues) auf GitHub
+2. Erstellen Sie ein neues Issue mit detaillierten Informationen
+3. Kontaktieren Sie den Entwickler über die bereitgestellten Kontaktdaten

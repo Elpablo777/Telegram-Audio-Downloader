@@ -1,0 +1,53 @@
+name: PR Review and Security Check
+
+on:
+  pull_request:
+    branches: [ main, master ]
+  push:
+    branches: [ main, master ]
+
+jobs:
+  pr-review:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Run PR cleanup
+      run: python scripts/pr_cleanup.py
+      
+    - name: Upload PR review report
+      uses: actions/upload-artifact@v3
+      with:
+        name: pr-review-report
+        path: pr_review_report.json
+
+  security-check:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install safety
+      run: |
+        python -m pip install --upgrade pip
+        pip install safety
+        
+    - name: Run security fix
+      run: python scripts/security_fix.py
+      
+    - name: Run security check
+      run: python check_security.py || true

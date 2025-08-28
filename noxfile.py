@@ -186,7 +186,7 @@ def docs_serve(session):
         "sphinx-autobuild",
         "docs/sphinx",
         "docs/build",
-        "--host", "0.0.0.0",
+        "--host", "127.0.0.1",
         "--port", "8000",
         "--watch", "src/",
     )

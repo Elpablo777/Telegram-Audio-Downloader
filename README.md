@@ -2,53 +2,42 @@
 
 <div align="center">
 
-<!-- Build Status -->
-[![CI/CD Pipeline](https://github.com/Elpablo777/Telegram-Audio-Downloader/actions/workflows/ci.yml/badge.svg)](https://github.com/Elpablo777/Telegram-Audio-Downloader/actions/workflows/ci.yml)
-[![Release Workflow](https://github.com/Elpablo777/Telegram-Audio-Downloader/actions/workflows/release.yml/badge.svg)](https://github.com/Elpablo777/Telegram-Audio-Downloader/actions/workflows/release.yml)
-[![Security Scan](https://img.shields.io/badge/Security-Bandit%20%7C%20Safety-green?logo=security)](https://github.com/Elpablo777/Telegram-Audio-Downloader/actions)
-
-<!-- Version & Compatibility -->
-![Python](https://img.shields.io/badge/Python-3.11+-blue.svg?logo=python&logoColor=white)
-![Version](https://img.shields.io/github/v/release/Elpablo777/Telegram-Audio-Downloader?include_prereleases&logo=github)
-![Platform](https://img.shields.io/badge/Platform-Windows%20|%20Linux%20|%20macOS-lightgrey.svg?logo=linux)
-
-<!-- Quality Metrics -->
-[![CodeQL](https://github.com/Elpablo777/Telegram-Audio-Downloader/actions/workflows/codeql.yml/badge.svg)](https://github.com/Elpablo777/Telegram-Audio-Downloader/actions/workflows/codeql.yml)
-[![codecov](https://codecov.io/gh/Elpablo777/Telegram-Audio-Downloader/branch/main/graph/badge.svg)](https://codecov.io/gh/Elpablo777/Telegram-Audio-Downloader)
-[![Dependabot](https://img.shields.io/badge/Dependabot-enabled-blue?logo=dependabot)](https://github.com/Elpablo777/Telegram-Audio-Downloader/security/dependabot)
-[![Code Quality](https://img.shields.io/badge/Code%20Quality-A+-brightgreen?logo=codeclimate)](https://github.com/Elpablo777/Telegram-Audio-Downloader)
-
-<!-- Project Stats -->
-![License](https://img.shields.io/badge/License-MIT-green.svg?logo=opensourceinitiative&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)
+![License](https://img.shields.io/badge/License-MIT-green.svg)
 ![Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen.svg)
-[![GitHub Stars](https://img.shields.io/github/stars/Elpablo777/Telegram-Audio-Downloader?style=flat&logo=github)](https://github.com/Elpablo777/Telegram-Audio-Downloader/stargazers)
-[![GitHub Forks](https://img.shields.io/github/forks/Elpablo777/Telegram-Audio-Downloader?style=flat&logo=github)](https://github.com/Elpablo777/Telegram-Audio-Downloader/network)
-
-<!-- Community -->
-[![Discussions](https://img.shields.io/github/discussions/Elpablo777/Telegram-Audio-Downloader?logo=github)](https://github.com/Elpablo777/Telegram-Audio-Downloader/discussions)
-[![Issues](https://img.shields.io/github/issues/Elpablo777/Telegram-Audio-Downloader?logo=github)](https://github.com/Elpablo777/Telegram-Audio-Downloader/issues)
-[![Wiki](https://img.shields.io/badge/Wiki-Available-blue?logo=github)](https://github.com/Elpablo777/Telegram-Audio-Downloader/wiki)
-
-<!-- Technology Stack -->
-[![Docker](https://img.shields.io/badge/Docker-Ready-blue?logo=docker)](https://github.com/Elpablo777/Telegram-Audio-Downloader/blob/main/Dockerfile)
-[![PyPI](https://img.shields.io/badge/PyPI-Coming%20Soon-yellow?logo=pypi)](https://github.com/Elpablo777/Telegram-Audio-Downloader)
-[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Documentation-blue?logo=github-pages)](https://elpablo777.github.io/Telegram-Audio-Downloader/)
-
-<!-- Additional Quality Badges -->
-[![Maintainability](https://img.shields.io/badge/Maintainability-A-brightgreen?logo=codeclimate)](https://github.com/Elpablo777/Telegram-Audio-Downloader)
-[![Documentation Coverage](https://img.shields.io/badge/Docs%20Coverage-95%25-brightgreen?logo=gitbook)](https://github.com/Elpablo777/Telegram-Audio-Downloader/wiki)
-[![Code Style](https://img.shields.io/badge/Code%20Style-Black-black?logo=python)](https://github.com/psf/black)
+![Platform](https://img.shields.io/badge/Platform-Windows%20|%20Linux%20|%20macOS-lightgrey.svg)
 
 **Ein leistungsstarker, asynchroner Python-Bot zum Herunterladen und Verwalten von Audiodateien aus Telegram-Gruppen**
 
 > 🎵 Sammeln Sie mühelos Ihre Lieblingsmusik aus Telegram-Gruppen mit diesem professionellen Download-Tool!
 
-[🚀 Quick Start](https://github.com/Elpablo777/Telegram-Audio-Downloader/wiki/Quick-Start) •
-[📚 Wiki](https://github.com/Elpablo777/Telegram-Audio-Downloader/wiki) •
-[🐛 Issues](https://github.com/Elpablo777/Telegram-Audio-Downloader/issues) •
-[💬 Discussions](https://github.com/Elpablo777/Telegram-Audio-Downloader/discussions)
+[Features](#-features) •
+[Installation](#-installation) •
+[Quick Start](#-quick-start) •
+[Dokumentation](#-dokumentation) •
+[API](#-api-referenz) •
+[Contributing](#-contributing)
 
 </div>
+
+---
+
+## 📋 **Inhaltsverzeichnis**
+
+- [🚀 Features](#-features)
+- [📦 Installation](#-installation)
+- [⚡ Quick Start](#-quick-start)
+- [🔧 Konfiguration](#-konfiguration)
+- [💻 CLI-Befehle](#-cli-befehle)
+- [🎯 Erweiterte Funktionen](#-erweiterte-funktionen)
+- [📊 Performance-Monitoring](#-performance-monitoring)
+- [🐳 Docker Support](#-docker-support)
+- [🧪 Tests](#-tests)
+- [📚 API Referenz](#-api-referenz)
+- [🤝 Contributing](#-contributing)
+- [🛡️ Sicherheit](#-sicherheit)
+- [🛠️ Wartung](#-wartung)
+- [📄 Lizenz](#-lizenz)
 
 ---
 
@@ -60,192 +49,396 @@
 - 🧠 **Memory-Management** mit automatischer Garbage Collection
 - 🔄 **Fortsetzbare Downloads** bei Unterbrechungen
 - 📈 **Performance-Monitoring** in Echtzeit
+- 📚 **Persistente Download-Historie** (keine doppelten Downloads)
 
-### **🎵 Audio-Funktionalitäten**
-- 🎼 **Erweiterte Metadaten-Extraktion** (Titel, Künstler, Album, etc.)
-- 🔧 **Automatische Dateinamen-Bereinigung**
-- 🎶 **Multi-Format-Support**: MP3, FLAC, OGG, M4A, WAV, OPUS
-- ✅ **Checksum-Verifikation** für Datenintegrität
-- 📝 **ID3-Tags** Extraktion und Verwaltung
+### **🔍 Intelligente Suche & Filter**
+- 🔍 **Fuzzy-Suche** nach Titel, Künstler, Album
+- 🎵 **Metadaten-basierte Filterung** (Genre, Jahr, Dauer)
+- 📁 **Automatische Kategorisierung** nach Künstler/Album
+- 🏷️ **Tag-basierte Organisation** mit benutzerdefinierten Tags
+
+### **🛠️ Entwicklerfreundlich**
+- 🐍 **Asynchrone API** mit modernem Python
+- 📖 **Umfangreiche Dokumentation** mit Beispielen
+- 🧪 **Über 50 Unit-Tests** für maximale Stabilität
+- 🐳 **Docker-Unterstützung** für einfache Bereitstellung
+- 📦 **Modulare Architektur** für einfache Erweiterung
 
 ---
 
 ## 📦 **Installation**
 
-### **1. Repository klonen**
+### **🐍 Voraussetzungen**
+- Python 3.11 oder neuer
+- Telegram API-Zugangsdaten (https://my.telegram.org)
+- FFmpeg für Audio-Konvertierung (optional aber empfohlen)
+
+### **📥 Schnellinstallation**
+
 ```bash
+# Repository klonen
 git clone https://github.com/Elpablo777/Telegram-Audio-Downloader.git
 cd Telegram-Audio-Downloader
-```
 
-### **2. Abhängigkeiten installieren**
-```bash
-# Virtuelle Umgebung erstellen (empfohlen)
+# Virtuelle Umgebung erstellen und aktivieren
 python -m venv venv
-venv\\Scripts\\activate  # Windows
+source venv/bin/activate  # Linux/macOS
+# oder
+venv\Scripts\activate  # Windows
 
 # Abhängigkeiten installieren
 pip install -r requirements.txt
-pip install -e .
 ```
 
-### **3. Konfiguration**
+### **🐳 Docker Installation (Empfohlen)**
+
 ```bash
-# .env-Datei erstellen
-cp .env.example .env
-```
+# Docker-Image bauen
+docker-compose build
 
-Bearbeiten Sie die `.env`-Datei:
-```env
-# Telegram API credentials (von https://my.telegram.org/apps)
-API_ID=1234567
-API_HASH=your_api_hash_here
-SESSION_NAME=my_telegram_session
+# Umgebung konfigurieren
+cp .env.example .env
+# Bearbeiten Sie .env mit Ihren Telegram-Zugangsdaten
 ```
 
 ---
 
 ## ⚡ **Quick Start**
 
+### **1. Konfiguration**
+Erstellen Sie eine `.env` Datei mit Ihren Telegram-Zugangsdaten:
+
+```env
+TELEGRAM_API_ID=ihre_api_id
+TELEGRAM_API_HASH=ihre_api_hash
+TELEGRAM_PHONE_NUMBER=+491234567890
+```
+
+### **2. Erster Download**
 ```bash
-# Audiodateien aus einer Gruppe herunterladen
-telegram-audio-downloader download @musikgruppe
+# Einfacher Download
+python telegram_audio_downloader.py download --group "meine-musik-gruppe"
 
-# Mit erweiterten Optionen
-telegram-audio-downloader download @musikgruppe --limit=50 --parallel=5 --output=./music
+# Fortgeschrittene Optionen
+python telegram_audio_downloader.py download --group "meine-musik-gruppe" --limit 50 --quality high
+```
 
-# Downloads durchsuchen
-telegram-audio-downloader search "beethoven" --fuzzy --format=flac
+### **3. Docker Quick Start**
+```bash
+# Dienst starten
+docker-compose up -d
 
-# Performance überwachen
-telegram-audio-downloader performance --watch
+# CLI-Befehl ausführen
+docker-compose exec telegram-audio-downloader python telegram_audio_downloader.py download --group "meine-musik-gruppe"
+```
+
+---
+
+## 🔧 **Konfiguration**
+
+### **⚙️ Grundlegende Konfiguration**
+Die Konfiguration erfolgt über mehrere Ebenen:
+
+1. **.env Datei** (Empfohlen)
+```env
+# Telegram-Zugangsdaten
+TELEGRAM_API_ID=123456
+TELEGRAM_API_HASH=abc123def456
+TELEGRAM_PHONE_NUMBER=+491234567890
+
+# Download-Einstellungen
+DOWNLOAD_PATH=./downloads
+MAX_CONCURRENT_DOWNLOADS=3
+DEFAULT_QUALITY=high
+```
+
+2. **YAML/JSON/INI Konfigurationsdateien**
+```yaml
+# config/default.yaml
+telegram:
+  api_id: 123456
+  api_hash: abc123def456
+  phone_number: "+491234567890"
+
+download:
+  path: "./downloads"
+  max_concurrent: 3
+  quality: "high"
+  resume: true
+```
+
+### **🌐 Proxy-Konfiguration**
+```yaml
+# config/proxy.yaml
+proxy:
+  type: "socks5"
+  host: "proxy.example.com"
+  port: 1080
+  username: "proxy_user"
+  password: "proxy_pass"
 ```
 
 ---
 
 ## 💻 **CLI-Befehle**
 
-### **Download**
+### **📥 Hauptbefehle**
 ```bash
-telegram-audio-downloader download <GRUPPE> [OPTIONS]
-  --limit, -l       Maximale Anzahl Nachrichten
-  --output, -o      Zielverzeichnis
-  --parallel, -p    Parallele Downloads (Standard: 3)
+# Download-Befehle
+python telegram_audio_downloader.py download --group GRUPPENNAME
+python telegram_audio_downloader.py download --group GRUPPENNAME --limit 100
+python telegram_audio_downloader.py download-lite --group GRUPPENNAME  # Reduzierter Ressourcenverbrauch
+
+# Suchbefehle
+python telegram_audio_downloader.py search "Suchbegriff"
+python telegram_audio_downloader.py search --group GRUPPENNAME "Suchbegriff"
+
+# Verwaltungsbefehle
+python telegram_audio_downloader.py list-groups
+python telegram_audio_downloader.py status
+python telegram_audio_downloader.py history
 ```
 
-### **Suche**
+### **🔧 Wartungsbefehle**
 ```bash
-telegram-audio-downloader search [QUERY] [OPTIONS]
-  --fuzzy, -f       Fuzzy-Suche aktivieren
-  --format          Audioformat filtern
-  --min-size        Minimale Dateigröße
-  --max-size        Maximale Dateigröße
-  --metadata, -m    Erweiterte Metadaten anzeigen
+# Datenbank-Operationen
+python telegram_audio_downloader.py db optimize
+python telegram_audio_downloader.py db cleanup
+python telegram_audio_downloader.py db backup
+
+# Cache-Verwaltung
+python telegram_audio_downloader.py cache clear
+python telegram_audio_downloader.py cache stats
+
+# Konfigurationsprüfung
+python telegram_audio_downloader.py config validate
+python telegram_audio_downloader.py config show
 ```
 
-### **Performance**
-```bash
-telegram-audio-downloader performance [OPTIONS]
-  --watch, -w       Echtzeit-Überwachung
-  --cleanup, -c     System bereinigen
-```
+---
 
-### **Verwaltung**
-```bash
-telegram-audio-downloader groups      # Bekannte Gruppen anzeigen
-telegram-audio-downloader stats       # Download-Statistiken
-telegram-audio-downloader metadata    # Metadaten analysieren
-```
+## 🎯 **Erweiterte Funktionen**
+
+### **🧠 Intelligente Warteschlange**
+- Priorisierte Downloads basierend auf Dateigröße und Audioqualität
+- Adaptive Bandbreitenanpassung
+- Automatische Fehlerbehandlung und Wiederholung
+
+### **📊 Echtzeit-Monitoring**
+- Live-Download-Fortschritt
+- Systemressourcenüberwachung
+- Performance-Metriken und Statistiken
+
+### **📂 Automatische Organisation**
+- Künstler-/Album-basierte Ordnerstruktur
+- Metadaten-basierte Dateibenennung
+- Duplikaterkennung und -vermeidung
+
+---
+
+## 📊 **Performance-Monitoring**
+
+### **📈 Echtzeit-Metriken**
+- Download-Geschwindigkeit
+- Speicherverbrauch
+- CPU-Auslastung
+- Netzwerk-Throughput
+
+### **🗄️ Historische Daten**
+- Download-Historie
+- Erfolgs-/Fehlerraten
+- Performance-Trends
 
 ---
 
 ## 🐳 **Docker Support**
 
-```bash
-# Mit Docker Compose
-docker-compose up -d
-docker-compose exec telegram-audio-downloader telegram-audio-downloader download @gruppe
+### **🏗️ Build-Prozess**
+```dockerfile
+# Multi-stage Build für optimale Image-Größe
+FROM python:3.11-slim as builder
+# ... Build-Optimierungen ...
 
-# Direkt mit Docker
-docker build -t telegram-audio-downloader .
-docker run -it --rm -v $(pwd)/.env:/app/.env telegram-audio-downloader
+FROM python:3.11-slim
+# ... Runtime-Konfiguration ...
+```
+
+### **🎛️ docker-compose.yml**
+```yaml
+version: '3.8'
+services:
+  telegram-audio-downloader:
+    build: .
+    volumes:
+      - ./.env:/app/.env
+      - ./downloads:/app/downloads
+      - ./data:/app/data
+    # ... Weitere Konfiguration ...
 ```
 
 ---
 
 ## 🧪 **Tests**
 
+### **✅ Ausführen der Tests**
 ```bash
-pytest                                    # Alle Tests
-pytest --cov=src/telegram_audio_downloader  # Mit Coverage
-pytest -v                                # Verbose-Modus
+# Alle Tests ausführen
+pytest
+
+# Spezifische Testgruppe
+pytest tests/test_basic_download.py
+
+# Testabdeckung
+pytest --cov=src
+
+# Integrationstests
+pytest tests/test_integration.py
 ```
 
-**30+ Unit-Tests** mit vollständiger Abdeckung aller wichtigen Komponenten.
+### **🛠️ Testinfrastruktur**
+- Unit-Tests für alle Kernfunktionen
+- Integrationstests für Telegram-API
+- Performance-Tests
+- Sicherheitstests
 
 ---
 
-## 🎯 **Erweiterte Funktionen**
+## 📚 **API Referenz**
 
-- **🔍 Fuzzy-Suche** - Findet Dateien auch bei Schreibfehlern
-- **📊 Performance-Dashboard** - Echtzeit-Monitoring mit Rich-Interface
-- **🔄 Resume-Downloads** - Fortsetzung unterbrochener Downloads
-- **🎵 Metadaten-Extraktion** - Automatische ID3-Tags und Cover-Art
-- **📈 Statistiken** - Detaillierte Download- und Performance-Reports
-- **🛡️ Error-Handling** - Robuste Fehlerbehandlung mit Retry-Logik
+### **📦 Hauptklassen**
 
----
+#### **AudioDownloader**
+```python
+from telegram_audio_downloader import AudioDownloader
 
-## 📊 **Projekt-Status**
+downloader = AudioDownloader(config_path="config.yaml")
+await downloader.download_group("meine-gruppe", limit=50)
+```
 
-| Komponente | Status | Beschreibung |
-|------------|--------|-------------|
-| 🏗️ **Core Engine** | ✅ Produktionsreif | Async Downloads mit Telethon |
-| 🎵 **Audio Processing** | ✅ Vollständig | Metadaten-Extraktion mit Mutagen |
-| 🔍 **Search Engine** | ✅ Erweitert | Fuzzy-Suche und Filter |
-| 📊 **Performance Monitor** | ✅ Real-time | Live-Dashboard mit Rich |
-| 🐳 **Docker Support** | ✅ Multi-Platform | AMD64 + ARM64 Images |
-| 🧪 **Test Coverage** | ✅ 95%+ | Umfassende Unit & Integration Tests |
-| 📚 **Documentation** | ✅ Vollständig | Wiki mit 10+ detaillierte Seiten |
-| 🔒 **Security** | ✅ Gehärtet | Bandit, Safety, Dependabot |
+#### **Configuration**
+```python
+from telegram_audio_downloader.config import Config
+
+config = Config("config.yaml")
+api_id = config.get("telegram.api_id")
+```
+
+### **🔧 Hilfsfunktionen**
+- `get_client()` - Telegram-Client erstellen
+- `download_file()` - Einzelne Datei herunterladen
+- `extract_metadata()` - Audio-Metadaten extrahieren
 
 ---
 
 ## 🤝 **Contributing**
 
-Beiträge sind willkommen! Bitte lesen Sie [CONTRIBUTING.md](CONTRIBUTING.md) für Details.
+### **📋 Voraussetzungen**
+1. Python 3.11+
+2. Telegram API-Zugangsdaten für Tests
+3. FFmpeg installiert
 
-### **Development Setup**
+### **🏗️ Entwicklungsumgebung**
 ```bash
-git clone https://github.com/IHR-USERNAME/Telegram-Audio-Downloader.git
-python -m venv venv && source venv/bin/activate
-pip install -e ".[dev]"
+# Virtuelle Umgebung erstellen
+python -m venv venv
+source venv/bin/activate  # Linux/macOS
+venv\Scripts\activate  # Windows
+
+# Entwicklungsabhängigkeiten installieren
+pip install -r requirements_dev.txt
+
+# Pre-Commit-Hooks installieren
 pre-commit install
 ```
+
+### **🧪 Tests ausführen**
+```bash
+# Stilprüfung
+flake8 src tests
+
+# Typüberprüfung
+mypy src
+
+# Sicherheitsprüfung
+bandit -r src
+
+# Alle Tests
+pytest
+```
+
+### **📦 Pull Request Richtlinien**
+1. Erstellen Sie einen Feature-Branch
+2. Fügen Sie Tests für neue Funktionen hinzu
+3. Aktualisieren Sie die Dokumentation
+4. Führen Sie alle Tests erfolgreich aus
+5. Verwenden Sie aussagekräftige Commit-Nachrichten
+
+---
+
+## 🛡️ **Sicherheit**
+
+### **🔐 Sicherheitspraktiken**
+- Keine hartkodierten Geheimnisse
+- Sichere Dateiberechtigungen
+- Regelmäßige Abhängigkeitsaktualisierungen
+- Automatisierte Sicherheitsprüfungen
+
+### **🛠️ Sicherheitswerkzeuge**
+```bash
+# Sicherheitsprüfung ausführen
+python scripts/security_fix.py
+python check_security.py
+
+# Abhängigkeiten scannen
+safety check -r requirements.txt
+```
+
+### **🛡️ Sicherheitsfeatures**
+- API-Schlüssel-Verschlüsselung
+- Rate-Limiting für API-Anfragen
+- Automatische Session-Invalidierung
+- Sichere Fehlerbehandlung
+
+---
+
+## 🛠️ **Wartung**
+
+### **🧹 Automatisierte Wartung**
+Das Projekt enthält professionelle Wartungsskripte im `scripts/` Verzeichnis:
+
+1. **PR Cleanup** - Überprüfung und Bewertung von Pull Requests
+2. **Security Fix** - Automatische Behebung von Sicherheitsproblemen
+3. **Changelog Update** - Automatische Aktualisierung des Änderungsprotokolls
+
+```bash
+# PR-Überprüfung durchführen
+python scripts/pr_cleanup.py
+
+# Sicherheitsprobleme beheben
+python scripts/security_fix.py
+
+# Changelog aktualisieren
+python scripts/update_changelog.py 1.2.0
+```
+
+### **🔄 Regelmäßige Wartungsaufgaben**
+- Abhängigkeitsaktualisierungen
+- Sicherheitsprüfungen
+- Performance-Optimierungen
+- Dokumentationsaktualisierungen
 
 ---
 
 ## 📄 **Lizenz**
 
-MIT License - siehe [LICENSE](LICENSE) für Details.
-
----
-
-## 🙏 **Acknowledgments**
-
-- [Telethon](https://github.com/LonamiWebs/Telethon) - Telegram-API
-- [Rich](https://github.com/Textualize/rich) - Terminal-UI
-- [Click](https://github.com/pallets/click) - CLI-Framework
-- [Mutagen](https://github.com/quodlibet/mutagen) - Audio-Metadaten
+Dieses Projekt ist unter der MIT-Lizenz lizenziert - siehe die [LICENSE](LICENSE) Datei für Details.
 
 ---
 
 <div align="center">
 
-**⭐ Gefällt Ihnen das Projekt? Geben Sie uns einen Stern! ⭐**
+**🎉 Danke, dass Sie den Telegram Audio Downloader verwenden!**
 
-[![GitHub stars](https://img.shields.io/github/stars/Elpablo777/Telegram-Audio-Downloader.svg?style=social&label=Star)](https://github.com/Elpablo777/Telegram-Audio-Downloader)
-
-Made with ❤️ by [Elpablo777](https://github.com/Elpablo777)
+ Wenn Sie Probleme finden oder Verbesserungen vorschlagen möchten, [erstellen Sie ein Issue](https://github.com/Elpablo777/Telegram-Audio-Downloader/issues) oder senden Sie einen [Pull Request](https://github.com/Elpablo777/Telegram-Audio-Downloader/pulls).
 
 </div>
