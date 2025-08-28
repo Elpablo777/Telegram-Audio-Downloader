@@ -36,16 +36,23 @@ class TestFileOperations:
         assert sanitize_filename("test>file.mp3") == "test_file.mp3"
         assert sanitize_filename("test|file.mp3") == "test_file.mp3"
         
+        # Test filename with emojis
+        assert sanitize_filename("🎵 My Song.mp3") == "My Song.mp3"
+        assert sanitize_filename("Song with 😊 emoji.mp3") == "Song with _ emoji.mp3"
+        assert sanitize_filename("🎵🎶🎤🎧🎼.mp3") == "audio_.mp3"
+        
         # Test filename with path traversal attempts
-        # The actual implementation replaces dots and slashes with underscores
-        assert sanitize_filename("../../../etc/passwd") == "_._._etc_passwd"
-        assert sanitize_filename("..\\..\\windows\\system32\\config\\sam") == "_._windows_system32_config_sam"
+        assert sanitize_filename("../../../etc/passwd") == "_etc_passwd"
+        assert sanitize_filename("..\\..\\windows\\system32\\config\\sam") == "_windows_system32_config_sam"
         
         # Test empty filename - the actual implementation returns "unknown_file"
         assert sanitize_filename("") == "unknown_file"
         
         # Test filename with only invalid characters
-        assert sanitize_filename("...") == "___"
+        assert sanitize_filename("...") == "unknown_file"
+        
+        # Test just extension
+        assert sanitize_filename(".mp3") == "audio_.mp3"
     
     def test_format_file_size(self):
         """Test der Dateigrößen-Formatierung."""
