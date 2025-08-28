@@ -1,6 +1,6 @@
 # 🔒 Sicherheitsbericht
 
-Generiert am: 2025-08-27 18:23:50
+Generiert am: 2025-08-28 08:55:25
 
 ## Abhängigkeiten
 **Status:** ℹ️
@@ -8,15 +8,15 @@ Generiert am: 2025-08-27 18:23:50
 - pip-audit nicht installiert. Installieren Sie es mit 'pip install pip-audit'.
 
 ## Workflow-Berechtigungen
-**Status:** ✅
+**Status:** ⚠️
 
-- Alle Workflows haben Berechtigungen definiert.
+- safety_scan.yml: Keine Berechtigungen definiert
+- pr_review.yml: Keine Berechtigungen definiert
+- test.yml: Keine Berechtigungen definiert
 
 ## Sensible Dateien
 **Status:** ⚠️
 
-- Möglicherweise sensible Datei gefunden: .venv\Lib\site-packages\pip\_vendor\certifi\cacert.pem
 - Möglicherweise sensible Datei gefunden: .env.example
-- Möglicherweise sensible Datei gefunden: src\telegram_audio_downloader\config.py
-- Möglicherweise sensible Datei gefunden: .github\discussions\config.yml
-- Möglicherweise sensible Datei gefunden: .venv\Lib\site-packages\pip\_vendor\certifi\cacert.pem
+- Möglicherweise sensible Datei gefunden: .github/discussions/config.yml
+- Möglicherweise sensible Datei gefunden: src/telegram_audio_downloader/config.py

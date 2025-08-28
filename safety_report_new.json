@@ -1,0 +1,4 @@
+Usage: safety check [OPTIONS]
+Try 'safety check --help' for help.
+
+Error: No such option: --requirement (Possible options: --check-unpinned-requirements, --ignore-unpinned-requirements)
