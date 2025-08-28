@@ -9,6 +9,10 @@ from datetime import datetime
 from pathlib import Path
 import threading
 
+from .logging_config import get_logger
+
+logger = get_logger(__name__)
+
 
 class MetricsCollector:
     """Sammelt und exportiert Metriken für das Monitoring."""

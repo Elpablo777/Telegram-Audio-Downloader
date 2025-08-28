@@ -15,6 +15,7 @@ from pathlib import Path
 
 from .models import AudioFile, TelegramGroup, db
 from .logging_config import get_logger
+from peewee import fn
 
 logger = get_logger(__name__)
 
