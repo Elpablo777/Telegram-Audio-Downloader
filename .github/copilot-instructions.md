@@ -11,8 +11,8 @@ TypeScript
 Inhalt der Datei
 
 
-Markdown-Dateien: Für Markdown-Dateien musst du vier Backticks (````) verwenden, um Code-Blöcke zu escapen.
-`name=filename.mdcode block inside file```
+````name=filename.md
+# Markdown-Inhalt
 
 
 Code-Snippet Beispiel:
