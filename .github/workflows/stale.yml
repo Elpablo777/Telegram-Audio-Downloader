@@ -24,5 +24,3 @@ jobs:
           stale-issue-label: 'no-issue-activity'
           days-before-stale: 30
           days-before-close: 7
-          days-before-issue-close: 7
-          days-before-pr-close: 7
