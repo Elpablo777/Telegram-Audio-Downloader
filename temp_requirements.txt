@@ -15,7 +15,7 @@ requests>=2.32.5  # Pinned: >=2.32.5 (security updates)
 urllib3>=2.5.0  # Pinned: >=2.5.0 (security updates)
 click==8.1.7  # Pinned: 8.1.7 (latest stable with security fixes)
 aiohttp==3.9.1  # Pinned: 3.9.1 (latest stable with security fixes)
-cryptography==44.0.1  # Pinned: 42.0.5 (latest stable with security fixes)
+cryptography==44.0.1  # Pinned: 44.0.1 (latest stable with security fixes)
 pydantic>=2.11.7,<3.0.0  # Pinned: >=2.11.7 (latest stable with security fixes)
 python-dateutil>=2.8.2
 fuzzywuzzy>=0.18.0
