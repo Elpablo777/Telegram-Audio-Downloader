@@ -1,54 +1,31 @@
-<<<<<<< HEAD
----
 name: 🔒 Safety Scan
-=======
-name: Python Package Security Scan
 
-# Minimal required permissions for the workflow
-permissions:
-  contents: read  # For checking out code
-  packages: read  # For downloading dependencies
-  actions: read   # For reading workflow data
-  security-events: write  # For security scanning
-  checks: write   # For creating check runs
-  pull-requests: write  # For PR comments
-  issues: write   # For creating issues
-
->>>>>>> origin/main
 on:
   pull_request:
     branches:
       - main
-      - develop
   push:
     branches:
       - main
-permissions:
-  contents: read
+      - develop
+
 jobs:
   safety:
     runs-on: ubuntu-latest
-<<<<<<< HEAD
-=======
-    
-    # Job-spezifische Berechtigungen
-    permissions:
-      contents: read  # For checking out code
-      security-events: write  # For reporting security issues
-      checks: write   # For creating check runs
-    
->>>>>>> origin/main
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
+          
       - name: Install Safety
         run: |
           python -m pip install --upgrade pip
           pip install safety
+          
       - name: Run Safety
         run: |
           safety check --full-report
