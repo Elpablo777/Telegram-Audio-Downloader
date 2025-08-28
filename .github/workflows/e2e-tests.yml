@@ -1,6 +1,5 @@
 
 name: 🧪 End-to-End Tests
-
 # Minimal required permissions for the workflow
 permissions:
   contents: read  # For checking out code
