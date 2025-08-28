@@ -15,6 +15,7 @@ REPO_ROOT = Path(__file__).parent.parent
 REQUIREMENTS_FILE = REPO_ROOT / "requirements.txt"
 REPORT_FILE = REPO_ROOT / "security_report.md"
 
+
 def run_command(cmd, cwd=None):
     """Führt einen Shell-Befehl aus und gibt die Ausgabe zurück."""
     try:
@@ -29,6 +30,7 @@ def run_command(cmd, cwd=None):
     except subprocess.CalledProcessError as e:
         print(f"Fehler beim Ausführen von {cmd}: {e}")
         return None
+
 
 def check_dependencies():
     """Überprüft die Abhängigkeiten auf bekannte Sicherheitslücken."""
@@ -49,6 +51,7 @@ def check_dependencies():
     except Exception as e:
         return {"status": "❌", "details": [f"Fehler bei der Überprüfung: {str(e)}"]}
 
+
 def check_secrets():
     """Überprüft das Repository auf versehentlich offengelegte Geheimnisse."""
     print("\n🔍 Suche nach exponierten Geheimnissen...")
@@ -56,7 +59,7 @@ def check_secrets():
     # Führe gitleaks aus, falls installiert
     if run_command(["which", "gitleaks"]):
         try:
-            leaks = run_command(["gitleaks", "detect", "--source=".", "-v"])
+            leaks = run_command(["gitleaks", "detect", "--source=.", "-v"])
             if "No leaks found" in leaks:
                 return {"status": "✅", "details": ["Keine exponierten Geheimnisse gefunden."]}
             else:
@@ -66,6 +69,7 @@ def check_secrets():
     else:
         return {"status": "ℹ️", "details": ["Gitleaks nicht installiert. Installieren Sie es mit 'brew install gitleaks'."]}
 
+
 def check_permissions():
     """Überprüft die Berechtigungen der Workflow-Dateien."""
     print("\n🔍 Überprüfe Workflow-Berechtigungen...")
@@ -73,15 +77,17 @@ def check_permissions():
     workflow_dir = REPO_ROOT / ".github" / "workflows"
     issues = []
     
-    for workflow_file in workflow_dir.glob("*.yml"):
-        with open(workflow_file, 'r') as f:
-            content = f.read()
-            if 'permissions:' not in content:
-                issues.append(f"{workflow_file.name}: Keine Berechtigungen definiert")
+    if workflow_dir.exists():
+        for workflow_file in workflow_dir.glob("*.yml"):
+            with open(workflow_file, 'r') as f:
+                content = f.read()
+                if 'permissions:' not in content:
+                    issues.append(f"{workflow_file.name}: Keine Berechtigungen definiert")
     
     if issues:
         return {"status": "⚠️", "details": issues}
     return {"status": "✅", "details": ["Alle Workflows haben Berechtigungen definiert."]}
+
 
 def generate_report(results):
     """Generiert einen Sicherheitsbericht im Markdown-Format."""
@@ -100,6 +106,7 @@ def generate_report(results):
     
     print(f"\n📊 Bericht wurde gespeichert unter: {REPORT_FILE}")
 
+
 def main():
     """Hauptfunktion für den Sicherheitsscan."""
     print("🚀 Starte Sicherheitsscan...")
@@ -112,6 +119,7 @@ def main():
     
     generate_report(results)
     print("\n✅ Sicherheitsscan abgeschlossen!")
+
 
 if __name__ == "__main__":
     main()
