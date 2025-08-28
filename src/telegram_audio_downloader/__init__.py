@@ -20,7 +20,7 @@ License: MIT
 Repository: https://github.com/Elpablo777/Telegram-Audio-Downloader
 """
 
-__version__ = "1.1.0"
+__version__ = "1.1.1"
 __author__ = "Elpablo777"
 __email__ = "hannover84@msn.com"
 __license__ = "MIT"

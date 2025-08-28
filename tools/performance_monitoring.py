@@ -53,8 +53,8 @@ class PerformanceMonitor:
     """
     
     def __init__(self):
-        self.metrics: List[PerformanceMetric] = []
-        self.benchmarks: List[BenchmarkResult] = []
+        self.metrics: list[PerformanceMetric] = []
+        self.benchmarks: list[BenchmarkResult] = []
         self.start_time = time.time()
         self.process = psutil.Process()
         
@@ -65,7 +65,7 @@ class PerformanceMonitor:
             value=value,
             unit=unit,
             timestamp=datetime.now(),
-            context=context or {}
+            context=context or {},
         )
         self.metrics.append(metric)
         
@@ -86,23 +86,29 @@ class PerformanceMonitor:
                     'memory_percent': memory.percent,
                     'memory_available_mb': memory.available / (1024 * 1024),
                     'disk_usage_percent': disk.percent,
-                    'disk_free_gb': disk.free / (1024 * 1024 * 1024)
+                    'disk_free_gb': disk.free / (1024 * 1024 * 1024),
                 },
                 'process': {
                     'memory_rss_mb': process_memory.rss / (1024 * 1024),
                     'memory_vms_mb': process_memory.vms / (1024 * 1024),
                     'cpu_percent': process_cpu,
-                    'threads': self.process.num_threads()
+                    'threads': self.process.num_threads(),
                 },
                 'python': {
                     'version': sys.version_info[:3],
-                    'platform': sys.platform
-                }
+                    'platform': sys.platform,
+                },
             }
         except Exception as e:
             return {'error': str(e)}
             
-    async def benchmark_async_operation(self, operation_name: str, operation_func, *args, **kwargs) -> BenchmarkResult:
+    async def benchmark_async_operation(
+        self, 
+        operation_name: str, 
+        operation_func, 
+        *args, 
+        **kwargs
+    ) -> BenchmarkResult:
         """Benchmark an async operation with comprehensive metrics."""
         start_time = time.time()
         start_memory = self.process.memory_info().rss / (1024 * 1024)
@@ -127,7 +133,7 @@ class PerformanceMonitor:
                 memory_peak_mb=memory_peak,
                 cpu_usage_percent=cpu_usage,
                 success=True,
-                metadata={'result_type': type(result).__name__ if result else 'None'}
+                metadata={'result_type': type(result).__name__ if result else 'None'},
             )
             
         except Exception as e:
@@ -140,13 +146,19 @@ class PerformanceMonitor:
                 memory_peak_mb=max(start_memory, end_memory),
                 cpu_usage_percent=self.process.cpu_percent(),
                 success=False,
-                error_message=str(e)
+                error_message=str(e),
             )
             
         self.benchmarks.append(benchmark)
         return benchmark
         
-    def benchmark_sync_operation(self, operation_name: str, operation_func, *args, **kwargs) -> BenchmarkResult:
+    def benchmark_sync_operation(
+        self, 
+        operation_name: str, 
+        operation_func, 
+        *args, 
+        **kwargs
+    ) -> BenchmarkResult:
         """Benchmark a synchronous operation."""
         start_time = time.time()
         start_memory = self.process.memory_info().rss / (1024 * 1024)
@@ -164,7 +176,7 @@ class PerformanceMonitor:
                 memory_peak_mb=memory_peak,
                 cpu_usage_percent=self.process.cpu_percent(),
                 success=True,
-                metadata={'result_type': type(result).__name__ if result else 'None'}
+                metadata={'result_type': type(result).__name__ if result else 'None'},
             )
             
         except Exception as e:
@@ -177,7 +189,7 @@ class PerformanceMonitor:
                 memory_peak_mb=max(start_memory, end_memory),
                 cpu_usage_percent=self.process.cpu_percent(),
                 success=False,
-                error_message=str(e)
+                error_message=str(e),
             )
             
         self.benchmarks.append(benchmark)
@@ -193,11 +205,11 @@ class PerformanceMonitor:
                 'start_time': self.start_time,
                 'export_time': time.time(),
                 'duration_seconds': time.time() - self.start_time,
-                'system_info': self.get_system_metrics()
+                'system_info': self.get_system_metrics(),
             },
             'metrics': [asdict(metric) for metric in self.metrics],
             'benchmarks': [asdict(benchmark) for benchmark in self.benchmarks],
-            'summary': self.get_performance_summary()
+            'summary': self.get_performance_summary(),
         }
         
         # Convert datetime objects to ISO strings for JSON serialization
@@ -235,8 +247,8 @@ class PerformanceMonitor:
                     'min_duration_ms': min(durations),
                     'max_duration_ms': max(durations),
                     'avg_memory_mb': sum(memory_peaks) / len(memory_peaks),
-                    'peak_memory_mb': max(memory_peaks)
-                }
+                    'peak_memory_mb': max(memory_peaks),
+                },
             }
         else:
             summary = {
@@ -244,7 +256,7 @@ class PerformanceMonitor:
                 'successful': 0,
                 'failed': len(failed_benchmarks),
                 'success_rate': 0.0,
-                'error_summary': [b.error_message for b in failed_benchmarks]
+                'error_summary': [b.error_message for b in failed_benchmarks],
             }
             
         return summary
@@ -256,7 +268,7 @@ class AutomatedBenchmarks:
     def __init__(self, monitor: PerformanceMonitor):
         self.monitor = monitor
         
-    async def run_file_io_benchmarks(self) -> List[BenchmarkResult]:
+    async def run_file_io_benchmarks(self) -> list[BenchmarkResult]:
         """Run file I/O performance benchmarks."""
         results = []
         
@@ -289,7 +301,7 @@ class AutomatedBenchmarks:
         
         return results
         
-    async def run_async_benchmarks(self) -> List[BenchmarkResult]:
+    async def run_async_benchmarks(self) -> list[BenchmarkResult]:
         """Run async operation benchmarks."""
         results = []
         
@@ -319,7 +331,7 @@ class AutomatedBenchmarks:
         
         return results
         
-    async def run_memory_benchmarks(self) -> List[BenchmarkResult]:
+    async def run_memory_benchmarks(self) -> list[BenchmarkResult]:
         """Run memory usage benchmarks."""
         results = []
         
@@ -351,14 +363,14 @@ class AutomatedBenchmarks:
         
         return results
         
-    async def run_full_benchmark_suite(self) -> Dict[str, List[BenchmarkResult]]:
+    async def run_full_benchmark_suite(self) -> Dict[str, list[BenchmarkResult]]:
         """Run the complete benchmark suite."""
         print("🚀 Starting Full Performance Benchmark Suite...")
         
         suite_results = {
             'file_io': await self.run_file_io_benchmarks(),
             'async_operations': await self.run_async_benchmarks(),
-            'memory_operations': await self.run_memory_benchmarks()
+            'memory_operations': await self.run_memory_benchmarks(),
         }
         
         print("✅ Benchmark Suite Completed!")
