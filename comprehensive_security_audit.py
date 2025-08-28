@@ -158,9 +158,11 @@ class ComprehensiveSecurityAuditor:
             file_path = self.project_path / file_pattern
             if file_path.exists():
                 stat = file_path.stat()
-                # Check if file is readable by others (Unix permissions)
-                if stat.st_mode & 0o044:  # Others can read
+                # Check if file is readable by group or others (Unix permissions)
+                if stat.st_mode & 0o004:  # Others can read
                     issues.append(f"File {file_pattern} is readable by others")
+                if stat.st_mode & 0o040:  # Group can read
+                    issues.append(f"File {file_pattern} is readable by group")
         
         return {
             "status": "✅" if len(issues) == 0 else "⚠️",
