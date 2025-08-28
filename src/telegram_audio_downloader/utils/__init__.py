@@ -110,11 +110,10 @@ def sanitize_filename(filename: str, max_length: int = 255) -> str:
         if name_without_ext in RESERVED_NAMES:
             sanitized = f"_{sanitized}"
 
-    # 10. Länge begrenzen
-    if sanitized and len(sanitized) > max_length:
-        name, ext = os.path.splitext(sanitized)
-        max_name_length = max_length - len(ext)
-        sanitized = name[:max_name_length] + ext
+        if max_name_length <= 0:
+            sanitized = "unknown_file" + ext
+        else:
+            sanitized = name[:max_name_length] + ext
 
     return sanitized or "unknown_file"
 
