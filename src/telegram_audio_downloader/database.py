@@ -56,7 +56,6 @@ class Database:
         Returns:
             Initialisierte SqliteDatabase-Instanz
         """
-        global db
         
         # Stelle sicher, dass das Datenbankverzeichnis existiert
         db_dir = Path(self.db_path).parent
@@ -147,7 +146,6 @@ class Database:
 
     def close(self) -> None:
         """Schließt die Datenbankverbindung."""
-        global db
         if db and not db.is_closed():
             db.close()
 
@@ -159,7 +157,6 @@ class Database:
         Returns:
             Die zurückgesetzte Datenbank-Instanz
         """
-        global db
         if db and db.is_closed():
             db.connect()
 
@@ -191,7 +188,6 @@ def init_db(db_path: Optional[str] = None) -> SqliteDatabase:
 @with_database_error_handling
 def close_db() -> None:
     """Schließt die Datenbankverbindung."""
-    global db
     if db and not db.is_closed():
         db.close()
 
@@ -199,7 +195,6 @@ def close_db() -> None:
 @with_database_error_handling
 def reset_db() -> SqliteDatabase:
     """Setzt die Datenbank zurück (nicht für Produktivumgebung geeignet)."""
-    global db
     if not db.is_closed():
         db.close()
     
@@ -219,7 +214,6 @@ def get_db_connection() -> SqliteDatabase:
     Returns:
         Aktive SqliteDatabase-Instanz
     """
-    global db
     if db is None or db.is_closed():
         init_db()
     return db

@@ -10,6 +10,7 @@ Bietet nahtlose Integration mit:
 
 import os
 import sys
+import subprocess
 import platform
 import logging
 from pathlib import Path

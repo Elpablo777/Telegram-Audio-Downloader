@@ -9,6 +9,7 @@ Automatische Korrekturmechanismen für:
 """
 
 import asyncio
+import json
 import time
 import smtplib
 from email.mime.text import MIMEText
