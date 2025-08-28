@@ -37,18 +37,17 @@ def check_dependencies():
     # Führe safety check aus
     try:
         safety_result = run_command(["safety", "check", "--json"])
-        if safety_result is not None:
-            if safety_result:  # Prüfe ob Ergebnis nicht leer ist
-                try:
-                    vulnerabilities = json.loads(safety_result)
-                    if vulnerabilities:
-                        return {
-                            "status": "⚠️",
-                            "details": [f"{v['package_name']} {v['vulnerable_spec']}: {v['advisory']}" 
-                                       for v in vulnerabilities]
-                        }
-                except json.JSONDecodeError as e:
-                    return {"status": "❌", "details": [f"Fehler beim Parsen der safety-Ausgabe: {str(e)}"]}
+        if safety_result is not None and safety_result:  # Prüfe ob Ergebnis nicht leer ist
+            try:
+                vulnerabilities = json.loads(safety_result)
+                if vulnerabilities:
+                    return {
+                        "status": "⚠️",
+                        "details": [f"{v['package_name']} {v['vulnerable_spec']}: {v['advisory']}" 
+                                   for v in vulnerabilities]
+                    }
+            except json.JSONDecodeError as e:
+                return {"status": "❌", "details": [f"Fehler beim Parsen der safety-Ausgabe: {str(e)}"]}
             return {"status": "✅", "details": ["Keine bekannten Sicherheitslücken gefunden."]}
         else:
             return {"status": "❌", "details": ["Safety-Tool nicht verfügbar oder Ausführung fehlgeschlagen."]}
