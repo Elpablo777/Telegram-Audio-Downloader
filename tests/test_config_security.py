@@ -41,21 +41,21 @@ class TestConfigSecurity:
     def test_config_encryption_key_handling(self):
         """Test sichere Handhabung von Verschlüsselungsschlüsseln."""
         # Test mit Verschlüsselungsschlüssel
-        config = Config(encryption_key="super_secret_key")
+        config = Config(encryption_key="YOUR_ENCRYPTION_KEY")
         
         # Der Schlüssel sollte sicher gespeichert werden
-        assert config.encryption_key == "super_secret_key"
+        assert config.encryption_key == "YOUR_ENCRYPTION_KEY"
         
         # Bei der Konvertierung in ein Dictionary sollte der Schlüssel enthalten sein
         # (In Produktion würde man ihn maskieren)
         config_dict = config.to_dict()
-        assert config_dict["encryption_key"] == "super_secret_key"
+        assert config_dict["encryption_key"] == "YOUR_ENCRYPTION_KEY"
     
     def test_config_file_permissions(self):
         """Test Dateiberechtigungen für Konfigurationsdateien."""
         config = Config(
-            api_id="123456",
-            api_hash="test_hash"
+            api_id="YOUR_API_ID",
+            api_hash="YOUR_API_HASH"
         )
         
         # Speichere Konfiguration in JSON-Datei
@@ -79,9 +79,9 @@ class TestConfigSecurity:
         # In Produktion würde man hier Funktionen implementieren,
         # um sensible Daten in Logs zu maskieren
         config = Config(
-            api_id="123456",
-            api_hash="sensitive_hash",
-            encryption_key="super_secret_key"
+            api_id="YOUR_API_ID",
+            api_hash="YOUR_API_HASH",
+            encryption_key="YOUR_ENCRYPTION_KEY"
         )
         
         # Konvertiere in Dictionary
@@ -89,26 +89,26 @@ class TestConfigSecurity:
         
         # In Produktion würde man hier sensible Daten maskieren
         # Für diesen Test prüfen wir, dass die Daten vorhanden sind
-        assert config_dict["api_id"] == "123456"
-        assert config_dict["api_hash"] == "sensitive_hash"
-        assert config_dict["encryption_key"] == "super_secret_key"
+        assert config_dict["api_id"] == "YOUR_API_ID"
+        assert config_dict["api_hash"] == "YOUR_API_HASH"
+        assert config_dict["encryption_key"] == "YOUR_ENCRYPTION_KEY"
     
     def test_config_environment_variable_security(self):
         """Test sichere Handhabung von Umgebungsvariablen."""
         # Setze sensible Umgebungsvariablen
         sensitive_env = {
-            "API_ID": "789012",
-            "API_HASH": "env_sensitive_hash",
-            "ENCRYPTION_KEY": "env_secret_key"
+            "API_ID": "YOUR_ENV_API_ID",
+            "API_HASH": "YOUR_ENV_API_HASH",
+            "ENCRYPTION_KEY": "YOUR_ENV_ENCRYPTION_KEY"
         }
         
         with patch.dict(os.environ, sensitive_env):
             config = Config.from_env()
             
             # Prüfe, dass die Werte korrekt geladen wurden
-            assert config.api_id == "789012"
-            assert config.api_hash == "env_sensitive_hash"
-            assert config.encryption_key == "env_secret_key"
+            assert config.api_id == "YOUR_ENV_API_ID"
+            assert config.api_hash == "YOUR_ENV_API_HASH"
+            assert config.encryption_key == "YOUR_ENV_ENCRYPTION_KEY"
     
     def test_config_file_security_with_invalid_json(self):
         """Test Sicherheit bei ungültigen JSON-Konfigurationsdateien."""
@@ -127,7 +127,7 @@ class TestConfigSecurity:
         # (In Produktion würde man hier sicherere Parsing-Methoden verwenden)
         config_file = self.config_dir / "malicious_config.json"
         malicious_data = {
-            "api_id": "123456",
+            "api_id": "YOUR_API_ID",
             "__class__": "malicious_class",
             "__module__": "malicious_module"
         }
@@ -137,22 +137,22 @@ class TestConfigSecurity:
         
         # Das Laden sollte funktionieren, aber bösartige Attribute sollten ignoriert werden
         config = Config.from_file(config_file)
-        assert config.api_id == "123456"
+        assert config.api_id == "YOUR_API_ID"
         # Die bösartigen Attribute sollten nicht in der Config-Klasse existieren
     
     def test_config_memory_security(self):
         """Test Speichersicherheit der Konfiguration."""
         # Erstelle eine Konfiguration mit sensiblen Daten
         config = Config(
-            api_id="123456",
-            api_hash="sensitive_hash",
-            encryption_key="super_secret_key"
+            api_id="YOUR_API_ID",
+            api_hash="YOUR_API_HASH",
+            encryption_key="YOUR_ENCRYPTION_KEY"
         )
         
         # Prüfe, dass die sensiblen Daten im Speicher sind
-        assert config.api_id == "123456"
-        assert config.api_hash == "sensitive_hash"
-        assert config.encryption_key == "super_secret_key"
+        assert config.api_id == "YOUR_API_ID"
+        assert config.api_hash == "YOUR_API_HASH"
+        assert config.encryption_key == "YOUR_ENCRYPTION_KEY"
         
         # In Produktion würde man hier sicherere Speichermethoden verwenden
         # (z.B. sichere Speicherbereiche, Verschlüsselung im Speicher)
@@ -163,8 +163,8 @@ class TestConfigSecurity:
         # um Konfigurationszugriffe zu verfolgen
         
         config = Config(
-            api_id="123456",
-            api_hash="test_hash"
+            api_id="YOUR_API_ID",
+            api_hash="YOUR_API_HASH"
         )
         
         # Zugriff auf sensible Daten
@@ -173,22 +173,22 @@ class TestConfigSecurity:
         
         # In Produktion würde man hier Logs schreiben
         # Für diesen Test prüfen wir nur, dass der Zugriff funktioniert
-        assert api_id == "123456"
-        assert api_hash == "test_hash"
+        assert api_id == "YOUR_API_ID"
+        assert api_hash == "YOUR_API_HASH"
     
     def test_config_access_control(self):
         """Test Zugriffskontrolle für Konfigurationen."""
         # In Produktion würde man hier Zugriffskontrollen implementieren
         
         config = Config(
-            api_id="123456",
-            api_hash="test_hash"
+            api_id="YOUR_API_ID",
+            api_hash="YOUR_API_HASH"
         )
         
         # Prüfe, dass nur autorisierte Komponenten auf die Konfiguration zugreifen können
         # In diesem Test prüfen wir nur die grundlegende Funktionalität
-        assert config.api_id == "123456"
-        assert config.api_hash == "test_hash"
+        assert config.api_id == "YOUR_API_ID"
+        assert config.api_hash == "YOUR_API_HASH"
         
         # In Produktion würde man hier Berechtigungsprüfungen implementieren
     
@@ -198,12 +198,12 @@ class TestConfigSecurity:
         
         # Für diesen Test prüfen wir nur die grundlegende Struktur
         config = Config(
-            api_id="123456",
-            api_hash="test_hash",
-            encryption_key="test_key"
+            api_id="YOUR_API_ID",
+            api_hash="YOUR_API_HASH",
+            encryption_key="YOUR_ENCRYPTION_KEY"
         )
         
         # In Produktion würde man hier Methoden zum sicheren Laden/Speichern implementieren
-        assert config.api_id == "123456"
-        assert config.api_hash == "test_hash"
-        assert config.encryption_key == "test_key"
+        assert config.api_id == "YOUR_API_ID"
+        assert config.api_hash == "YOUR_API_HASH"
+        assert config.encryption_key == "YOUR_ENCRYPTION_KEY"
