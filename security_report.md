@@ -1,22 +1,20 @@
 # 🔒 Sicherheitsbericht
 
-Generiert am: 2025-08-27 18:23:50
+Generiert am: 2025-08-28 13:03:01
 
 ## Abhängigkeiten
+**Status:** ❌
+
+- Safety-Tool nicht verfügbar oder Ausführung fehlgeschlagen.
+
+## Geheimnisse
 **Status:** ℹ️
 
-- pip-audit nicht installiert. Installieren Sie es mit 'pip install pip-audit'.
+- Gitleaks nicht installiert. Installieren Sie es mit 'brew install gitleaks'.
 
-## Workflow-Berechtigungen
-**Status:** ✅
-
-- Alle Workflows haben Berechtigungen definiert.
-
-## Sensible Dateien
+## Berechtigungen
 **Status:** ⚠️
 
-- Möglicherweise sensible Datei gefunden: .venv\Lib\site-packages\pip\_vendor\certifi\cacert.pem
-- Möglicherweise sensible Datei gefunden: .env.example
-- Möglicherweise sensible Datei gefunden: src\telegram_audio_downloader\config.py
-- Möglicherweise sensible Datei gefunden: .github\discussions\config.yml
-- Möglicherweise sensible Datei gefunden: .venv\Lib\site-packages\pip\_vendor\certifi\cacert.pem
+- safety_scan.yml: Keine Berechtigungen definiert
+- pr_review.yml: Keine Berechtigungen definiert
+- test.yml: Keine Berechtigungen definiert
