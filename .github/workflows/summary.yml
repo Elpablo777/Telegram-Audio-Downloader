@@ -34,7 +34,7 @@ jobs:
         run: |
           echo "${{ steps.inference.outputs.response }}" > /tmp/ai_response_raw.txt
           # Check for potentially unsafe content (HTML/script tags, iframes, etc.)
-          if grep -Ei '<script|<iframe|<img|<a |javascript:' /tmp/ai_response_raw.txt; then
+          if grep -Ei '<(script|iframe|img|a)\b|javascript:' /tmp/ai_response_raw.txt; then
             echo "Unsafe content detected in AI response. Failing workflow."
             exit 1
           fi
