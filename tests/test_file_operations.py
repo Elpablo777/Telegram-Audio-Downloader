@@ -44,8 +44,17 @@ class TestFileOperations:
         # Test empty filename - the actual implementation returns "unknown_file"
         assert sanitize_filename("") == "unknown_file"
         
-        # Test filename with only invalid characters
-        assert sanitize_filename("...") == "___"
+        # Test filename with only invalid characters - improved behavior returns "unknown_file"
+        assert sanitize_filename("...") == "unknown_file"
+        
+        # Test filename with emojis - should be replaced with underscores
+        assert sanitize_filename("test🎵file.mp3") == "test_file.mp3"
+        assert sanitize_filename("😀😁😂.mp3") == "_.mp3"
+        
+        # Test filename with international characters - should be preserved
+        assert sanitize_filename("файл_с_кириллицей.mp3") == "файл_с_кириллицей.mp3"
+        assert sanitize_filename("中文文件名.mp3") == "中文文件名.mp3"
+        assert sanitize_filename("Café.mp3") == "Café.mp3"
     
     def test_format_file_size(self):
         """Test der Dateigrößen-Formatierung."""
