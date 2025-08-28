@@ -28,25 +28,25 @@ from enum import Enum
 
 class ThreatLevel(Enum):
     """Bedrohungsgrad-Klassifikation."""
-    CRITICAL = "critical"
-    HIGH = "high" 
-    MEDIUM = "medium"
-    LOW = "low"
-    INFO = "info"
+    CRITICAL = "kritisch"
+    HIGH = "hoch"
+    MEDIUM = "mittel"
+    LOW = "niedrig"
+    INFO = "info"  # "info" is commonly used in German IT, but for full consistency: "information"
 
 
 class VulnerabilityType(Enum):
     """Typ der Sicherheitslücke."""
-    CODE_INJECTION = "code_injection"
-    XSS = "cross_site_scripting"
-    SQL_INJECTION = "sql_injection"
-    CRYPTO_WEAKNESS = "cryptographic_weakness"
-    INSECURE_STORAGE = "insecure_storage"
-    DEPENDENCY_VULN = "dependency_vulnerability"
-    SECRET_EXPOSURE = "secret_exposure"
-    AUTHENTICATION = "authentication_bypass"
-    AUTHORIZATION = "authorization_bypass"
-    BUFFER_OVERFLOW = "buffer_overflow"
+    CODE_INJECTION = "code-einschleusung"
+    XSS = "cross-site-scripting"
+    SQL_INJECTION = "sql-einschleusung"
+    CRYPTO_WEAKNESS = "kryptographische_schwachstelle"
+    INSECURE_STORAGE = "unsichere_speicherung"
+    DEPENDENCY_VULN = "abhängigkeits_schwachstelle"
+    SECRET_EXPOSURE = "geheimnis_exponierung"
+    AUTHENTICATION = "authentifizierungs_umgehung"
+    AUTHORIZATION = "autorisierungs_umgehung"
+    BUFFER_OVERFLOW = "pufferüberlauf"
 
 
 @dataclass
