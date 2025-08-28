@@ -110,11 +110,11 @@ def sanitize_filename(filename: str, max_length: int = 255) -> str:
     sanitized = sanitized.strip(" .")
 
     # Prüfen, ob nach der Bereinigung noch etwas übrig ist
-    # Check if we only have underscores before the extension
+    # Prüfen, ob vor der Erweiterung nur Unterstriche vorhanden sind
     if not sanitized:
         return "unknown_file"
     
-    # Check if filename stem is only underscores
+    # Prüfen, ob der Dateiname (ohne Erweiterung) nur aus Unterstrichen besteht
     stem = Path(sanitized).stem
     if not stem or stem == "_" * len(stem):
         return "unknown_file"
