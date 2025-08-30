@@ -155,6 +155,23 @@ telegram-audio-downloader download @gruppe --timeout=600
 telegram-audio-downloader --debug download @gruppe --limit=1
 ```
 
+### **Q: "Cannot install cryptography==X.Y.Z and cryptography>=A.B.C" - wie lösen?**
+**A:** Doppelte/konfliktäre Dependency-Spezifikationen:
+```bash
+# 1. Cache leeren und neu installieren
+pip cache purge
+pip uninstall telegram-audio-downloader telethon cryptography -y
+
+# 2. Aktuelle requirements.txt verwenden
+pip install -r requirements.txt
+
+# 3. Bei anhaltenden Problemen: manuelle Installation
+pip install telethon>=1.40.0 cryptography>=45.0.6
+pip install -e .
+```
+
+**Ursache:** Ältere telethon-Versionen (< 1.40.0) sind nicht kompatibel mit neueren cryptography-Versionen.
+
 ### **Q: "Database is locked" Fehler - Lösung?**
 **A:** SQLite-Datenbank-Konflikt:
 ```bash
