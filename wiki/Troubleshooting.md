@@ -115,21 +115,36 @@ pip --version
 
 ### **Dependency Conflicts**
 
-**Problem**: `ERROR: pip's dependency resolver does not currently have a necessary feature needed for this project`
+**Problem**: `ERROR: pip's dependency resolver does not currently have a necessary feature needed for this project` or `ERROR: Cannot install cryptography==X.Y.Z and cryptography>=A.B.C`
+
+**Diagnose**:
+```bash
+# Prüfe auf doppelte Package-Spezifikationen
+grep -n "cryptography\|telethon" requirements.txt
+
+# Prüfe pip-Abhängigkeitsauflöser
+pip check
+```
 
 **Lösung**:
 ```bash
 # 1. Clean Installation
-pip uninstall telegram-audio-downloader telethon -y
+pip uninstall telegram-audio-downloader telethon cryptography -y
+pip cache purge
+
+# 2. Für moderne Versionen (empfohlen)
+pip install telethon>=1.40.0 cryptography>=45.0.6
+
+# 3. Kompatibilitätsprüfung
+pip check
+
+# 4. Falls Probleme bestehen, schrittweise Installation
+pip install --upgrade pip setuptools wheel
 pip install --no-deps -r requirements.txt
 pip install -e .
-
-# 2. Spezifische Versionen erzwingen
-pip install telethon==1.40.0 --force-reinstall
-
-# 3. Compatibility-Check
-pip check
 ```
+
+**Hinweis**: Ältere telethon-Versionen (< 1.40.0) sind nicht kompatibel mit neueren cryptography-Versionen (>= 45.0.0).
 
 ---
 
