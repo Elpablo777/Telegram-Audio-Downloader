@@ -122,7 +122,7 @@ pip --version
 # Prüfe auf doppelte Package-Spezifikationen
 grep -n "cryptography\|telethon" requirements.txt
 
-# Prüfe pip dependency resolver
+# Prüfe pip-Abhängigkeitsauflöser
 pip check
 ```
 
