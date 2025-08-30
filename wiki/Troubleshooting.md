@@ -135,7 +135,7 @@ pip cache purge
 # 2. Für moderne Versionen (empfohlen)
 pip install telethon>=1.40.0 cryptography>=45.0.6
 
-# 3. Kompatibilitäts-Check
+# 3. Kompatibilitätsprüfung
 pip check
 
 # 4. Falls Probleme bestehen, schrittweise Installation
