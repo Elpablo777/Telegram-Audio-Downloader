@@ -77,6 +77,16 @@ jobs:
         python -m pip install --upgrade pip setuptools wheel
         pip install pytest pytest-cov ruff mypy safety bandit
 
+    - name: 📦 Install Dependencies  
+      run: |
+        echo "🔧 Installing project dependencies..."
+        if [ -f requirements.txt ]; then 
+          pip install --timeout=300 -r requirements.txt
+        else
+          echo "⚠️ No requirements.txt found, skipping dependency installation"
+        fi
+      continue-on-error: true
+
     - name: 🧪 Validate Package Imports (non-fatal)
       run: |
         python - <<'PY'
