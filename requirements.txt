@@ -2,7 +2,7 @@
 # Core libraries required for the application to run
 
 # ===== Telegram Client =====
-telethon==1.34.0  # Pinned: 1.34.0 (latest stable)
+telethon>=1.40.0  # Pinned: >=1.40.0 (compatible versions)
 # MTProto API client for Telegram
 
 # ===== Environment & Configuration =====
@@ -47,9 +47,7 @@ click==8.1.7  # Pinned: 8.1.7 (latest stable with security fixes)
 aiohttp>=3.12.15  # Pinned: >=3.12.15 (security updates - fixes multiple CVEs)
 # Async HTTP client for API calls
 
-# ===== Cryptography =====
-cryptography==44.0.1  # Pinned: 44.0.1 (latest stable with security fixes)
-# Encryption and security utilities
+# ===== Cryptography ===== (moved to Security Updates section above)
 
 # ===== Data Validation =====
 pydantic>=2.11.7,<3.0.0  # Pinned: >=2.11.7 (latest stable with security fixes)
