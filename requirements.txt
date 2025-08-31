@@ -47,9 +47,7 @@ click==8.1.7  # Pinned: 8.1.7 (latest stable with security fixes)
 aiohttp>=3.12.15  # Pinned: >=3.12.15 (security updates - fixes multiple CVEs)
 # Async HTTP client for API calls
 
-# ===== Cryptography =====
-cryptography==44.0.1  # Pinned: 44.0.1 (latest stable with security fixes)
-# Encryption and security utilities
+# ===== Cryptography ===== (moved to Security Updates section above)
 
 # ===== Data Validation =====
 pydantic>=2.11.7,<3.0.0  # Pinned: >=2.11.7 (latest stable with security fixes)
