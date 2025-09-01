@@ -67,7 +67,7 @@ def check_secrets():
         except Exception as e:
             return {"status": "❌", "details": [f"Fehler bei der Überprüfung: {str(e)}"]}
     else:
-        return {"status": "ℹ️", "details": ["Gitleaks nicht installiert. Installieren Sie es mit 'brew install gitleaks'."]}
+        return {"status": "ℹ️", "details": ["Gitleaks nicht installiert. Installieren Sie es von https://github.com/gitleaks/gitleaks/releases"]}
 
 
 def check_permissions():
