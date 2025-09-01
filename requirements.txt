@@ -20,7 +20,7 @@ aiofiles>=23.2.1  # Pinned: >=23.2.1 (latest stable)
 # Asynchronous file operations
 
 # ===== System Monitoring =====
-psutil>=6.1.0,<7.0.0  # Pinned: ~6.1.0 (compatible with telethon)
+psutil>=6.1.0,<8.0.0  # Pinned: ~6.1.0 (compatible with telethon)
 # System and process utilities
 
 # ===== Audio Processing =====
