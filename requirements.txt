@@ -2,7 +2,7 @@
 # Core libraries required for the application to run
 
 # ===== Telegram Client =====
-telethon==1.34.0  # Pinned: 1.34.0 (latest stable)
+telethon==1.40.0  # Pinned: 1.34.0 (latest stable)
 # MTProto API client for Telegram
 
 # ===== Environment & Configuration =====
